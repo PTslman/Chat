@@ -6,66 +6,90 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    <meta name="color-scheme" content="dark">
-    <title>💬 نيزك - دردشة آمنة</title>
+    <title>💬 نيزك</title>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-    <!-- Font Awesome 6 (مجاني) -->
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* ==============================================================
-           RESET & BASE
-           ============================================================== */
+        /* ============================================================
+           RESET & ROOT VARIABLES
+           ============================================================ */
         *,
         *::before,
         *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         :root {
-            --bg-primary: #0e0e10;
-            --bg-secondary: #1a1a1e;
-            --bg-card: #232328;
-            --bg-input: #2d2d34;
-            --bg-hover: #2f2f36;
-            --border-color: rgba(255, 255, 255, 0.04);
-            --text-primary: #f0f0f0;
-            --text-secondary: #9e9ea7;
-            --text-muted: #5c5c66;
-            --accent: #5865f2;
-            --accent-hover: #4752c4;
-            --accent-glow: rgba(88, 101, 242, 0.25);
-            --green: #3ba55d;
+            /* Backgrounds */
+            --bg-app: #0a0a0c;
+            --bg-header: rgba(18, 18, 22, 0.92);
+            --bg-messages: #0e0e10;
+            --bg-bubble-other: #202024;
+            --bg-bubble-self: #2b6ef0;
+            --bg-input: #1a1a1e;
+            --bg-card: #16161a;
+
+            /* Text */
+            --text-primary: #efeff1;
+            --text-secondary: #adadb8;
+            --text-muted: #5f5f6b;
+            --text-bubble-other: #efeff1;
+            --text-bubble-self: #ffffff;
+
+            /* Accents */
+            --accent: #2b6ef0;
+            --accent-hover: #1a5bd4;
+            --accent-glow: rgba(43, 110, 240, 0.15);
+
+            /* Status */
+            --green: #23a55a;
             --red: #ed4245;
             --orange: #faa81a;
-            --radius: 16px;
+            --purple: #a78bfa;
+
+            /* Sizing */
+            --radius-lg: 20px;
+            --radius-md: 14px;
             --radius-sm: 10px;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+            --radius-bubble: 18px;
+
+            /* Shadows */
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+            /* Transitions */
             --transition: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         html,
         body {
             height: 100%;
             overflow: hidden;
-            background: var(--bg-primary);
+            background: var(--bg-app);
             color: var(--text-primary);
+            font-size: 16px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ==============================================================
-           SCROLLBAR
-           ============================================================== */
+        /* ============================================================
+           SCROLLBAR STYLING
+           ============================================================ */
         ::-webkit-scrollbar {
-            width: 4px;
+            width: 3px;
         }
         ::-webkit-scrollbar-track {
             background: transparent;
@@ -75,40 +99,40 @@
             border-radius: 10px;
         }
 
-        /* ==============================================================
-           APP CONTAINER
-           ============================================================== */
+        /* ============================================================
+           APP WRAPPER
+           ============================================================ */
         #app {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100%;
             width: 100%;
-            background: var(--bg-primary);
+            background: var(--bg-app);
         }
 
         .chat-container {
             width: 100%;
-            max-width: 480px;
+            max-width: 440px;
             height: 100%;
-            max-height: 960px;
-            background: var(--bg-secondary);
+            max-height: 900px;
+            background: var(--bg-messages);
             display: flex;
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.03);
         }
 
-        @media (min-width: 481px) {
+        @media (min-width: 441px) {
             .chat-container {
-                border-radius: var(--radius);
-                height: 92vh;
-                box-shadow: var(--shadow);
+                border-radius: var(--radius-lg);
+                height: 90vh;
+                box-shadow: var(--shadow-lg);
             }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 440px) {
             .chat-container {
                 max-height: 100vh;
                 border-radius: 0;
@@ -117,17 +141,19 @@
             }
         }
 
-        /* ==============================================================
-           HEADER
-           ============================================================== */
+        /* ============================================================
+           HEADER - Telegram Style
+           ============================================================ */
         .chat-header {
-            background: var(--bg-secondary);
-            padding: 12px 18px 10px;
-            padding-top: 44px;
+            background: var(--bg-header);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 18px 10px;
+            padding-top: 46px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
             flex-shrink: 0;
             min-height: 56px;
             position: relative;
@@ -136,41 +162,48 @@
 
         .status-bar {
             position: absolute;
-            top: 10px;
-            left: 0;
-            right: 0;
-            text-align: center;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
             color: var(--text-muted);
             font-size: 11px;
             font-weight: 500;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex: 1;
             min-width: 0;
         }
 
-        .header-left .brand {
+        .header-brand {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: var(--text-primary);
             font-weight: 700;
             font-size: 17px;
             letter-spacing: -0.3px;
+            color: var(--text-primary);
         }
 
-        .header-left .brand i {
-            color: var(--accent);
-            font-size: 20px;
+        .header-brand .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
-        .header-left .brand span {
-            background: linear-gradient(135deg, var(--accent), #a78bfa);
+        .header-brand .brand-text {
+            background: linear-gradient(135deg, #ffffff, var(--text-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -178,7 +211,7 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             flex-shrink: 0;
         }
 
@@ -191,10 +224,11 @@
             border-radius: var(--radius-sm);
             font-size: 16px;
             transition: var(--transition);
+            position: relative;
         }
 
         .header-actions button:hover {
-            background: var(--bg-hover);
+            background: rgba(255, 255, 255, 0.04);
             color: var(--text-primary);
         }
 
@@ -207,32 +241,44 @@
             color: var(--accent);
         }
 
-        /* ==============================================================
+        .header-actions button .badge-dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            border: 1px solid var(--bg-header);
+        }
+
+        /* ============================================================
            MESSAGES AREA
-           ============================================================== */
+           ============================================================ */
         .chat-messages {
             flex: 1;
             padding: 8px 14px 4px;
             overflow-y: auto;
             overflow-x: hidden;
-            background: var(--bg-primary);
+            background: var(--bg-messages);
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1px;
             scroll-behavior: smooth;
             min-height: 0;
         }
 
-        /* ==============================================================
-           MESSAGE BUBBLE
-           ============================================================== */
+        /* ============================================================
+           MESSAGE BUBBLE - iMessage Style
+           ============================================================ */
         .message-group {
             display: flex;
             flex-direction: column;
             max-width: 82%;
-            animation: messageSlide 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: messageSlide 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
+            padding: 0 2px;
         }
 
         .message-group.self {
@@ -248,7 +294,7 @@
         @keyframes messageSlide {
             from {
                 opacity: 0;
-                transform: translateY(8px) scale(0.96);
+                transform: translateY(10px) scale(0.96);
             }
             to {
                 opacity: 1;
@@ -256,51 +302,55 @@
             }
         }
 
+        /* Sender name */
         .message-sender {
             font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
-            padding: 0 12px 1px;
+            padding: 0 12px 2px;
             display: none;
+            letter-spacing: 0.2px;
         }
 
         .message-group.other .message-sender {
             display: block;
         }
 
+        /* Bubble */
         .message-bubble {
             padding: 8px 14px 7px;
-            border-radius: 18px;
+            border-radius: var(--radius-bubble);
             word-wrap: break-word;
             font-size: 15px;
             line-height: 1.45;
             letter-spacing: -0.1px;
             max-width: 100%;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
             position: relative;
             transition: var(--transition);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .message-group.self .message-bubble {
-            background: var(--accent);
-            color: white;
+            background: var(--bg-bubble-self);
+            color: var(--text-bubble-self);
             border-bottom-right-radius: 4px;
         }
 
         .message-group.other .message-bubble {
-            background: var(--bg-card);
-            color: var(--text-primary);
+            background: var(--bg-bubble-other);
+            color: var(--text-bubble-other);
             border-bottom-left-radius: 4px;
         }
 
+        /* Tail (iMessage style) */
         .message-group.self .message-bubble::after {
             content: '';
             position: absolute;
             bottom: 0;
-            right: -6px;
-            width: 12px;
-            height: 12px;
-            background: var(--accent);
+            right: -7px;
+            width: 14px;
+            height: 14px;
+            background: var(--bg-bubble-self);
             clip-path: polygon(0 0, 100% 0, 100% 100%);
         }
 
@@ -308,14 +358,14 @@
             content: '';
             position: absolute;
             bottom: 0;
-            left: -6px;
-            width: 12px;
-            height: 12px;
-            background: var(--bg-card);
+            left: -7px;
+            width: 14px;
+            height: 14px;
+            background: var(--bg-bubble-other);
             clip-path: polygon(0 0, 100% 0, 0 100%);
         }
 
-        /* Reply */
+        /* Reply preview */
         .reply-preview {
             background: rgba(255, 255, 255, 0.04);
             border-right: 2px solid var(--accent);
@@ -331,19 +381,21 @@
             font-weight: 600;
         }
 
+        /* Message text */
         .message-text {
             font-size: 15px;
             line-height: 1.45;
             word-break: break-word;
         }
 
-        /* Edited badge */
-        .edited-badge {
+        .message-text .edited-badge {
             font-size: 10px;
             color: var(--text-muted);
             margin-left: 4px;
+            font-weight: 400;
         }
 
+        /* Time & status */
         .message-time {
             font-size: 10px;
             color: var(--text-muted);
@@ -352,10 +404,11 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            letter-spacing: 0.1px;
         }
 
         .message-group.self .message-time {
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255, 255, 255, 0.3);
         }
 
         .read-status {
@@ -363,29 +416,28 @@
             color: var(--accent);
         }
 
-        /* ==============================================================
-           MESSAGE ACTIONS (Long Press)
-           ============================================================== */
+        /* ============================================================
+           MESSAGE ACTIONS - Long Press
+           ============================================================ */
         .message-actions-overlay {
             position: absolute;
-            top: -38px;
-            background: var(--bg-card);
+            top: -36px;
+            background: rgba(26, 26, 30, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 14px;
-            padding: 4px 6px;
+            border-radius: 12px;
+            padding: 3px 5px;
             display: none;
-            gap: 2px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            gap: 1px;
+            box-shadow: var(--shadow-md);
             z-index: 20;
-            border: 1px solid var(--border-color);
+            border: 0.5px solid rgba(255, 255, 255, 0.06);
             animation: actionsPop 0.15s ease;
         }
 
         .message-group.self .message-actions-overlay {
             right: 0;
         }
-
         .message-group.other .message-actions-overlay {
             left: 0;
         }
@@ -396,11 +448,11 @@
 
         @keyframes actionsPop {
             from {
-                transform: scale(0.85);
+                transform: scale(0.85) translateY(4px);
                 opacity: 0;
             }
             to {
-                transform: scale(1);
+                transform: scale(1) translateY(0);
                 opacity: 1;
             }
         }
@@ -410,14 +462,14 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             padding: 4px 8px;
             border-radius: 8px;
             transition: var(--transition);
         }
 
         .message-actions-overlay button:hover {
-            background: var(--bg-hover);
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text-primary);
         }
 
@@ -433,24 +485,25 @@
             color: var(--orange);
         }
 
-        /* ==============================================================
+        /* ============================================================
            SYSTEM MESSAGE
-           ============================================================== */
+           ============================================================ */
         .system-message {
             text-align: center;
             font-size: 11px;
             color: var(--text-muted);
-            padding: 4px 12px;
-            margin: 3px auto;
+            padding: 4px 14px;
+            margin: 4px auto;
             background: rgba(255, 255, 255, 0.02);
             border-radius: 10px;
             max-width: 85%;
-            border: 1px solid var(--border-color);
+            border: 0.5px solid rgba(255, 255, 255, 0.03);
+            letter-spacing: 0.2px;
         }
 
-        /* ==============================================================
+        /* ============================================================
            EMPTY STATE
-           ============================================================== */
+           ============================================================ */
         .empty-state {
             flex: 1;
             display: flex;
@@ -458,32 +511,39 @@
             align-items: center;
             justify-content: center;
             color: var(--text-muted);
-            gap: 8px;
+            gap: 6px;
         }
 
-        .empty-state i {
+        .empty-state .empty-icon {
             font-size: 44px;
-            color: var(--text-muted);
+            opacity: 0.15;
+            margin-bottom: 4px;
+        }
+
+        .empty-state .empty-title {
+            font-size: 15px;
+            font-weight: 500;
             opacity: 0.3;
         }
 
-        .empty-state span {
-            font-size: 14px;
-            opacity: 0.5;
+        .empty-state .empty-sub {
+            font-size: 12px;
+            opacity: 0.15;
         }
 
-        /* ==============================================================
+        /* ============================================================
            TYPING INDICATOR
-           ============================================================== */
+           ============================================================ */
         .typing-indicator {
             display: none;
             align-self: flex-start;
             padding: 6px 16px;
-            background: var(--bg-card);
+            background: var(--bg-bubble-other);
             border-radius: 16px;
             border-bottom-left-radius: 4px;
-            margin: 2px 0;
+            margin: 2px 0 4px;
             gap: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .typing-indicator.active {
@@ -510,32 +570,32 @@
             60%,
             100% {
                 transform: translateY(0);
-                opacity: 0.3;
+                opacity: 0.25;
             }
             30% {
-                transform: translateY(-6px);
+                transform: translateY(-5px);
                 opacity: 1;
             }
         }
 
-        /* ==============================================================
-           EMOJI RAIL
-           ============================================================== */
+        /* ============================================================
+           EMOJI RAIL - Messenger Style
+           ============================================================ */
         .emoji-rail {
             position: absolute;
-            bottom: 72px;
-            left: 12px;
-            right: 12px;
-            background: var(--bg-card);
+            bottom: 68px;
+            left: 10px;
+            right: 10px;
+            background: rgba(26, 26, 30, 0.96);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
-            border-radius: 20px;
-            padding: 6px 10px;
+            border-radius: 18px;
+            padding: 6px 8px;
             display: none;
             gap: 3px;
             justify-content: center;
-            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            border: 0.5px solid rgba(255, 255, 255, 0.04);
             z-index: 30;
             animation: emojiRailUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             flex-wrap: wrap;
@@ -547,7 +607,7 @@
 
         @keyframes emojiRailUp {
             from {
-                transform: translateY(16px) scale(0.92);
+                transform: translateY(18px) scale(0.92);
                 opacity: 0;
             }
             to {
@@ -564,21 +624,22 @@
             transition: var(--transition);
             background: none;
             border: none;
-            line-height: 1.2;
+            line-height: 1.1;
+            color: white;
         }
 
         .emoji-rail .emoji-item:active {
             transform: scale(1.3);
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.06);
         }
 
-        /* ==============================================================
-           INPUT AREA
-           ============================================================== */
+        /* ============================================================
+           INPUT AREA - Clean & Minimal
+           ============================================================ */
         .chat-input {
             padding: 6px 14px 14px;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
+            background: var(--bg-messages);
+            border-top: 0.5px solid rgba(255, 255, 255, 0.04);
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -600,7 +661,7 @@
             padding: 2px 6px;
             display: flex;
             align-items: center;
-            border: 1px solid transparent;
+            border: 1px solid rgba(255, 255, 255, 0.04);
             transition: var(--transition);
             min-width: 0;
         }
@@ -617,6 +678,10 @@
             cursor: pointer;
             transition: var(--transition);
             flex-shrink: 0;
+        }
+
+        .chat-input .input-wrapper .emoji-toggle:hover {
+            color: var(--text-secondary);
         }
 
         .chat-input .input-wrapper .emoji-toggle.active {
@@ -636,10 +701,11 @@
 
         .chat-input .input-wrapper input::placeholder {
             color: var(--text-muted);
+            font-weight: 400;
         }
 
         .chat-input .input-wrapper input:disabled {
-            opacity: 0.4;
+            opacity: 0.3;
         }
 
         .chat-input .send-btn {
@@ -656,33 +722,35 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-shadow: 0 2px 12px var(--accent-glow);
         }
 
         .chat-input .send-btn:hover {
             background: var(--accent-hover);
-            transform: scale(1.03);
+            transform: scale(1.04);
         }
 
         .chat-input .send-btn:disabled {
-            opacity: 0.25;
+            opacity: 0.2;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         .chat-input .send-btn:not(:disabled):active {
             transform: scale(0.92);
         }
 
-        /* ==============================================================
-           LOGIN SCREEN
-           ============================================================== */
+        /* ============================================================
+           LOGIN SCREEN - Clean & Modern
+           ============================================================ */
         .login-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-primary);
+            background: var(--bg-app);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -695,44 +763,46 @@
         }
 
         .login-box {
-            background: var(--bg-secondary);
-            padding: 36px 28px;
-            border-radius: var(--radius);
+            background: var(--bg-card);
+            padding: 36px 28px 32px;
+            border-radius: var(--radius-lg);
             text-align: center;
             max-width: 380px;
             width: 100%;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
+            border: 0.5px solid rgba(255, 255, 255, 0.04);
+            box-shadow: var(--shadow-lg);
         }
 
-        .login-box .logo {
+        .login-box .login-logo {
             font-size: 52px;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .login-box h1 {
             color: var(--text-primary);
             font-size: 26px;
             font-weight: 700;
+            letter-spacing: -0.5px;
             margin-bottom: 2px;
         }
 
-        .login-box h1 span {
-            background: linear-gradient(135deg, var(--accent), #a78bfa);
+        .login-box h1 .highlight {
+            background: linear-gradient(135deg, var(--accent), var(--purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .login-box p {
+        .login-box .login-sub {
             color: var(--text-secondary);
-            margin-bottom: 20px;
             font-size: 13px;
+            margin-bottom: 20px;
+            letter-spacing: 0.2px;
         }
 
         .login-box input {
             width: 100%;
             padding: 13px 16px;
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: var(--radius-sm);
             background: var(--bg-input);
             color: var(--text-primary);
@@ -774,8 +844,8 @@
 
         .login-box .color-options .color-circle.selected {
             border-color: var(--text-primary);
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(88, 101, 242, 0.2);
+            transform: scale(1.12);
+            box-shadow: 0 0 20px rgba(43, 110, 240, 0.15);
         }
 
         .login-box .login-btn {
@@ -789,11 +859,13 @@
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
+            letter-spacing: 0.3px;
         }
 
         .login-box .login-btn:hover {
             background: var(--accent-hover);
             transform: translateY(-1px);
+            box-shadow: 0 4px 24px var(--accent-glow);
         }
 
         .login-box .login-btn:active {
@@ -804,6 +876,7 @@
             opacity: 0.4;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         .login-box .error {
@@ -813,17 +886,18 @@
             display: none;
         }
 
-        /* ==============================================================
+        /* ============================================================
            SECURITY MODAL
-           ============================================================== */
+           ============================================================ */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: none;
             justify-content: center;
             align-items: center;
@@ -836,13 +910,13 @@
         }
 
         .modal-box {
-            background: var(--bg-secondary);
-            padding: 32px 28px;
-            border-radius: var(--radius);
+            background: var(--bg-card);
+            padding: 28px 24px 24px;
+            border-radius: var(--radius-lg);
             max-width: 400px;
             width: 100%;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
+            border: 0.5px solid rgba(255, 255, 255, 0.04);
+            box-shadow: var(--shadow-lg);
             animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
@@ -857,31 +931,31 @@
             }
         }
 
-        .modal-box h2 {
+        .modal-box .modal-title {
             font-size: 20px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .modal-box h2 i {
+        .modal-box .modal-title i {
             color: var(--accent);
         }
 
-        .modal-box p {
+        .modal-box .modal-desc {
             color: var(--text-secondary);
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .modal-box .security-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
+            padding: 10px 0;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
         }
 
         .modal-box .security-item:last-child {
@@ -891,7 +965,7 @@
         .modal-box .security-item .info {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1px;
         }
 
         .modal-box .security-item .info .label {
@@ -905,12 +979,13 @@
         }
 
         .modal-box .security-item .badge {
-            font-size: 12px;
-            padding: 4px 12px;
+            font-size: 11px;
+            padding: 3px 12px;
             border-radius: 20px;
             background: var(--green);
             color: white;
             font-weight: 600;
+            letter-spacing: 0.2px;
         }
 
         .modal-box .security-item .badge.warning {
@@ -921,7 +996,7 @@
             width: 100%;
             padding: 12px;
             margin-top: 16px;
-            background: var(--bg-hover);
+            background: rgba(255, 255, 255, 0.04);
             color: var(--text-primary);
             border: none;
             border-radius: var(--radius-sm);
@@ -932,12 +1007,12 @@
         }
 
         .modal-box .close-modal:hover {
-            background: var(--bg-input);
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        /* ==============================================================
-           RESPONSIVE
-           ============================================================== */
+        /* ============================================================
+           RESPONSIVE FINE-TUNING
+           ============================================================ */
         @media (max-width: 400px) {
             .message-group {
                 max-width: 90%;
@@ -946,44 +1021,82 @@
                 font-size: 14px;
                 padding: 6px 12px;
             }
+            .message-text {
+                font-size: 14px;
+            }
             .chat-header {
                 padding-top: 40px;
                 padding-left: 12px;
                 padding-right: 12px;
             }
-            .header-left .brand {
+            .header-brand {
                 font-size: 15px;
             }
+            .header-brand .brand-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
             .login-box {
-                padding: 28px 18px;
+                padding: 28px 18px 24px;
+            }
+            .emoji-rail .emoji-item {
+                font-size: 24px;
+                padding: 2px 4px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .message-group {
+                max-width: 94%;
+            }
+            .chat-messages {
+                padding: 6px 10px 4px;
+            }
+            .chat-input {
+                padding: 4px 10px 12px;
             }
         }
 
         @media (min-width: 600px) {
             .message-group {
-                max-width: 65%;
+                max-width: 68%;
             }
             .chat-messages {
                 padding: 12px 24px 8px;
             }
+        }
+
+        /* ============================================================
+           UTILITY CLASSES
+           ============================================================ */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Touch feedback */
+        .touch-feedback:active {
+            transform: scale(0.94);
         }
     </style>
 </head>
 <body>
 
     <div id="app">
-        <!-- ===== LOGIN SCREEN ===== -->
+        <!-- ==========================================================
+        LOGIN SCREEN
+        ========================================================== -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
-                <div class="logo">💬</div>
-                <h1>نيزك <span>دردشة</span></h1>
-                <p>آمنة • سريعة • خاصة</p>
+                <div class="login-logo">💬</div>
+                <h1>نيزك <span class="highlight">دردشة</span></h1>
+                <p class="login-sub">آمنة • سريعة • خاصة</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
                 <div class="color-options" id="colorPicker">
-                    <div class="color-circle selected" style="background:#5865f2;" data-color="#5865f2"></div>
+                    <div class="color-circle selected" style="background:#2b6ef0;" data-color="#2b6ef0"></div>
                     <div class="color-circle" style="background:#ed4245;" data-color="#ed4245"></div>
                     <div class="color-circle" style="background:#faa81a;" data-color="#faa81a"></div>
-                    <div class="color-circle" style="background:#3ba55d;" data-color="#3ba55d"></div>
+                    <div class="color-circle" style="background:#23a55a;" data-color="#23a55a"></div>
                     <div class="color-circle" style="background:#a78bfa;" data-color="#a78bfa"></div>
                     <div class="color-circle" style="background:#f472b6;" data-color="#f472b6"></div>
                     <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
@@ -995,7 +1108,9 @@
             </div>
         </div>
 
-        <!-- ===== CHAT UI ===== -->
+        <!-- ==========================================================
+        CHAT UI
+        ========================================================== -->
         <div class="chat-container" id="chatContainer" style="display:none;">
 
             <!-- Header -->
@@ -1003,9 +1118,9 @@
                 <div class="status-bar" id="statusTime">12:00</div>
 
                 <div class="header-left">
-                    <div class="brand">
-                        <i class="fas fa-meteor"></i>
-                        <span>نيزك</span>
+                    <div class="header-brand">
+                        <div class="brand-icon"><i class="fas fa-meteor"></i></div>
+                        <span class="brand-text">نيزك</span>
                     </div>
                 </div>
 
@@ -1022,8 +1137,9 @@
             <!-- Messages -->
             <div class="chat-messages" id="messages">
                 <div class="empty-state" id="emptyState">
-                    <i class="fas fa-comment-dots"></i>
-                    <span>لا توجد رسائل</span>
+                    <div class="empty-icon"><i class="fas fa-comment-dots"></i></div>
+                    <div class="empty-title">لا توجد رسائل</div>
+                    <div class="empty-sub">كن أول من يكتب ✨</div>
                 </div>
             </div>
 
@@ -1056,6 +1172,7 @@
                 <button class="emoji-item">💀</button>
                 <button class="emoji-item">🫡</button>
                 <button class="emoji-item">👀</button>
+                <button class="emoji-item">🤝</button>
             </div>
 
             <!-- Input -->
@@ -1072,11 +1189,15 @@
             </div>
         </div>
 
-        <!-- ===== SECURITY MODAL ===== -->
+        <!-- ==========================================================
+        SECURITY MODAL
+        ========================================================== -->
         <div class="modal-overlay" id="securityModal">
             <div class="modal-box">
-                <h2><i class="fas fa-shield-alt"></i> الأمان</h2>
-                <p>حماية خصوصيتك وسلامتك</p>
+                <div class="modal-title">
+                    <i class="fas fa-shield-alt"></i> الأمان
+                </div>
+                <p class="modal-desc">حماية خصوصيتك وسلامتك</p>
 
                 <div class="security-item">
                     <div class="info">
@@ -1145,7 +1266,7 @@
         const auth = firebase.auth();
 
         // ============================================================
-        // SECURITY: Sanitize Input (XSS Protection)
+        // SECURITY: Sanitize
         // ============================================================
         function sanitizeHTML(text) {
             const div = document.createElement('div');
@@ -1161,7 +1282,7 @@
         // STATE
         // ============================================================
         let currentUser = '';
-        let userColor = '#5865f2';
+        let userColor = '#2b6ef0';
         let isLoggedIn = false;
         let replyTo = null;
         let editingMessage = null;
@@ -1190,7 +1311,7 @@
         const typingIndicator = document.getElementById('typingIndicator');
 
         // ============================================================
-        // STATUS BAR CLOCK
+        // CLOCK
         // ============================================================
         function updateStatusBar() {
             const now = new Date();
@@ -1254,20 +1375,17 @@
         });
 
         // ============================================================
-        // CREATE MESSAGE ELEMENT (with XSS Protection)
+        // CREATE MESSAGE ELEMENT
         // ============================================================
         function createMessageElement(docId, data, isSelf) {
-            // Skip blocked users
-            if (blockedUsers.includes(data.sender) && !isSelf) {
-                return null;
-            }
+            if (blockedUsers.includes(data.sender) && !isSelf) return null;
 
             const group = document.createElement('div');
             group.className = `message-group ${isSelf ? 'self' : 'other'}`;
             group.dataset.id = docId;
             group.dataset.sender = data.sender;
 
-            // Sender name (sanitized)
+            // Sender
             const sender = document.createElement('div');
             sender.className = 'message-sender';
             sender.textContent = sanitizeHTML(data.sender);
@@ -1276,7 +1394,7 @@
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble';
 
-            // Reply preview
+            // Reply
             if (data.replyTo) {
                 const replyDiv = document.createElement('div');
                 replyDiv.className = 'reply-preview';
@@ -1287,19 +1405,13 @@
                 bubble.appendChild(replyDiv);
             }
 
-            // Message text (sanitized)
+            // Text
             const textDiv = document.createElement('div');
             textDiv.className = 'message-text';
-            textDiv.textContent = data.text; // textContent automatically sanitizes
-
-            // Edited badge
+            textDiv.textContent = data.text;
             if (data.edited) {
-                const editBadge = document.createElement('span');
-                editBadge.className = 'edited-badge';
-                editBadge.textContent = '(معدّل)';
-                textDiv.appendChild(editBadge);
+                textDiv.innerHTML += ` <span class="edited-badge">(معدّل)</span>`;
             }
-
             bubble.appendChild(textDiv);
 
             // Time
@@ -1313,7 +1425,7 @@
                 }
             }
 
-            // Actions overlay (long press)
+            // Actions
             const actions = document.createElement('div');
             actions.className = 'message-actions-overlay';
             actions.innerHTML = `
@@ -1323,7 +1435,6 @@
                 <button class="report-btn" title="إبلاغ"><i class="fas fa-flag"></i></button>
             `;
 
-            // Event listeners for actions
             actions.querySelector('.reply-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 setReplyTo(docId, data.sender, data.text);
@@ -1331,25 +1442,18 @@
             });
 
             if (isSelf) {
-                const editBtn = actions.querySelector('.edit-btn');
-                const deleteBtn = actions.querySelector('.delete-btn');
-                if (editBtn) {
-                    editBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        startEditing(docId, data.text);
-                        hideAllActions();
-                    });
-                }
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteMessage(docId);
-                        hideAllActions();
-                    });
-                }
+                actions.querySelector('.edit-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    startEditing(docId, data.text);
+                    hideAllActions();
+                });
+                actions.querySelector('.delete-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteMessage(docId);
+                    hideAllActions();
+                });
             }
 
-            // Report button
             actions.querySelector('.report-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 reportMessage(docId, data.sender);
@@ -1361,7 +1465,7 @@
             group.appendChild(timeDiv);
             group.appendChild(actions);
 
-            // ===== LONG PRESS =====
+            // Long Press
             let pressTimer = null;
             let isPressed = false;
 
@@ -1398,11 +1502,10 @@
                 el.classList.remove('active');
             });
         }
-
         document.addEventListener('click', hideAllActions);
 
         // ============================================================
-        // ADD MESSAGE TO UI
+        // ADD MESSAGE
         // ============================================================
         function addMessageToUI(docId, data, isSelf) {
             if (emptyState) emptyState.style.display = 'none';
@@ -1439,7 +1542,6 @@
                     if (emptyState) emptyState.style.display = 'none';
                     snapshot.forEach((doc) => {
                         const data = doc.data();
-                        // Skip blocked users' messages
                         if (blockedUsers.includes(data.sender)) return;
                         addMessageToUI(doc.id, data, data.sender === currentUser);
                     });
@@ -1451,7 +1553,7 @@
         }
 
         // ============================================================
-        // LISTEN TO MESSAGES (REALTIME)
+        // LISTEN TO MESSAGES
         // ============================================================
         function listenToMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
@@ -1462,8 +1564,6 @@
                 .onSnapshot((snapshot) => {
                     snapshot.docChanges().forEach((change) => {
                         const data = change.doc.data();
-
-                        // Skip blocked users
                         if (blockedUsers.includes(data.sender)) return;
 
                         if (change.type === 'added') {
@@ -1504,7 +1604,6 @@
             const rawText = msgInput.value.trim();
             if (!rawText || !isLoggedIn) return;
 
-            // Sanitize input
             const text = sanitizeInput(rawText);
             if (!text) return;
 
@@ -1595,7 +1694,6 @@
         // ============================================================
         function reportMessage(id, sender) {
             if (confirm(`📋 هل تريد الإبلاغ عن @${sender}؟`)) {
-                // Save report to Firestore
                 db.collection('reports').add({
                     messageId: id,
                     sender: sender,
@@ -1659,8 +1757,9 @@
             loginOverlay.classList.remove('hidden');
 
             messagesDiv.innerHTML = `<div class="empty-state" id="emptyState">
-                <i class="fas fa-comment-dots"></i>
-                <span>لا توجد رسائل</span>
+                <div class="empty-icon"><i class="fas fa-comment-dots"></i></div>
+                <div class="empty-title">لا توجد رسائل</div>
+                <div class="empty-sub">كن أول من يكتب ✨</div>
             </div>`;
 
             msgInput.disabled = true;
