@@ -3,179 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💬 دردشة</title>
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="color-scheme" content="dark">
+    <title>💬 نيزك - دردشة آمنة</title>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-    <!-- Font Awesome -->
+    <!-- Font Awesome 6 (مجاني) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* ===== RESET ===== */
-        * {
+        /* ==============================================================
+           RESET & BASE
+           ============================================================== */
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #0e0e10;
+            --bg-secondary: #1a1a1e;
+            --bg-card: #232328;
+            --bg-input: #2d2d34;
+            --bg-hover: #2f2f36;
+            --border-color: rgba(255, 255, 255, 0.04);
+            --text-primary: #f0f0f0;
+            --text-secondary: #9e9ea7;
+            --text-muted: #5c5c66;
+            --accent: #5865f2;
+            --accent-hover: #4752c4;
+            --accent-glow: rgba(88, 101, 242, 0.25);
+            --green: #3ba55d;
+            --red: #ed4245;
+            --orange: #faa81a;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+            --transition: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         html,
         body {
             height: 100%;
             overflow: hidden;
-            background: #000;
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
 
-        /* ===== الحاوية الرئيسية ===== */
+        /* ==============================================================
+           SCROLLBAR
+           ============================================================== */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 10px;
+        }
+
+        /* ==============================================================
+           APP CONTAINER
+           ============================================================== */
         #app {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100%;
             width: 100%;
-            background: #000;
+            background: var(--bg-primary);
         }
 
         .chat-container {
             width: 100%;
-            max-width: 430px;
+            max-width: 480px;
             height: 100%;
-            max-height: 932px;
-            background: #1c1c1e;
+            max-height: 960px;
+            background: var(--bg-secondary);
             display: flex;
             flex-direction: column;
             position: relative;
             overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
-        @media (min-width: 431px) {
+        @media (min-width: 481px) {
             .chat-container {
-                border-radius: 30px;
-                height: 90vh;
-                box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8);
+                border-radius: var(--radius);
+                height: 92vh;
+                box-shadow: var(--shadow);
             }
         }
 
-        @media (max-width: 430px) {
+        @media (max-width: 480px) {
             .chat-container {
                 max-height: 100vh;
                 border-radius: 0;
                 height: 100%;
+                border: none;
             }
         }
 
-        /* ===== رأس الدردشة ===== */
+        /* ==============================================================
+           HEADER
+           ============================================================== */
         .chat-header {
-            background: rgba(28, 28, 30, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 12px 16px 10px;
-            padding-top: 48px;
+            background: var(--bg-secondary);
+            padding: 12px 18px 10px;
+            padding-top: 44px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
-            min-height: 60px;
+            min-height: 56px;
             position: relative;
             z-index: 10;
         }
 
-        /* الساعة */
         .status-bar {
             position: absolute;
             top: 10px;
             left: 0;
             right: 0;
             text-align: center;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex: 1;
             min-width: 0;
         }
 
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+        .header-left .brand {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            font-weight: 600;
-            color: white;
-            background: linear-gradient(135deg, #0a84ff, #5ac8fa);
-            flex-shrink: 0;
+            gap: 8px;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 17px;
+            letter-spacing: -0.3px;
         }
 
-        .header-info {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-            min-width: 0;
-            flex: 1;
+        .header-left .brand i {
+            color: var(--accent);
+            font-size: 20px;
         }
 
-        .header-info .name {
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            letter-spacing: -0.2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .header-info .subtitle {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .header-left .brand span {
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 6px;
             flex-shrink: 0;
         }
 
-        .header-actions .logout-btn {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 16px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
-            transition: 0.2s;
-            background: rgba(255, 255, 255, 0.05);
+        .header-actions button {
+            background: none;
             border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .header-actions button:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
         }
 
         .header-actions .logout-btn:hover {
-            background: rgba(255, 59, 48, 0.2);
-            color: #ff3b30;
+            background: rgba(237, 66, 69, 0.12);
+            color: var(--red);
         }
 
-        /* ===== منطقة الرسائل ===== */
+        .header-actions .security-btn:hover {
+            color: var(--accent);
+        }
+
+        /* ==============================================================
+           MESSAGES AREA
+           ============================================================== */
         .chat-messages {
             flex: 1;
-            padding: 6px 12px 4px;
+            padding: 8px 14px 4px;
             overflow-y: auto;
             overflow-x: hidden;
-            background: #000;
+            background: var(--bg-primary);
             display: flex;
             flex-direction: column;
             gap: 2px;
@@ -183,17 +223,16 @@
             min-height: 0;
         }
 
-        .chat-messages::-webkit-scrollbar {
-            width: 0;
-        }
-
-        /* ===== باقة الرسائل ===== */
+        /* ==============================================================
+           MESSAGE BUBBLE
+           ============================================================== */
         .message-group {
             display: flex;
             flex-direction: column;
-            max-width: 80%;
-            animation: messageIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 82%;
+            animation: messageSlide 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
+            margin-bottom: 2px;
         }
 
         .message-group.self {
@@ -206,22 +245,21 @@
             align-items: flex-start;
         }
 
-        @keyframes messageIn {
+        @keyframes messageSlide {
             from {
                 opacity: 0;
-                transform: scale(0.92) translateY(6px);
+                transform: translateY(8px) scale(0.96);
             }
             to {
                 opacity: 1;
-                transform: scale(1) translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
-        /* اسم المرسل */
         .message-sender {
             font-size: 11px;
             font-weight: 600;
-            color: #8e8e93;
+            color: var(--text-secondary);
             padding: 0 12px 1px;
             display: none;
         }
@@ -230,87 +268,117 @@
             display: block;
         }
 
-        /* فقاعة الرسالة */
         .message-bubble {
-            padding: 8px 12px 7px;
+            padding: 8px 14px 7px;
             border-radius: 18px;
             word-wrap: break-word;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.45;
             letter-spacing: -0.1px;
             max-width: 100%;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
             position: relative;
+            transition: var(--transition);
         }
 
         .message-group.self .message-bubble {
-            background: #0a84ff;
+            background: var(--accent);
             color: white;
             border-bottom-right-radius: 4px;
         }
 
         .message-group.other .message-bubble {
-            background: #2c2c2e;
-            color: white;
+            background: var(--bg-card);
+            color: var(--text-primary);
             border-bottom-left-radius: 4px;
         }
 
-        /* الرد */
+        .message-group.self .message-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -6px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+        }
+
+        .message-group.other .message-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -6px;
+            width: 12px;
+            height: 12px;
+            background: var(--bg-card);
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+        }
+
+        /* Reply */
         .reply-preview {
-            background: rgba(255, 255, 255, 0.06);
-            border-right: 2px solid #0a84ff;
-            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border-right: 2px solid var(--accent);
+            padding: 3px 10px;
             margin-bottom: 4px;
             border-radius: 4px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-secondary);
         }
 
         .reply-preview .reply-sender {
-            color: #0a84ff;
+            color: var(--accent);
             font-weight: 600;
         }
 
         .message-text {
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.45;
             word-break: break-word;
         }
 
-        /* التوقيت */
+        /* Edited badge */
+        .edited-badge {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
         .message-time {
             font-size: 10px;
-            color: rgba(255, 255, 255, 0.25);
+            color: var(--text-muted);
             padding: 0 4px;
             margin-top: 1px;
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
         }
 
         .message-group.self .message-time {
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.35);
         }
 
         .read-status {
             font-size: 10px;
-            color: #0a84ff;
+            color: var(--accent);
         }
 
-        /* ===== أزرار التفاعل (الضغطة المطولة) ===== */
+        /* ==============================================================
+           MESSAGE ACTIONS (Long Press)
+           ============================================================== */
         .message-actions-overlay {
             position: absolute;
-            top: -34px;
-            background: rgba(44, 44, 46, 0.92);
+            top: -38px;
+            background: var(--bg-card);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 3px 5px;
+            border-radius: 14px;
+            padding: 4px 6px;
             display: none;
             gap: 2px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
             z-index: 20;
-            border: 0.5px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-color);
             animation: actionsPop 0.15s ease;
         }
 
@@ -328,7 +396,7 @@
 
         @keyframes actionsPop {
             from {
-                transform: scale(0.8);
+                transform: scale(0.85);
                 opacity: 0;
             }
             to {
@@ -340,337 +408,78 @@
         .message-actions-overlay button {
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
             cursor: pointer;
-            font-size: 15px;
-            padding: 4px 7px;
-            border-radius: 10px;
-            transition: 0.15s;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: var(--transition);
         }
 
         .message-actions-overlay button:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-        }
-
-        .message-actions-overlay button.delete:hover {
-            color: #ff3b30;
+            background: var(--bg-hover);
+            color: var(--text-primary);
         }
 
         .message-actions-overlay button.reply-btn:hover {
-            color: #0a84ff;
+            color: var(--accent);
         }
 
-        /* ===== رسائل النظام ===== */
+        .message-actions-overlay button.delete-btn:hover {
+            color: var(--red);
+        }
+
+        .message-actions-overlay button.report-btn:hover {
+            color: var(--orange);
+        }
+
+        /* ==============================================================
+           SYSTEM MESSAGE
+           ============================================================== */
         .system-message {
             text-align: center;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.2);
-            padding: 4px 10px;
+            color: var(--text-muted);
+            padding: 4px 12px;
             margin: 3px auto;
             background: rgba(255, 255, 255, 0.02);
             border-radius: 10px;
             max-width: 85%;
+            border: 1px solid var(--border-color);
         }
 
-        /* ===== الحالة الفارغة ===== */
+        /* ==============================================================
+           EMPTY STATE
+           ============================================================== */
         .empty-state {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: rgba(255, 255, 255, 0.06);
-            gap: 6px;
+            color: var(--text-muted);
+            gap: 8px;
         }
 
         .empty-state i {
-            font-size: 40px;
+            font-size: 44px;
+            color: var(--text-muted);
+            opacity: 0.3;
         }
 
         .empty-state span {
-            font-size: 13px;
+            font-size: 14px;
+            opacity: 0.5;
         }
 
-        /* ===== شريط الإيموجي ===== */
-        .emoji-rail {
-            position: absolute;
-            bottom: 74px;
-            left: 12px;
-            right: 12px;
-            background: rgba(44, 44, 46, 0.92);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-radius: 24px;
-            padding: 6px 10px;
-            display: none;
-            gap: 4px;
-            justify-content: center;
-            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
-            border: 0.5px solid rgba(255, 255, 255, 0.05);
-            z-index: 30;
-            animation: emojiRailUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            flex-wrap: wrap;
-        }
-
-        .emoji-rail.active {
-            display: flex;
-        }
-
-        @keyframes emojiRailUp {
-            from {
-                transform: translateY(15px) scale(0.92);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
-        }
-
-        .emoji-rail .emoji-item {
-            font-size: 28px;
-            padding: 2px 5px;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: 0.12s;
-            background: none;
-            border: none;
-            line-height: 1.2;
-        }
-
-        .emoji-rail .emoji-item:active {
-            transform: scale(1.25);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        /* ===== إدخال الرسالة ===== */
-        .chat-input {
-            padding: 6px 12px 12px;
-            background: rgba(28, 28, 30, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 0.5px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-shrink: 0;
-            position: relative;
-            padding-bottom: 16px;
-        }
-
-        .chat-input .input-row {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .chat-input .input-wrapper {
-            flex: 1;
-            background: #2c2c2e;
-            border-radius: 22px;
-            padding: 2px 4px;
-            display: flex;
-            align-items: center;
-            border: 1px solid transparent;
-            transition: 0.15s;
-            min-width: 0;
-        }
-
-        .chat-input .input-wrapper:focus-within {
-            border-color: #0a84ff;
-        }
-
-        .chat-input .input-wrapper .emoji-toggle {
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 18px;
-            padding: 4px 6px;
-            cursor: pointer;
-            transition: 0.15s;
-            flex-shrink: 0;
-        }
-
-        .chat-input .input-wrapper .emoji-toggle.active {
-            color: #0a84ff;
-        }
-
-        .chat-input .input-wrapper input {
-            flex: 1;
-            padding: 8px 4px;
-            border: none;
-            background: transparent;
-            color: white;
-            font-size: 15px;
-            outline: none;
-            min-width: 0;
-        }
-
-        .chat-input .input-wrapper input::placeholder {
-            color: rgba(255, 255, 255, 0.2);
-        }
-
-        .chat-input .input-wrapper input:disabled {
-            opacity: 0.4;
-        }
-
-        .chat-input .send-btn {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #0a84ff;
-            color: white;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .chat-input .send-btn:disabled {
-            opacity: 0.25;
-            cursor: not-allowed;
-        }
-
-        .chat-input .send-btn:not(:disabled):active {
-            transform: scale(0.92);
-        }
-
-        /* ===== شاشة تسجيل الدخول ===== */
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .login-overlay.hidden {
-            display: none;
-        }
-
-        .login-box {
-            background: #1c1c1e;
-            padding: 32px 24px;
-            border-radius: 28px;
-            text-align: center;
-            max-width: 360px;
-            width: 100%;
-            border: 0.5px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .login-box .logo {
-            font-size: 48px;
-            margin-bottom: 2px;
-        }
-
-        .login-box h1 {
-            color: white;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-
-        .login-box h1 span {
-            color: #0a84ff;
-        }
-
-        .login-box p {
-            color: rgba(255, 255, 255, 0.3);
-            margin-bottom: 18px;
-            font-size: 13px;
-        }
-
-        .login-box input {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            background: #2c2c2e;
-            color: white;
-            font-size: 16px;
-            text-align: center;
-            outline: none;
-            transition: 0.15s;
-        }
-
-        .login-box input:focus {
-            border-color: #0a84ff;
-        }
-
-        .login-box input::placeholder {
-            color: rgba(255, 255, 255, 0.15);
-        }
-
-        .login-box .color-options {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin: 14px 0 18px;
-            flex-wrap: wrap;
-        }
-
-        .login-box .color-options .color-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-
-        .login-box .color-options .color-circle:active {
-            transform: scale(0.9);
-        }
-
-        .login-box .color-options .color-circle.selected {
-            border-color: white;
-            transform: scale(1.1);
-        }
-
-        .login-box .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: #0a84ff;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-
-        .login-box .login-btn:active {
-            transform: scale(0.97);
-        }
-
-        .login-box .login-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .login-box .error {
-            color: #ff3b30;
-            font-size: 12px;
-            margin-top: 10px;
-            display: none;
-        }
-
-        /* ===== مؤشر الكتابة (يظهر تلقائياً) ===== */
+        /* ==============================================================
+           TYPING INDICATOR
+           ============================================================== */
         .typing-indicator {
             display: none;
             align-self: flex-start;
-            padding: 6px 14px;
-            background: #2c2c2e;
+            padding: 6px 16px;
+            background: var(--bg-card);
             border-radius: 16px;
             border-bottom-left-radius: 4px;
             margin: 2px 0;
@@ -684,7 +493,7 @@
         .typing-indicator span {
             width: 7px;
             height: 7px;
-            background: rgba(255, 255, 255, 0.3);
+            background: var(--text-muted);
             border-radius: 50%;
             animation: typingBounce 1.4s infinite;
         }
@@ -704,46 +513,458 @@
                 opacity: 0.3;
             }
             30% {
-                transform: translateY(-5px);
+                transform: translateY(-6px);
                 opacity: 1;
             }
         }
 
-        /* ===== متجاوب للشاشات الصغيرة جداً ===== */
-        @media (max-width: 380px) {
+        /* ==============================================================
+           EMOJI RAIL
+           ============================================================== */
+        .emoji-rail {
+            position: absolute;
+            bottom: 72px;
+            left: 12px;
+            right: 12px;
+            background: var(--bg-card);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 20px;
+            padding: 6px 10px;
+            display: none;
+            gap: 3px;
+            justify-content: center;
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            z-index: 30;
+            animation: emojiRailUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-wrap: wrap;
+        }
+
+        .emoji-rail.active {
+            display: flex;
+        }
+
+        @keyframes emojiRailUp {
+            from {
+                transform: translateY(16px) scale(0.92);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .emoji-rail .emoji-item {
+            font-size: 28px;
+            padding: 2px 5px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: var(--transition);
+            background: none;
+            border: none;
+            line-height: 1.2;
+        }
+
+        .emoji-rail .emoji-item:active {
+            transform: scale(1.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* ==============================================================
+           INPUT AREA
+           ============================================================== */
+        .chat-input {
+            padding: 6px 14px 14px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+            position: relative;
+            padding-bottom: 18px;
+        }
+
+        .chat-input .input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-input .input-wrapper {
+            flex: 1;
+            background: var(--bg-input);
+            border-radius: 24px;
+            padding: 2px 6px;
+            display: flex;
+            align-items: center;
+            border: 1px solid transparent;
+            transition: var(--transition);
+            min-width: 0;
+        }
+
+        .chat-input .input-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .chat-input .input-wrapper .emoji-toggle {
+            color: var(--text-muted);
+            font-size: 18px;
+            padding: 4px 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .chat-input .input-wrapper .emoji-toggle.active {
+            color: var(--accent);
+        }
+
+        .chat-input .input-wrapper input {
+            flex: 1;
+            padding: 9px 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            min-width: 0;
+        }
+
+        .chat-input .input-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-input .input-wrapper input:disabled {
+            opacity: 0.4;
+        }
+
+        .chat-input .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .chat-input .send-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.03);
+        }
+
+        .chat-input .send-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chat-input .send-btn:not(:disabled):active {
+            transform: scale(0.92);
+        }
+
+        /* ==============================================================
+           LOGIN SCREEN
+           ============================================================== */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--bg-secondary);
+            padding: 36px 28px;
+            border-radius: var(--radius);
+            text-align: center;
+            max-width: 380px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        .login-box .logo {
+            font-size: 52px;
+            margin-bottom: 2px;
+        }
+
+        .login-box h1 {
+            color: var(--text-primary);
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .login-box h1 span {
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .login-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .login-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .login-box .color-options {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 16px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .login-box .color-options .color-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .login-box .color-options .color-circle:active {
+            transform: scale(0.9);
+        }
+
+        .login-box .color-options .color-circle.selected {
+            border-color: var(--text-primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(88, 101, 242, 0.2);
+        }
+
+        .login-box .login-btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .login-box .login-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .login-box .login-btn:active {
+            transform: scale(0.97);
+        }
+
+        .login-box .login-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-box .error {
+            color: var(--red);
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* ==============================================================
+           SECURITY MODAL
+           ============================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bg-secondary);
+            padding: 32px 28px;
+            border-radius: var(--radius);
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-box h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-box h2 i {
+            color: var(--accent);
+        }
+
+        .modal-box p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .modal-box .security-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-box .security-item:last-child {
+            border-bottom: none;
+        }
+
+        .modal-box .security-item .info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .modal-box .security-item .info .label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .modal-box .security-item .info .desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .modal-box .security-item .badge {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--green);
+            color: white;
+            font-weight: 600;
+        }
+
+        .modal-box .security-item .badge.warning {
+            background: var(--orange);
+        }
+
+        .modal-box .close-modal {
+            width: 100%;
+            padding: 12px;
+            margin-top: 16px;
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-box .close-modal:hover {
+            background: var(--bg-input);
+        }
+
+        /* ==============================================================
+           RESPONSIVE
+           ============================================================== */
+        @media (max-width: 400px) {
             .message-group {
-                max-width: 88%;
+                max-width: 90%;
             }
             .message-bubble {
                 font-size: 14px;
-                padding: 6px 10px;
+                padding: 6px 12px;
             }
             .chat-header {
                 padding-top: 40px;
                 padding-left: 12px;
                 padding-right: 12px;
             }
-            .header-info .name {
-                font-size: 14px;
+            .header-left .brand {
+                font-size: 15px;
             }
-            .avatar {
-                width: 30px;
-                height: 30px;
-                font-size: 13px;
-            }
-            .emoji-rail .emoji-item {
-                font-size: 22px;
-                padding: 2px 4px;
+            .login-box {
+                padding: 28px 18px;
             }
         }
 
-        /* ===== شاشات كبيرة ===== */
         @media (min-width: 600px) {
             .message-group {
                 max-width: 65%;
             }
             .chat-messages {
-                padding: 12px 20px;
+                padding: 12px 24px 8px;
             }
         }
     </style>
@@ -751,22 +972,22 @@
 <body>
 
     <div id="app">
-        <!-- ===== شاشة تسجيل الدخول ===== -->
+        <!-- ===== LOGIN SCREEN ===== -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
                 <div class="logo">💬</div>
-                <h1>دردشة <span>فورية</span></h1>
-                <p>اختر اسماً ولونك المفضل</p>
+                <h1>نيزك <span>دردشة</span></h1>
+                <p>آمنة • سريعة • خاصة</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
                 <div class="color-options" id="colorPicker">
-                    <div class="color-circle selected" style="background:#0a84ff;" data-color="#0a84ff"></div>
-                    <div class="color-circle" style="background:#ff3b30;" data-color="#ff3b30"></div>
-                    <div class="color-circle" style="background:#ff9500;" data-color="#ff9500"></div>
-                    <div class="color-circle" style="background:#ffcc00;" data-color="#ffcc00"></div>
-                    <div class="color-circle" style="background:#34c759;" data-color="#34c759"></div>
-                    <div class="color-circle" style="background:#af52de;" data-color="#af52de"></div>
-                    <div class="color-circle" style="background:#ff6b8a;" data-color="#ff6b8a"></div>
-                    <div class="color-circle" style="background:#5ac8fa;" data-color="#5ac8fa"></div>
+                    <div class="color-circle selected" style="background:#5865f2;" data-color="#5865f2"></div>
+                    <div class="color-circle" style="background:#ed4245;" data-color="#ed4245"></div>
+                    <div class="color-circle" style="background:#faa81a;" data-color="#faa81a"></div>
+                    <div class="color-circle" style="background:#3ba55d;" data-color="#3ba55d"></div>
+                    <div class="color-circle" style="background:#a78bfa;" data-color="#a78bfa"></div>
+                    <div class="color-circle" style="background:#f472b6;" data-color="#f472b6"></div>
+                    <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
+                    <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
                 </div>
                 <button class="login-btn" id="loginBtn">🚀 دخول</button>
                 <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
@@ -774,29 +995,31 @@
             </div>
         </div>
 
-        <!-- ===== واجهة الدردشة ===== -->
+        <!-- ===== CHAT UI ===== -->
         <div class="chat-container" id="chatContainer" style="display:none;">
 
-            <!-- رأس الدردشة -->
+            <!-- Header -->
             <div class="chat-header">
                 <div class="status-bar" id="statusTime">12:00</div>
 
                 <div class="header-left">
-                    <div class="avatar" id="userAvatar">👤</div>
-                    <div class="header-info">
-                        <div class="name" id="currentUser">المستخدم</div>
-                        <div class="subtitle" id="onlineStatus">🟢 متصل</div>
+                    <div class="brand">
+                        <i class="fas fa-meteor"></i>
+                        <span>نيزك</span>
                     </div>
                 </div>
 
                 <div class="header-actions">
+                    <button class="security-btn" id="securityBtn" title="الأمان">
+                        <i class="fas fa-shield-alt"></i>
+                    </button>
                     <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- منطقة الرسائل -->
+            <!-- Messages -->
             <div class="chat-messages" id="messages">
                 <div class="empty-state" id="emptyState">
                     <i class="fas fa-comment-dots"></i>
@@ -804,7 +1027,12 @@
                 </div>
             </div>
 
-            <!-- شريط الإيموجي -->
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span><span></span><span></span>
+            </div>
+
+            <!-- Emoji Rail -->
             <div class="emoji-rail" id="emojiRail">
                 <button class="emoji-item">😊</button>
                 <button class="emoji-item">😂</button>
@@ -826,9 +1054,11 @@
                 <button class="emoji-item">😱</button>
                 <button class="emoji-item">🙏</button>
                 <button class="emoji-item">💀</button>
+                <button class="emoji-item">🫡</button>
+                <button class="emoji-item">👀</button>
             </div>
 
-            <!-- إدخال الرسالة -->
+            <!-- Input -->
             <div class="chat-input">
                 <div class="input-row">
                     <div class="input-wrapper">
@@ -841,11 +1071,61 @@
                 </div>
             </div>
         </div>
+
+        <!-- ===== SECURITY MODAL ===== -->
+        <div class="modal-overlay" id="securityModal">
+            <div class="modal-box">
+                <h2><i class="fas fa-shield-alt"></i> الأمان</h2>
+                <p>حماية خصوصيتك وسلامتك</p>
+
+                <div class="security-item">
+                    <div class="info">
+                        <span class="label">🔒 تشفير الرسائل</span>
+                        <span class="desc">جميع الرسائل مشفرة أثناء النقل</span>
+                    </div>
+                    <span class="badge">مفعّل</span>
+                </div>
+
+                <div class="security-item">
+                    <div class="info">
+                        <span class="label">🛡️ حماية XSS</span>
+                        <span class="desc">تنظيف النصوص من الأكواد الضارة</span>
+                    </div>
+                    <span class="badge">مفعّل</span>
+                </div>
+
+                <div class="security-item">
+                    <div class="info">
+                        <span class="label">🚫 حظر المستخدمين</span>
+                        <span class="desc">يمكنك حظر أي مستخدم</span>
+                    </div>
+                    <span class="badge warning">قيد التطوير</span>
+                </div>
+
+                <div class="security-item">
+                    <div class="info">
+                        <span class="label">📋 تقارير</span>
+                        <span class="desc">الإبلاغ عن رسائل مخالفة</span>
+                    </div>
+                    <span class="badge warning">قيد التطوير</span>
+                </div>
+
+                <div class="security-item">
+                    <div class="info">
+                        <span class="label">🔑 هوية مجهولة</span>
+                        <span class="desc">دخول بدون بريد أو رقم هاتف</span>
+                    </div>
+                    <span class="badge">مفعّل</span>
+                </div>
+
+                <button class="close-modal" id="closeSecurityModal">✕ إغلاق</button>
+            </div>
+        </div>
     </div>
 
     <script>
         // ============================================================
-        // 🔥 إعدادات Firebase
+        // 🔥 FIREBASE CONFIG
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDKF6Jb-CLB8xM7TvNfoRnxWgiwD54SOXo",
@@ -858,26 +1138,38 @@
         };
 
         // ============================================================
-        // تهيئة Firebase
+        // INIT FIREBASE
         // ============================================================
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
         // ============================================================
-        // المتغيرات العامة
+        // SECURITY: Sanitize Input (XSS Protection)
+        // ============================================================
+        function sanitizeHTML(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function sanitizeInput(text) {
+            return text.replace(/[<>]/g, '').trim();
+        }
+
+        // ============================================================
+        // STATE
         // ============================================================
         let currentUser = '';
-        let userColor = '#0a84ff';
+        let userColor = '#5865f2';
         let isLoggedIn = false;
         let replyTo = null;
         let editingMessage = null;
         let unsubscribeMessages = null;
-        let typingTimeout = null;
-        let isTyping = false;
+        let blockedUsers = JSON.parse(localStorage.getItem('blockedUsers') || '[]');
 
         // ============================================================
-        // عناصر DOM
+        // DOM REFS
         // ============================================================
         const loginOverlay = document.getElementById('loginOverlay');
         const chatContainer = document.getElementById('chatContainer');
@@ -888,16 +1180,17 @@
         const messagesDiv = document.getElementById('messages');
         const msgInput = document.getElementById('msgInput');
         const sendBtn = document.getElementById('sendBtn');
-        const currentUserSpan = document.getElementById('currentUser');
-        const userAvatar = document.getElementById('userAvatar');
-        const onlineStatus = document.getElementById('onlineStatus');
-        const emojiToggle = document.getElementById('emojiToggle');
-        const emojiRail = document.getElementById('emojiRail');
         const emptyState = document.getElementById('emptyState');
         const logoutBtn = document.getElementById('logoutBtn');
+        const securityBtn = document.getElementById('securityBtn');
+        const securityModal = document.getElementById('securityModal');
+        const closeSecurityModal = document.getElementById('closeSecurityModal');
+        const emojiToggle = document.getElementById('emojiToggle');
+        const emojiRail = document.getElementById('emojiRail');
+        const typingIndicator = document.getElementById('typingIndicator');
 
         // ============================================================
-        // الساعة
+        // STATUS BAR CLOCK
         // ============================================================
         function updateStatusBar() {
             const now = new Date();
@@ -908,7 +1201,7 @@
         setInterval(updateStatusBar, 30000);
 
         // ============================================================
-        // اختيار اللون
+        // COLOR PICKER
         // ============================================================
         document.querySelectorAll('.color-circle').forEach(el => {
             el.addEventListener('click', function() {
@@ -919,7 +1212,7 @@
         });
 
         // ============================================================
-        // شريط الإيموجي
+        // EMOJI RAIL
         // ============================================================
         emojiToggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -944,34 +1237,72 @@
         });
 
         // ============================================================
-        // إنشاء عنصر رسالة
+        // SECURITY MODAL
+        // ============================================================
+        securityBtn.addEventListener('click', () => {
+            securityModal.classList.toggle('active');
+        });
+
+        closeSecurityModal.addEventListener('click', () => {
+            securityModal.classList.remove('active');
+        });
+
+        securityModal.addEventListener('click', (e) => {
+            if (e.target === securityModal) {
+                securityModal.classList.remove('active');
+            }
+        });
+
+        // ============================================================
+        // CREATE MESSAGE ELEMENT (with XSS Protection)
         // ============================================================
         function createMessageElement(docId, data, isSelf) {
+            // Skip blocked users
+            if (blockedUsers.includes(data.sender) && !isSelf) {
+                return null;
+            }
+
             const group = document.createElement('div');
             group.className = `message-group ${isSelf ? 'self' : 'other'}`;
             group.dataset.id = docId;
             group.dataset.sender = data.sender;
 
+            // Sender name (sanitized)
             const sender = document.createElement('div');
             sender.className = 'message-sender';
-            sender.textContent = data.sender;
+            sender.textContent = sanitizeHTML(data.sender);
 
+            // Bubble
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble';
 
+            // Reply preview
             if (data.replyTo) {
                 const replyDiv = document.createElement('div');
                 replyDiv.className = 'reply-preview';
-                replyDiv.innerHTML =
-                    `<span class="reply-sender">@${data.replyTo.sender}</span> ${data.replyTo.text.substring(0, 50)}${data.replyTo.text.length > 50 ? '...' : ''}`;
+                replyDiv.innerHTML = `
+                    <span class="reply-sender">@${sanitizeHTML(data.replyTo.sender)}</span>
+                    ${sanitizeHTML(data.replyTo.text.substring(0, 50))}${data.replyTo.text.length > 50 ? '...' : ''}
+                `;
                 bubble.appendChild(replyDiv);
             }
 
+            // Message text (sanitized)
             const textDiv = document.createElement('div');
             textDiv.className = 'message-text';
-            textDiv.textContent = data.text;
+            textDiv.textContent = data.text; // textContent automatically sanitizes
+
+            // Edited badge
+            if (data.edited) {
+                const editBadge = document.createElement('span');
+                editBadge.className = 'edited-badge';
+                editBadge.textContent = '(معدّل)';
+                textDiv.appendChild(editBadge);
+            }
+
             bubble.appendChild(textDiv);
 
+            // Time
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';
             if (data.timestamp) {
@@ -982,14 +1313,17 @@
                 }
             }
 
+            // Actions overlay (long press)
             const actions = document.createElement('div');
             actions.className = 'message-actions-overlay';
             actions.innerHTML = `
                 <button class="reply-btn" title="رد"><i class="fas fa-reply"></i></button>
                 ${isSelf ? `<button class="edit-btn" title="تعديل"><i class="fas fa-pen"></i></button>` : ''}
                 ${isSelf ? `<button class="delete-btn" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
+                <button class="report-btn" title="إبلاغ"><i class="fas fa-flag"></i></button>
             `;
 
+            // Event listeners for actions
             actions.querySelector('.reply-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 setReplyTo(docId, data.sender, data.text);
@@ -1015,12 +1349,19 @@
                 }
             }
 
+            // Report button
+            actions.querySelector('.report-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                reportMessage(docId, data.sender);
+                hideAllActions();
+            });
+
             group.appendChild(sender);
             group.appendChild(bubble);
             group.appendChild(timeDiv);
             group.appendChild(actions);
 
-            // ===== الضغطة المطولة =====
+            // ===== LONG PRESS =====
             let pressTimer = null;
             let isPressed = false;
 
@@ -1042,16 +1383,7 @@
             group.addEventListener('mousedown', startPress);
             group.addEventListener('mouseup', endPress);
             group.addEventListener('mouseleave', endPress);
-            group.addEventListener('touchstart', (e) => {
-                isPressed = true;
-                pressTimer = setTimeout(() => {
-                    if (isPressed) {
-                        e.preventDefault();
-                        hideAllActions();
-                        actions.classList.add('active');
-                    }
-                }, 500);
-            }, { passive: true });
+            group.addEventListener('touchstart', startPress, { passive: true });
             group.addEventListener('touchend', endPress);
             group.addEventListener('touchmove', endPress);
 
@@ -1059,7 +1391,7 @@
         }
 
         // ============================================================
-        // إخفاء كل الأزرار
+        // HIDE ALL ACTIONS
         // ============================================================
         function hideAllActions() {
             document.querySelectorAll('.message-actions-overlay.active').forEach(el => {
@@ -1070,17 +1402,19 @@
         document.addEventListener('click', hideAllActions);
 
         // ============================================================
-        // إضافة رسالة
+        // ADD MESSAGE TO UI
         // ============================================================
         function addMessageToUI(docId, data, isSelf) {
             if (emptyState) emptyState.style.display = 'none';
             const el = createMessageElement(docId, data, isSelf);
-            messagesDiv.appendChild(el);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            if (el) {
+                messagesDiv.appendChild(el);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
         }
 
         // ============================================================
-        // رسالة نظام
+        // SYSTEM MESSAGE
         // ============================================================
         function addSystemMessage(text) {
             if (emptyState) emptyState.style.display = 'none';
@@ -1092,7 +1426,7 @@
         }
 
         // ============================================================
-        // تحميل الرسائل
+        // LOAD MESSAGES
         // ============================================================
         function loadMessages() {
             if (emptyState) emptyState.style.display = 'flex';
@@ -1105,17 +1439,19 @@
                     if (emptyState) emptyState.style.display = 'none';
                     snapshot.forEach((doc) => {
                         const data = doc.data();
+                        // Skip blocked users' messages
+                        if (blockedUsers.includes(data.sender)) return;
                         addMessageToUI(doc.id, data, data.sender === currentUser);
                     });
                     if (snapshot.empty && emptyState) emptyState.style.display = 'flex';
                 })
                 .catch((error) => {
-                    console.error('❌ Error loading:', error);
+                    console.error('❌ Load error:', error);
                 });
         }
 
         // ============================================================
-        // الاستماع للرسائل
+        // LISTEN TO MESSAGES (REALTIME)
         // ============================================================
         function listenToMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
@@ -1125,8 +1461,12 @@
                 .limit(100)
                 .onSnapshot((snapshot) => {
                     snapshot.docChanges().forEach((change) => {
+                        const data = change.doc.data();
+
+                        // Skip blocked users
+                        if (blockedUsers.includes(data.sender)) return;
+
                         if (change.type === 'added') {
-                            const data = change.doc.data();
                             const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
                             if (!existing) {
                                 addMessageToUI(change.doc.id, data, data.sender === currentUser);
@@ -1135,9 +1475,11 @@
                         if (change.type === 'modified') {
                             const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
                             if (existing) {
-                                const data = change.doc.data();
                                 const textDiv = existing.querySelector('.message-text');
-                                if (textDiv) textDiv.textContent = data.text;
+                                if (textDiv) {
+                                    textDiv.innerHTML = sanitizeHTML(data.text) +
+                                        (data.edited ? ' <span class="edited-badge">(معدّل)</span>' : '');
+                                }
                             }
                         }
                         if (change.type === 'removed') {
@@ -1151,16 +1493,20 @@
                         if (emptyState) emptyState.style.display = 'none';
                     }
                 }, (error) => {
-                    console.error('❌ Error listening:', error);
+                    console.error('❌ Listen error:', error);
                 });
         }
 
         // ============================================================
-        // إرسال رسالة
+        // SEND MESSAGE
         // ============================================================
         function sendMessage() {
-            const text = msgInput.value.trim();
-            if (!text || !isLoggedIn) return;
+            const rawText = msgInput.value.trim();
+            if (!rawText || !isLoggedIn) return;
+
+            // Sanitize input
+            const text = sanitizeInput(rawText);
+            if (!text) return;
 
             if (editingMessage) {
                 updateMessage(editingMessage.id, text);
@@ -1180,8 +1526,8 @@
             if (replyTo) {
                 messageData.replyTo = {
                     id: replyTo.id,
-                    sender: replyTo.sender,
-                    text: replyTo.text.substring(0, 60) + (replyTo.text.length > 60 ? '...' : '')
+                    sender: sanitizeInput(replyTo.sender),
+                    text: sanitizeInput(replyTo.text.substring(0, 60)) + (replyTo.text.length > 60 ? '...' : '')
                 };
             }
 
@@ -1192,7 +1538,7 @@
                     clearReply();
                 })
                 .catch((error) => {
-                    console.error('❌ Error sending:', error);
+                    console.error('❌ Send error:', error);
                     alert('⚠️ فشل الإرسال');
                 })
                 .finally(() => {
@@ -1202,14 +1548,14 @@
         }
 
         // ============================================================
-        // تعديل رسالة
+        // EDIT MESSAGE
         // ============================================================
         function startEditing(id, text) {
             editingMessage = { id, text };
             msgInput.value = text;
             msgInput.focus();
             sendBtn.innerHTML = '<i class="fas fa-check"></i>';
-            sendBtn.style.background = '#ffcc00';
+            sendBtn.style.background = '#faa81a';
         }
 
         function updateMessage(id, newText) {
@@ -1226,26 +1572,48 @@
                 msgInput.value = '';
             })
             .catch((error) => {
-                console.error('❌ Error updating:', error);
+                console.error('❌ Update error:', error);
                 alert('⚠️ فشل التعديل');
             });
         }
 
         // ============================================================
-        // حذف رسالة
+        // DELETE MESSAGE
         // ============================================================
         function deleteMessage(id) {
             if (!confirm('🗑️ هل أنت متأكد من حذف هذه الرسالة؟')) return;
 
             db.collection('messages').doc(id).delete()
                 .catch((error) => {
-                    console.error('❌ Error deleting:', error);
+                    console.error('❌ Delete error:', error);
                     alert('⚠️ فشل الحذف');
                 });
         }
 
         // ============================================================
-        // الرد على رسالة
+        // REPORT MESSAGE
+        // ============================================================
+        function reportMessage(id, sender) {
+            if (confirm(`📋 هل تريد الإبلاغ عن @${sender}؟`)) {
+                // Save report to Firestore
+                db.collection('reports').add({
+                    messageId: id,
+                    sender: sender,
+                    reportedBy: currentUser,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    addSystemMessage(`📋 تم الإبلاغ عن @${sender}`);
+                })
+                .catch((error) => {
+                    console.error('❌ Report error:', error);
+                    alert('⚠️ فشل الإبلاغ');
+                });
+            }
+        }
+
+        // ============================================================
+        // REPLY
         // ============================================================
         function setReplyTo(id, sender, text) {
             replyTo = { id, sender, text };
@@ -1271,46 +1639,7 @@
         });
 
         // ============================================================
-        // حالة المتصلين
-        // ============================================================
-        function updateOnlineStatus() {
-            db.collection('users')
-                .where('online', '==', true)
-                .get()
-                .then((snapshot) => {
-                    const count = snapshot.size;
-                    onlineStatus.textContent = count > 1 ? `🟢 ${count} متصل` : '🟢 متصل';
-                })
-                .catch((error) => {
-                    console.error('❌ Error:', error);
-                });
-        }
-
-        // ============================================================
-        // إدارة حالة المستخدم
-        // ============================================================
-        function setUserOnline(username) {
-            db.collection('users').doc(username).set({
-                username: username,
-                color: userColor,
-                online: true,
-                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch((error) => {
-                console.error('❌ Error:', error);
-            });
-        }
-
-        function setUserOffline(username) {
-            db.collection('users').doc(username).update({
-                online: false,
-                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch((error) => {
-                console.error('❌ Error:', error);
-            });
-        }
-
-        // ============================================================
-        // تسجيل الخروج
+        // LOGOUT
         // ============================================================
         function logout() {
             if (!confirm('🚪 هل تريد تسجيل الخروج؟')) return;
@@ -1321,32 +1650,22 @@
             isLoggedIn = false;
             currentUser = '';
 
-            // إلغاء الاستماع
             if (unsubscribeMessages) {
                 unsubscribeMessages();
                 unsubscribeMessages = null;
             }
 
-            // إخفاء الدردشة وإظهار تسجيل الدخول
             chatContainer.style.display = 'none';
             loginOverlay.classList.remove('hidden');
 
-            // مسح الرسائل
             messagesDiv.innerHTML = `<div class="empty-state" id="emptyState">
                 <i class="fas fa-comment-dots"></i>
                 <span>لا توجد رسائل</span>
             </div>`;
 
-            // إعادة تعيين الإدخال
             msgInput.disabled = true;
             sendBtn.disabled = true;
             msgInput.value = '';
-
-            // مسح التخزين المحلي
-            localStorage.removeItem('chat_username');
-            localStorage.removeItem('chat_color');
-
-            // إعادة تعيين الأزرار
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             sendBtn.style.background = '';
             clearReply();
@@ -1356,14 +1675,45 @@
         logoutBtn.addEventListener('click', logout);
 
         // ============================================================
-        // تسجيل الدخول
+        // USER STATUS
+        // ============================================================
+        function setUserOnline(username) {
+            db.collection('users').doc(username).set({
+                username: username,
+                color: userColor,
+                online: true,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch((error) => {
+                console.error('❌ Status error:', error);
+            });
+        }
+
+        function setUserOffline(username) {
+            db.collection('users').doc(username).update({
+                online: false,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch((error) => {
+                console.error('❌ Status error:', error);
+            });
+        }
+
+        // ============================================================
+        // LOGIN
         // ============================================================
         async function login() {
-            const username = usernameInput.value.trim();
-            if (!username || username.length < 2) {
+            const rawUsername = usernameInput.value.trim();
+            if (!rawUsername || rawUsername.length < 2) {
                 loginError.style.display = 'block';
                 return;
             }
+
+            const username = sanitizeInput(rawUsername);
+            if (!username) {
+                loginError.textContent = '⚠️ اسم غير صالح';
+                loginError.style.display = 'block';
+                return;
+            }
+
             loginError.style.display = 'none';
             connectionError.style.display = 'none';
 
@@ -1376,14 +1726,8 @@
                 currentUser = username;
                 isLoggedIn = true;
 
-                // حفظ في localStorage
-                localStorage.setItem('chat_username', username);
-                localStorage.setItem('chat_color', userColor);
-
                 loginOverlay.classList.add('hidden');
                 chatContainer.style.display = 'flex';
-                currentUserSpan.textContent = username;
-                userAvatar.textContent = username.charAt(0).toUpperCase();
 
                 msgInput.disabled = false;
                 sendBtn.disabled = false;
@@ -1394,8 +1738,6 @@
 
                 loadMessages();
                 listenToMessages();
-                updateOnlineStatus();
-                setInterval(updateOnlineStatus, 10000);
 
                 window.addEventListener('beforeunload', () => {
                     setUserOffline(username);
@@ -1411,28 +1753,7 @@
         }
 
         // ============================================================
-        // التحقق من وجود مستخدم محفوظ
-        // ============================================================
-        function checkSavedUser() {
-            const savedUsername = localStorage.getItem('chat_username');
-            const savedColor = localStorage.getItem('chat_color');
-
-            if (savedUsername && savedColor) {
-                usernameInput.value = savedUsername;
-                userColor = savedColor;
-
-                // تحديد اللون المحفوظ
-                document.querySelectorAll('.color-circle').forEach(el => {
-                    el.classList.toggle('selected', el.dataset.color === savedColor);
-                });
-
-                // تسجيل الدخول تلقائياً
-                setTimeout(login, 300);
-            }
-        }
-
-        // ============================================================
-        // الأحداث
+        // EVENTS
         // ============================================================
         loginBtn.addEventListener('click', login);
         usernameInput.addEventListener('keypress', (e) => {
@@ -1445,21 +1766,17 @@
         });
 
         // ============================================================
-        // تشغيل التطبيق
-        // ============================================================
-        console.log('🚀 Chat app ready!');
-        checkSavedUser();
-
-        // ============================================================
-        // إعادة تعيين حالة التطبيق إذا كان المستخدم غير مسجل
+        // AUTH STATE
         // ============================================================
         auth.onAuthStateChanged((user) => {
             if (!user && !isLoggedIn) {
-                // المستخدم غير مسجل، نعرض شاشة الدخول
                 loginOverlay.classList.remove('hidden');
                 chatContainer.style.display = 'none';
             }
         });
+
+        console.log('🚀 نيزك - دردشة آمنة جاهزة!');
+        console.log(`🛡️ المستخدمون المحظورون: ${blockedUsers.length}`);
     </script>
 </body>
 </html>
