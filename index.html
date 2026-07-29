@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 دردشة فورية - Firebase</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 10px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 95vh;
+            background: #1a1a2e;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 255, 200, 0.1);
+            border: 1px solid #2a2a4a;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00d4ff;
+        }
+
+        .chat-header h2 {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-header h2 span {
+            color: #00d4ff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .user-info .dot {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #16213e;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #00d4ff;
+            border-radius: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.self {
+            background: linear-gradient(135deg, #00d4ff, #0077be);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.other {
+            background: #2a2a4a;
+            color: #e0e0e0;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message .sender {
+            font-size: 13px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 4px;
+        }
+
+        .message.self .sender {
+            color: #fff;
+        }
+
+        .message .time {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            text-align: left;
+        }
+
+        .message.self .time {
+            color: #d0f0ff;
+        }
+
+        .system-message {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            padding: 8px;
+            background: #1a1a2e;
+            border-radius: 10px;
+            margin: 5px 0;
+            border: 1px solid #2a2a4a;
+        }
+
+        .chat-input {
+            padding: 15px 20px;
+            background: #1a1a2e;
+            border-top: 1px solid #2a2a4a;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #2a2a4a;
+            border-radius: 25px;
+            background: #0a0a1a;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .chat-input input:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        .chat-input input::placeholder {
+            color: #555;
+        }
+
+        .chat-input button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #00d4ff, #0077be);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+
+        .chat-input button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .chat-input button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .login-box {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid #2a2a4a;
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.1);
+        }
+
+        .login-box h1 {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .login-box h1 span {
+            color: #00d4ff;
+        }
+
+        .login-box p {
+            color: #888;
+            margin-bottom: 25px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #2a2a4a;
+            border-radius: 15px;
+            background: #0a0a1a;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .login-box input:focus {
+            border-color: #00d4ff;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #00d4ff, #0077be);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-box button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .login-box .error {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .online-count {
+            font-size: 13px;
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            .login-box {
+                padding: 30px 20px;
+            }
+            .chat-header h2 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h1>💬 <span>دردشة</span></h1>
+            <p>أدخل اسمك للانضمام إلى الدردشة</p>
+            <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20">
+            <button id="loginBtn">🚀 دخول</button>
+            <div class="error" id="loginError">الرجاء إدخال اسم صحيح</div>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer" style="display:none;">
+        <div class="chat-header">
+            <h2>💬 <span>دردشة</span></h2>
+            <div class="user-info">
+                <span id="currentUser">👤</span>
+                <span class="dot"></span>
+                <span class="online-count" id="onlineCount">0 متصل</span>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="messages"></div>
+
+        <div class="chat-input">
+            <input type="text" id="msgInput" placeholder="اكتب رسالتك..." disabled>
+            <button id="sendBtn" disabled>📤 إرسال</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 إعدادات Firebase الخاصة بك
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKF6Jb-CLB8xM7TvNfoRnxWgiwD54SOXo",
+            authDomain: "chat-app-ba3c8.firebaseapp.com",
+            projectId: "chat-app-ba3c8",
+            storageBucket: "chat-app-ba3c8.firebasestorage.app",
+            messagingSenderId: "181727674867",
+            appId: "1:181727674867:web:ae9824d9051bab9f73d286",
+            measurementId: "G-VEL3PGTKY1"
+        };
+
+        // ============================================================
+        // تهيئة Firebase
+        // ============================================================
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // ============================================================
+        // المتغيرات العامة
+        // ============================================================
+        let currentUser = '';
+        let isLoggedIn = false;
+
+        // عناصر DOM
+        const loginOverlay = document.getElementById('loginOverlay');
+        const chatContainer = document.getElementById('chatContainer');
+        const usernameInput = document.getElementById('usernameInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const messagesDiv = document.getElementById('messages');
+        const msgInput = document.getElementById('msgInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const currentUserSpan = document.getElementById('currentUser');
+        const onlineCountSpan = document.getElementById('onlineCount');
+
+        // ============================================================
+        // دالة إضافة رسالة للواجهة
+        // ============================================================
+        function addMessageToUI(text, sender, timestamp, isSelf) {
+            const div = document.createElement('div');
+            div.className = `message ${isSelf ? 'self' : 'other'}`;
+
+            const senderDiv = document.createElement('div');
+            senderDiv.className = 'sender';
+            senderDiv.textContent = sender;
+
+            const textDiv = document.createElement('div');
+            textDiv.textContent = text;
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'time';
+            if (timestamp) {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                timeDiv.textContent = date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                timeDiv.textContent = new Date().toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            div.appendChild(senderDiv);
+            div.appendChild(textDiv);
+            div.appendChild(timeDiv);
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // ============================================================
+        // دالة إضافة رسالة نظام
+        // ============================================================
+        function addSystemMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'system-message';
+            div.textContent = text;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // ============================================================
+        // تحميل الرسائل السابقة من Firestore
+        // ============================================================
+        function loadMessages() {
+            db.collection('messages')
+                .orderBy('timestamp', 'asc')
+                .limit(100)
+                .get()
+                .then((snapshot) => {
+                    messagesDiv.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const isSelf = data.sender === currentUser;
+                        addMessageToUI(data.text, data.sender, data.timestamp, isSelf);
+                    });
+                })
+                .catch((error) => {
+                    console.error('خطأ في تحميل الرسائل:', error);
+                });
+        }
+
+        // ============================================================
+        // الاستماع للرسائل الجديدة (Realtime)
+        // ============================================================
+        let unsubscribeMessages = null;
+
+        function listenToMessages() {
+            if (unsubscribeMessages) {
+                unsubscribeMessages();
+            }
+
+            unsubscribeMessages = db.collection('messages')
+                .orderBy('timestamp', 'asc')
+                .limit(100)
+                .onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            const data = change.doc.data();
+                            const isSelf = data.sender === currentUser;
+                            addMessageToUI(data.text, data.sender, data.timestamp, isSelf);
+                        }
+                    });
+                }, (error) => {
+                    console.error('خطأ في الاستماع للرسائل:', error);
+                });
+        }
+
+        // ============================================================
+        // إرسال رسالة
+        // ============================================================
+        function sendMessage() {
+            const text = msgInput.value.trim();
+            if (!text || !isLoggedIn) return;
+
+            sendBtn.disabled = true;
+            msgInput.disabled = true;
+
+            db.collection('messages').add({
+                text: text,
+                sender: currentUser,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                msgInput.value = '';
+                msgInput.focus();
+            })
+            .catch((error) => {
+                console.error('خطأ في الإرسال:', error);
+                alert('حدث خطأ أثناء الإرسال. حاول مرة أخرى.');
+            })
+            .finally(() => {
+                sendBtn.disabled = false;
+                msgInput.disabled = false;
+            });
+        }
+
+        // ============================================================
+        // تحديث عدد المتصلين
+        // ============================================================
+        function updateOnlineUsers() {
+            db.collection('users')
+                .where('online', '==', true)
+                .get()
+                .then((snapshot) => {
+                    const count = snapshot.size;
+                    onlineCountSpan.textContent = `${count} متصل`;
+                })
+                .catch((error) => {
+                    console.error('خطأ في جلب عدد المتصلين:', error);
+                });
+        }
+
+        // ============================================================
+        // إدارة حالة المستخدم (دخول/خروج)
+        // ============================================================
+        function setUserOnline(username) {
+            db.collection('users').doc(username).set({
+                username: username,
+                online: true,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .catch((error) => {
+                console.error('خطأ في تحديث حالة المستخدم:', error);
+            });
+        }
+
+        function setUserOffline(username) {
+            db.collection('users').doc(username).update({
+                online: false,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .catch((error) => {
+                console.error('خطأ في تحديث حالة الخروج:', error);
+            });
+        }
+
+        // ============================================================
+        // دالة تسجيل الدخول
+        // ============================================================
+        function login() {
+            const username = usernameInput.value.trim();
+            if (!username || username.length < 2) {
+                loginError.style.display = 'block';
+                return;
+            }
+            loginError.style.display = 'none';
+
+            auth.signInAnonymously()
+                .then(() => {
+                    currentUser = username;
+                    isLoggedIn = true;
+
+                    loginOverlay.style.display = 'none';
+                    chatContainer.style.display = 'flex';
+                    currentUserSpan.textContent = `👤 ${username}`;
+
+                    msgInput.disabled = false;
+                    sendBtn.disabled = false;
+                    msgInput.focus();
+
+                    setUserOnline(username);
+                    addSystemMessage(`👋 ${username} انضم إلى الدردشة`);
+
+                    loadMessages();
+                    listenToMessages();
+
+                    updateOnlineUsers();
+                    setInterval(updateOnlineUsers, 10000);
+
+                    window.addEventListener('beforeunload', () => {
+                        setUserOffline(username);
+                    });
+                })
+                .catch((error) => {
+                    console.error('خطأ في تسجيل الدخول:', error);
+                    loginError.textContent = 'حدث خطأ في الاتصال. حاول مرة أخرى.';
+                    loginError.style.display = 'block';
+                });
+        }
+
+        // ============================================================
+        // الأحداث (Event Listeners)
+        // ============================================================
+        loginBtn.addEventListener('click', login);
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('✅ مستخدم مسجل:', user.uid);
+            }
+        });
+
+        console.log('🚀 تطبيق الدردشة جاهز!');
+    </script>
+</body>
+  </html>
