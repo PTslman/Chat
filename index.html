@@ -12,8 +12,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Font Awesome 6 (CDN موثوق) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
         /* ============================================================
@@ -25,18 +25,8 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        /* إصلاح عرض الإيموجي */
-        img.emoji,
-        .emoji {
-            display: inline-block;
-            height: 1.2em;
-            width: 1.2em;
-            vertical-align: middle;
-            font-size: inherit;
         }
 
         /* ============================================================
@@ -218,6 +208,13 @@
             border-radius: var(--radius-sm);
             font-size: 16px;
             transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-actions button i {
+            font-size: 16px;
         }
 
         .header-actions button:hover {
@@ -310,18 +307,6 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
-        /* الإيموجي داخل الرسالة */
-        .message-bubble .emoji-text {
-            font-size: 24px;
-            line-height: 1.4;
-        }
-
-        .message-bubble .emoji-only {
-            font-size: 42px;
-            line-height: 1.2;
-            padding: 2px 0;
-        }
-
         .message-group.self .message-bubble {
             background: var(--bg-bubble-self);
             color: #ffffff;
@@ -334,7 +319,6 @@
             border-bottom-left-radius: 4px;
         }
 
-        /* Tail */
         .message-group.self .message-bubble::after {
             content: '';
             position: absolute;
@@ -357,7 +341,6 @@
             clip-path: polygon(0 0, 100% 0, 0 100%);
         }
 
-        /* Reply */
         .reply-preview {
             background: rgba(255, 255, 255, 0.04);
             border-right: 2px solid var(--accent);
@@ -373,18 +356,12 @@
             font-weight: 600;
         }
 
-        /* إصلاح الإيموجي في الرد */
-        .reply-preview .reply-emoji {
-            font-size: 16px;
-        }
-
         .message-text {
             font-size: 15px;
             line-height: 1.45;
             word-break: break-word;
         }
 
-        /* إيموجي كبير إذا كانت الرسالة إيموجي فقط */
         .message-text.is-emoji-only {
             font-size: 38px;
             line-height: 1.2;
@@ -468,6 +445,13 @@
             padding: 4px 8px;
             border-radius: 8px;
             transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message-actions-overlay button i {
+            font-size: 13px;
         }
 
         .message-actions-overlay button:hover {
@@ -581,7 +565,7 @@
         }
 
         /* ============================================================
-           EMOJI RAIL - شريط الإيموجي المنبثق
+           EMOJI RAIL
            ============================================================ */
         .emoji-rail {
             position: absolute;
@@ -618,7 +602,6 @@
             }
         }
 
-        /* إصلاح الإيموجي في الشريط */
         .emoji-rail .emoji-item {
             font-size: 30px;
             padding: 4px 6px;
@@ -634,6 +617,7 @@
             justify-content: center;
             min-width: 40px;
             min-height: 40px;
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
         }
 
         .emoji-rail .emoji-item:hover {
@@ -694,6 +678,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            background: none;
+            border: none;
         }
 
         .emoji-toggle:hover {
@@ -734,11 +720,15 @@
             font-size: 16px;
             cursor: pointer;
             transition: var(--transition);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             box-shadow: 0 2px 12px var(--accent-glow);
+        }
+
+        .send-btn i {
+            font-size: 16px;
         }
 
         .send-btn:hover {
@@ -876,6 +866,10 @@
             cursor: pointer;
             transition: var(--transition);
             letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .login-btn:hover {
@@ -958,6 +952,7 @@
 
         .modal-title i {
             color: var(--accent);
+            font-size: 20px;
         }
 
         .modal-desc {
@@ -1020,6 +1015,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .close-modal:hover {
@@ -1074,25 +1073,40 @@
         }
 
         /* ============================================================
-           UTILITY - إيموجي واضح في كل مكان
+           EMOJI FIX
            ============================================================ */
-        .emoji-large {
-            font-size: 38px !important;
-            line-height: 1.2 !important;
-        }
-
-        .emoji-medium {
-            font-size: 24px !important;
-            line-height: 1.3 !important;
-        }
-
-        /* منع ظهور الإيموجي كمربعات */
-        .message-bubble * {
+        .message-bubble *,
+        .reply-preview *,
+        .system-message,
+        .empty-icon,
+        .login-logo {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
         }
 
-        .emoji-rail .emoji-item {
-            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+        .emoji-item {
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
+        }
+
+        /* ============================================================
+           FALLBACK ICONS (في حال فشل تحميل Font Awesome)
+           ============================================================ */
+        .fa,
+        .fas,
+        .far,
+        .fal,
+        .fab,
+        .fa-solid,
+        .fa-regular,
+        .fa-light,
+        .fa-brands {
+            font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Pro', 'Font Awesome 5 Free', 'FontAwesome', sans-serif;
+        }
+
+        /* Fallback باستخدام Unicode */
+        .icon-fallback {
+            display: inline-block;
+            font-size: 16px;
+            line-height: 1;
         }
     </style>
 </head>
@@ -1159,7 +1173,6 @@
                 <span></span><span></span><span></span>
             </div>
 
-            <!-- شريط الإيموجي -->
             <div class="emoji-rail" id="emojiRail">
                 <button class="emoji-item">😊</button>
                 <button class="emoji-item">😂</button>
@@ -1185,13 +1198,12 @@
                 <button class="emoji-item">👀</button>
                 <button class="emoji-item">🤝</button>
                 <button class="emoji-item">🫶</button>
-                <button class="emoji-item">✨</button>
             </div>
 
             <div class="chat-input">
                 <div class="input-row">
                     <div class="input-wrapper">
-                        <span class="emoji-toggle" id="emojiToggle"><i class="far fa-smile"></i></span>
+                        <button class="emoji-toggle" id="emojiToggle"><i class="far fa-smile"></i></button>
                         <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
                     </div>
                     <button class="send-btn" id="sendBtn" disabled>
@@ -1251,7 +1263,7 @@
                     <span class="badge">مفعّل</span>
                 </div>
 
-                <button class="close-modal" id="closeSecurityModal">✕ إغلاق</button>
+                <button class="close-modal" id="closeSecurityModal"><i class="fas fa-times"></i> إغلاق</button>
             </div>
         </div>
     </div>
@@ -1390,7 +1402,7 @@
         // CHECK IF TEXT IS EMOJI ONLY
         // ============================================================
         function isEmojiOnly(text) {
-            const emojiRegex = /^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2700}-\u{27BF}\u{FE00}-\u{FEFF}]+$/u;
+            const emojiRegex = /^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2700}-\u{27BF}\u{FE00}-\u{FEFF}\s]+$/u;
             return emojiRegex.test(text.trim());
         }
 
@@ -1412,7 +1424,6 @@
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble';
 
-            // Reply
             if (data.replyTo) {
                 const replyDiv = document.createElement('div');
                 replyDiv.className = 'reply-preview';
@@ -1420,7 +1431,7 @@
                 '');
                 replyDiv.innerHTML = `
                     <span class="reply-sender">@${sanitizeHTML(data.replyTo.sender)}</span>
-                    <span class="reply-emoji">${replyText}</span>
+                    <span>${replyText}</span>
                 `;
                 bubble.appendChild(replyDiv);
             }
@@ -1428,7 +1439,6 @@
             const textDiv = document.createElement('div');
             textDiv.className = 'message-text';
 
-            // تحقق إذا كانت الرسالة إيموجي فقط
             const isEmoji = isEmojiOnly(data.text);
             if (isEmoji) {
                 textDiv.classList.add('is-emoji-only');
@@ -1445,7 +1455,6 @@
 
             bubble.appendChild(textDiv);
 
-            // Time
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';
             if (data.timestamp) {
@@ -1456,7 +1465,6 @@
                 }
             }
 
-            // Actions
             const actions = document.createElement('div');
             actions.className = 'message-actions-overlay';
             actions.innerHTML = `
@@ -1496,7 +1504,6 @@
             group.appendChild(timeDiv);
             group.appendChild(actions);
 
-            // Long Press
             let pressTimer = null;
             let isPressed = false;
 
@@ -1610,7 +1617,6 @@
                                 if (textDiv) {
                                     textDiv.innerHTML = sanitizeHTML(data.text) +
                                         (data.edited ? ' <span class="edited-badge">(معدّل)</span>' : '');
-                                    // Re-check emoji-only
                                     if (isEmojiOnly(data.text)) {
                                         textDiv.classList.add('is-emoji-only');
                                     } else {
@@ -1914,4 +1920,4 @@
         console.log('🚀 نيزك - دردشة آمنة جاهزة!');
     </script>
 </body>
-    </html>
+                                                           </html>
