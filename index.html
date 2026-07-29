@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💬 دردشة - تصميم iPhone</title>
+    <title>💬 دردشة</title>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* ===== إعدادات عامة ===== */
+        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
@@ -23,21 +23,27 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html,
         body {
+            height: 100%;
+            overflow: hidden;
             background: #000;
+        }
+
+        /* ===== الحاوية الرئيسية ===== */
+        #app {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            padding: 0;
-            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            background: #000;
         }
 
-        /* ===== حاوية التطبيق ===== */
-        .app-container {
+        .chat-container {
             width: 100%;
             max-width: 430px;
-            height: 100vh;
+            height: 100%;
             max-height: 932px;
             background: #1c1c1e;
             display: flex;
@@ -46,51 +52,58 @@
             overflow: hidden;
         }
 
-        /* ===== رأس الدردشة (مثل iPhone) ===== */
+        @media (min-width: 431px) {
+            .chat-container {
+                border-radius: 30px;
+                height: 90vh;
+                box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8);
+            }
+        }
+
+        @media (max-width: 430px) {
+            .chat-container {
+                max-height: 100vh;
+                border-radius: 0;
+                height: 100%;
+            }
+        }
+
+        /* ===== رأس الدردشة ===== */
         .chat-header {
-            background: rgba(28, 28, 30, 0.92);
+            background: rgba(28, 28, 30, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             padding: 12px 16px 10px;
+            padding-top: 48px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
             flex-shrink: 0;
-            min-height: 56px;
-            padding-top: 44px;
+            min-height: 60px;
             position: relative;
             z-index: 10;
         }
 
-        /* الساعة في الأعلى (مثل iPhone) */
+        /* الساعة */
         .status-bar {
             position: absolute;
-            top: 8px;
+            top: 10px;
             left: 0;
             right: 0;
             text-align: center;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.4);
             font-size: 12px;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .back-btn {
-            color: #0a84ff;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        .avatar-container {
-            position: relative;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
         }
 
         .avatar {
@@ -100,97 +113,66 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: white;
             background: linear-gradient(135deg, #0a84ff, #5ac8fa);
-            position: relative;
-        }
-
-        .avatar .online-dot {
-            position: absolute;
-            bottom: 1px;
-            right: 1px;
-            width: 12px;
-            height: 12px;
-            background: #34c759;
-            border-radius: 50%;
-            border: 2px solid #1c1c1e;
+            flex-shrink: 0;
         }
 
         .header-info {
             display: flex;
             flex-direction: column;
             gap: 1px;
+            min-width: 0;
+            flex: 1;
         }
 
         .header-info .name {
             color: white;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 600;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .header-info .subtitle {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 11px;
             display: flex;
             align-items: center;
             gap: 4px;
         }
 
-        .header-info .subtitle .typing-dots {
-            display: none;
-            gap: 3px;
-        }
-
-        .header-info .subtitle .typing-dots.active {
-            display: flex;
-        }
-
-        .header-info .subtitle .typing-dots span {
-            width: 6px;
-            height: 6px;
-            background: #0a84ff;
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite;
-        }
-
-        .header-info .subtitle .typing-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .header-info .subtitle .typing-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typingBounce {
-            0%,
-            60%,
-            100% {
-                transform: translateY(0);
-                opacity: 0.4;
-            }
-            30% {
-                transform: translateY(-6px);
-                opacity: 1;
-            }
-        }
-
         .header-actions {
             display: flex;
-            gap: 16px;
-            color: #0a84ff;
-            font-size: 20px;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
         }
 
-        .header-actions i {
+        .header-actions .logout-btn {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
             cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+        }
+
+        .header-actions .logout-btn:hover {
+            background: rgba(255, 59, 48, 0.2);
+            color: #ff3b30;
         }
 
         /* ===== منطقة الرسائل ===== */
         .chat-messages {
             flex: 1;
-            padding: 8px 16px 4px;
+            padding: 6px 12px 4px;
             overflow-y: auto;
             overflow-x: hidden;
             background: #000;
@@ -198,18 +180,19 @@
             flex-direction: column;
             gap: 2px;
             scroll-behavior: smooth;
+            min-height: 0;
         }
 
         .chat-messages::-webkit-scrollbar {
             width: 0;
         }
 
-        /* ===== باقة الرسائل (مثل iPhone) ===== */
+        /* ===== باقة الرسائل ===== */
         .message-group {
             display: flex;
             flex-direction: column;
-            max-width: 78%;
-            animation: messageIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 80%;
+            animation: messageIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
         }
 
@@ -226,7 +209,7 @@
         @keyframes messageIn {
             from {
                 opacity: 0;
-                transform: scale(0.9) translateY(8px);
+                transform: scale(0.92) translateY(6px);
             }
             to {
                 opacity: 1;
@@ -234,12 +217,12 @@
             }
         }
 
-        /* اسم المرسل (فقط لغير self) */
+        /* اسم المرسل */
         .message-sender {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: #8e8e93;
-            padding: 0 12px 2px;
+            padding: 0 12px 1px;
             display: none;
         }
 
@@ -249,16 +232,15 @@
 
         /* فقاعة الرسالة */
         .message-bubble {
-            padding: 9px 14px 8px;
+            padding: 8px 12px 7px;
             border-radius: 18px;
             word-wrap: break-word;
-            position: relative;
-            font-size: 16px;
-            line-height: 1.45;
-            letter-spacing: -0.2px;
-            transition: 0.15s;
+            font-size: 15px;
+            line-height: 1.4;
+            letter-spacing: -0.1px;
             max-width: 100%;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            position: relative;
         }
 
         .message-group.self .message-bubble {
@@ -273,15 +255,15 @@
             border-bottom-left-radius: 4px;
         }
 
-        /* الرد على رسالة داخل الفقاعة */
+        /* الرد */
         .reply-preview {
             background: rgba(255, 255, 255, 0.06);
-            border-right: 3px solid #0a84ff;
-            padding: 4px 10px;
-            margin-bottom: 5px;
-            border-radius: 6px;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.6);
+            border-right: 2px solid #0a84ff;
+            padding: 3px 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .reply-preview .reply-sender {
@@ -289,59 +271,59 @@
             font-weight: 600;
         }
 
-        /* نص الرسالة */
         .message-text {
-            font-size: 16px;
-            line-height: 1.45;
+            font-size: 15px;
+            line-height: 1.4;
             word-break: break-word;
         }
 
-        /* توقيت الرسالة */
+        /* التوقيت */
         .message-time {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.35);
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.25);
             padding: 0 4px;
-            margin-top: 2px;
+            margin-top: 1px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .message-group.self .message-time {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.3);
         }
 
-        /* حالة القراءة (مثل iPhone) */
         .read-status {
-            font-size: 12px;
+            font-size: 10px;
             color: #0a84ff;
         }
 
-        /* ===== أزرار التفاعل (تظهر عند hover/لمس مطول) ===== */
+        /* ===== أزرار التفاعل (الضغطة المطولة) ===== */
         .message-actions-overlay {
             position: absolute;
-            top: -32px;
-            background: rgba(44, 44, 46, 0.95);
+            top: -34px;
+            background: rgba(44, 44, 46, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 4px 6px;
+            border-radius: 16px;
+            padding: 3px 5px;
             display: none;
             gap: 2px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             z-index: 20;
-            border: 0.5px solid rgba(255, 255, 255, 0.1);
-            animation: actionsPop 0.2s ease;
+            border: 0.5px solid rgba(255, 255, 255, 0.06);
+            animation: actionsPop 0.15s ease;
         }
 
         .message-group.self .message-actions-overlay {
             right: 0;
-            left: auto;
         }
 
         .message-group.other .message-actions-overlay {
             left: 0;
-            right: auto;
+        }
+
+        .message-actions-overlay.active {
+            display: flex;
         }
 
         @keyframes actionsPop {
@@ -355,26 +337,19 @@
             }
         }
 
-        .message-actions-overlay.active {
-            display: flex;
-        }
-
         .message-actions-overlay button {
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.6);
             cursor: pointer;
-            font-size: 18px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 15px;
+            padding: 4px 7px;
+            border-radius: 10px;
+            transition: 0.15s;
         }
 
         .message-actions-overlay button:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
         }
 
@@ -386,24 +361,55 @@
             color: #0a84ff;
         }
 
-        /* ===== شريط الإيموجي (مثل فيسبوك ماسنجر) ===== */
+        /* ===== رسائل النظام ===== */
+        .system-message {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            margin: 3px auto;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            max-width: 85%;
+        }
+
+        /* ===== الحالة الفارغة ===== */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.06);
+            gap: 6px;
+        }
+
+        .empty-state i {
+            font-size: 40px;
+        }
+
+        .empty-state span {
+            font-size: 13px;
+        }
+
+        /* ===== شريط الإيموجي ===== */
         .emoji-rail {
             position: absolute;
-            bottom: 80px;
-            left: 16px;
-            right: 16px;
-            background: rgba(44, 44, 46, 0.95);
+            bottom: 74px;
+            left: 12px;
+            right: 12px;
+            background: rgba(44, 44, 46, 0.92);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
-            border-radius: 30px;
-            padding: 8px 12px;
+            border-radius: 24px;
+            padding: 6px 10px;
             display: none;
-            gap: 6px;
+            gap: 4px;
             justify-content: center;
-            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.6);
-            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
             z-index: 30;
-            animation: emojiRailUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: emojiRailUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             flex-wrap: wrap;
         }
 
@@ -413,7 +419,7 @@
 
         @keyframes emojiRailUp {
             from {
-                transform: translateY(20px) scale(0.9);
+                transform: translateY(15px) scale(0.92);
                 opacity: 0;
             }
             to {
@@ -423,136 +429,113 @@
         }
 
         .emoji-rail .emoji-item {
-            font-size: 32px;
-            padding: 4px 6px;
+            font-size: 28px;
+            padding: 2px 5px;
             cursor: pointer;
-            border-radius: 12px;
-            transition: 0.15s;
-            user-select: none;
-            background: transparent;
+            border-radius: 10px;
+            transition: 0.12s;
+            background: none;
             border: none;
-            line-height: 1;
+            line-height: 1.2;
         }
 
-        .emoji-rail .emoji-item:hover,
         .emoji-rail .emoji-item:active {
-            transform: scale(1.3);
+            transform: scale(1.25);
             background: rgba(255, 255, 255, 0.05);
         }
 
-        .emoji-rail .emoji-item:active {
-            transform: scale(0.9);
-        }
-
-        /* ===== إدخال الرسالة (مثل iPhone) ===== */
+        /* ===== إدخال الرسالة ===== */
         .chat-input {
-            padding: 8px 12px 12px;
+            padding: 6px 12px 12px;
             background: rgba(28, 28, 30, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+            border-top: 0.5px solid rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             flex-shrink: 0;
             position: relative;
-            padding-bottom: 20px;
+            padding-bottom: 16px;
         }
 
         .chat-input .input-row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
-        .chat-input .input-row .input-wrapper {
+        .chat-input .input-wrapper {
             flex: 1;
             background: #2c2c2e;
-            border-radius: 25px;
+            border-radius: 22px;
             padding: 2px 4px;
             display: flex;
             align-items: center;
             border: 1px solid transparent;
-            transition: 0.2s;
+            transition: 0.15s;
+            min-width: 0;
         }
 
-        .chat-input .input-row .input-wrapper:focus-within {
+        .chat-input .input-wrapper:focus-within {
             border-color: #0a84ff;
         }
 
-        .chat-input .input-row .input-wrapper .attach-btn {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 20px;
-            padding: 6px 8px;
+        .chat-input .input-wrapper .emoji-toggle {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+            padding: 4px 6px;
             cursor: pointer;
+            transition: 0.15s;
+            flex-shrink: 0;
         }
 
-        .chat-input .input-row .input-wrapper input {
+        .chat-input .input-wrapper .emoji-toggle.active {
+            color: #0a84ff;
+        }
+
+        .chat-input .input-wrapper input {
             flex: 1;
-            padding: 10px 4px;
+            padding: 8px 4px;
             border: none;
             background: transparent;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
             min-width: 0;
         }
 
-        .chat-input .input-row .input-wrapper input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
+        .chat-input .input-wrapper input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
         }
 
-        .chat-input .input-row .input-wrapper input:disabled {
-            opacity: 0.5;
+        .chat-input .input-wrapper input:disabled {
+            opacity: 0.4;
         }
 
-        .chat-input .input-row .input-wrapper .emoji-toggle {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 20px;
-            padding: 6px 8px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .chat-input .input-row .input-wrapper .emoji-toggle.active {
-            color: #0a84ff;
-        }
-
-        .chat-input .input-row .send-btn {
-            width: 40px;
-            height: 40px;
+        .chat-input .send-btn {
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: #0a84ff;
             color: white;
             border: none;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.15s;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
         }
 
-        .chat-input .input-row .send-btn:disabled {
-            opacity: 0.3;
+        .chat-input .send-btn:disabled {
+            opacity: 0.25;
             cursor: not-allowed;
         }
 
-        .chat-input .input-row .send-btn:not(:disabled):active {
-            transform: scale(0.9);
-        }
-
-        /* ===== رسائل النظام ===== */
-        .system-message {
-            text-align: center;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.3);
-            padding: 6px 12px;
-            margin: 4px auto;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            max-width: 80%;
+        .chat-input .send-btn:not(:disabled):active {
+            transform: scale(0.92);
         }
 
         /* ===== شاشة تسجيل الدخول ===== */
@@ -570,26 +553,30 @@
             padding: 20px;
         }
 
+        .login-overlay.hidden {
+            display: none;
+        }
+
         .login-box {
             background: #1c1c1e;
-            padding: 40px 32px;
-            border-radius: 30px;
+            padding: 32px 24px;
+            border-radius: 28px;
             text-align: center;
-            max-width: 380px;
+            max-width: 360px;
             width: 100%;
-            border: 0.5px solid rgba(255, 255, 255, 0.06);
+            border: 0.5px solid rgba(255, 255, 255, 0.04);
         }
 
         .login-box .logo {
-            font-size: 60px;
-            margin-bottom: 4px;
+            font-size: 48px;
+            margin-bottom: 2px;
         }
 
         .login-box h1 {
             color: white;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .login-box h1 span {
@@ -597,22 +584,22 @@
         }
 
         .login-box p {
-            color: rgba(255, 255, 255, 0.4);
-            margin-bottom: 24px;
-            font-size: 14px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 18px;
+            font-size: 13px;
         }
 
         .login-box input {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
             background: #2c2c2e;
             color: white;
-            font-size: 17px;
+            font-size: 16px;
             text-align: center;
             outline: none;
-            transition: 0.2s;
+            transition: 0.15s;
         }
 
         .login-box input:focus {
@@ -620,46 +607,46 @@
         }
 
         .login-box input::placeholder {
-            color: rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.15);
         }
 
         .login-box .color-options {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
-            margin: 16px 0 20px;
+            margin: 14px 0 18px;
             flex-wrap: wrap;
         }
 
         .login-box .color-options .color-circle {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 2px solid transparent;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.15s;
         }
 
-        .login-box .color-options .color-circle:hover {
-            transform: scale(1.1);
+        .login-box .color-options .color-circle:active {
+            transform: scale(0.9);
         }
+
         .login-box .color-options .color-circle.selected {
             border-color: white;
-            transform: scale(1.15);
-            box-shadow: 0 0 20px rgba(10, 132, 255, 0.2);
+            transform: scale(1.1);
         }
 
         .login-box .login-btn {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             background: #0a84ff;
             color: white;
             border: none;
-            border-radius: 14px;
-            font-size: 17px;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.15s;
         }
 
         .login-box .login-btn:active {
@@ -667,165 +654,191 @@
         }
 
         .login-box .login-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
         .login-box .error {
             color: #ff3b30;
-            font-size: 13px;
-            margin-top: 12px;
+            font-size: 12px;
+            margin-top: 10px;
             display: none;
         }
 
-        /* ===== حالة عدم وجود رسائل ===== */
-        .empty-state {
-            flex: 1;
+        /* ===== مؤشر الكتابة (يظهر تلقائياً) ===== */
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 6px 14px;
+            background: #2c2c2e;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            margin: 2px 0;
+            gap: 4px;
+        }
+
+        .typing-indicator.active {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255, 255, 255, 0.15);
-            gap: 8px;
         }
 
-        .empty-state i {
-            font-size: 48px;
+        .typing-indicator span {
+            width: 7px;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite;
         }
 
-        .empty-state span {
-            font-size: 14px;
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
         }
 
-        /* ===== تأثير اللمس المطول ===== */
-        .message-group .message-bubble {
-            transition: transform 0.15s;
+        @keyframes typingBounce {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.3;
+            }
+            30% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
         }
 
-        .message-group.long-press .message-bubble {
-            transform: scale(0.95);
-        }
-
-        /* ===== متجاوب للجوال ===== */
-        @media (max-width: 430px) {
-            .app-container {
-                max-height: 100vh;
-                border-radius: 0;
+        /* ===== متجاوب للشاشات الصغيرة جداً ===== */
+        @media (max-width: 380px) {
+            .message-group {
+                max-width: 88%;
+            }
+            .message-bubble {
+                font-size: 14px;
+                padding: 6px 10px;
             }
             .chat-header {
-                padding-top: 44px;
+                padding-top: 40px;
+                padding-left: 12px;
+                padding-right: 12px;
             }
-            .login-box {
-                padding: 32px 20px;
+            .header-info .name {
+                font-size: 14px;
+            }
+            .avatar {
+                width: 30px;
+                height: 30px;
+                font-size: 13px;
+            }
+            .emoji-rail .emoji-item {
+                font-size: 22px;
+                padding: 2px 4px;
             }
         }
 
-        /* ===== شريط التمرير المخفي ===== */
-        .hidden-scroll {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .hidden-scroll::-webkit-scrollbar {
-            display: none;
+        /* ===== شاشات كبيرة ===== */
+        @media (min-width: 600px) {
+            .message-group {
+                max-width: 65%;
+            }
+            .chat-messages {
+                padding: 12px 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== شاشة تسجيل الدخول ===== -->
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-box">
-            <div class="logo">💬</div>
-            <h1>دردشة <span>فورية</span></h1>
-            <p>اختر اسماً ولونك المفضل</p>
-            <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20">
-            <div class="color-options" id="colorPicker">
-                <div class="color-circle selected" style="background:#0a84ff;" data-color="#0a84ff"></div>
-                <div class="color-circle" style="background:#ff3b30;" data-color="#ff3b30"></div>
-                <div class="color-circle" style="background:#ff9500;" data-color="#ff9500"></div>
-                <div class="color-circle" style="background:#ffcc00;" data-color="#ffcc00"></div>
-                <div class="color-circle" style="background:#34c759;" data-color="#34c759"></div>
-                <div class="color-circle" style="background:#af52de;" data-color="#af52de"></div>
-                <div class="color-circle" style="background:#ff6b8a;" data-color="#ff6b8a"></div>
-                <div class="color-circle" style="background:#5ac8fa;" data-color="#5ac8fa"></div>
-            </div>
-            <button class="login-btn" id="loginBtn">🚀 دخول</button>
-            <div class="error" id="loginError">⚠️ الرجاء إدخال اسم صحيح (حرفين على الأقل)</div>
-            <div class="error" id="connectionError" style="display:none;"></div>
-        </div>
-    </div>
-
-    <!-- ===== واجهة الدردشة ===== -->
-    <div class="app-container" id="chatContainer" style="display:none;">
-
-        <!-- رأس الدردشة -->
-        <div class="chat-header">
-            <div class="status-bar" id="statusTime">12:00</div>
-            <div class="header-left">
-                <span class="back-btn">‹</span>
-                <div class="avatar-container">
-                    <div class="avatar" id="userAvatar">👤</div>
-                    <div class="online-dot"></div>
+    <div id="app">
+        <!-- ===== شاشة تسجيل الدخول ===== -->
+        <div class="login-overlay" id="loginOverlay">
+            <div class="login-box">
+                <div class="logo">💬</div>
+                <h1>دردشة <span>فورية</span></h1>
+                <p>اختر اسماً ولونك المفضل</p>
+                <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
+                <div class="color-options" id="colorPicker">
+                    <div class="color-circle selected" style="background:#0a84ff;" data-color="#0a84ff"></div>
+                    <div class="color-circle" style="background:#ff3b30;" data-color="#ff3b30"></div>
+                    <div class="color-circle" style="background:#ff9500;" data-color="#ff9500"></div>
+                    <div class="color-circle" style="background:#ffcc00;" data-color="#ffcc00"></div>
+                    <div class="color-circle" style="background:#34c759;" data-color="#34c759"></div>
+                    <div class="color-circle" style="background:#af52de;" data-color="#af52de"></div>
+                    <div class="color-circle" style="background:#ff6b8a;" data-color="#ff6b8a"></div>
+                    <div class="color-circle" style="background:#5ac8fa;" data-color="#5ac8fa"></div>
                 </div>
-                <div class="header-info">
-                    <div class="name" id="currentUser">اسم المستخدم</div>
-                    <div class="subtitle" id="userStatus">
-                        <span id="onlineStatus">🟢 متصل</span>
-                        <div class="typing-dots" id="typingDots">
-                            <span></span><span></span><span></span>
-                        </div>
+                <button class="login-btn" id="loginBtn">🚀 دخول</button>
+                <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
+                <div class="error" id="connectionError" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- ===== واجهة الدردشة ===== -->
+        <div class="chat-container" id="chatContainer" style="display:none;">
+
+            <!-- رأس الدردشة -->
+            <div class="chat-header">
+                <div class="status-bar" id="statusTime">12:00</div>
+
+                <div class="header-left">
+                    <div class="avatar" id="userAvatar">👤</div>
+                    <div class="header-info">
+                        <div class="name" id="currentUser">المستخدم</div>
+                        <div class="subtitle" id="onlineStatus">🟢 متصل</div>
                     </div>
                 </div>
-            </div>
-            <div class="header-actions">
-                <i class="fas fa-phone"></i>
-                <i class="fas fa-video"></i>
-            </div>
-        </div>
 
-        <!-- منطقة الرسائل -->
-        <div class="chat-messages hidden-scroll" id="messages">
-            <div class="empty-state" id="emptyState">
-                <i class="fas fa-comment-dots"></i>
-                <span>لا توجد رسائل بعد</span>
-                <span style="font-size:12px;color:rgba(255,255,255,0.08);">كن أول من يكتب! ✨</span>
-            </div>
-        </div>
-
-        <!-- شريط الإيموجي -->
-        <div class="emoji-rail" id="emojiRail">
-            <button class="emoji-item">😊</button>
-            <button class="emoji-item">😂</button>
-            <button class="emoji-item">❤️</button>
-            <button class="emoji-item">🔥</button>
-            <button class="emoji-item">👍</button>
-            <button class="emoji-item">👏</button>
-            <button class="emoji-item">😍</button>
-            <button class="emoji-item">🤩</button>
-            <button class="emoji-item">💯</button>
-            <button class="emoji-item">🎉</button>
-            <button class="emoji-item">✨</button>
-            <button class="emoji-item">💪</button>
-            <button class="emoji-item">🤔</button>
-            <button class="emoji-item">😎</button>
-            <button class="emoji-item">🥰</button>
-            <button class="emoji-item">😭</button>
-            <button class="emoji-item">🤣</button>
-            <button class="emoji-item">😱</button>
-        </div>
-
-        <!-- إدخال الرسالة -->
-        <div class="chat-input">
-            <div class="input-row">
-                <div class="input-wrapper">
-                    <span class="attach-btn"><i class="fas fa-plus-circle"></i></span>
-                    <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
-                    <span class="emoji-toggle" id="emojiToggle"><i class="far fa-smile"></i></span>
+                <div class="header-actions">
+                    <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
-                <button class="send-btn" id="sendBtn" disabled>
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+            </div>
+
+            <!-- منطقة الرسائل -->
+            <div class="chat-messages" id="messages">
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>لا توجد رسائل</span>
+                </div>
+            </div>
+
+            <!-- شريط الإيموجي -->
+            <div class="emoji-rail" id="emojiRail">
+                <button class="emoji-item">😊</button>
+                <button class="emoji-item">😂</button>
+                <button class="emoji-item">❤️</button>
+                <button class="emoji-item">🔥</button>
+                <button class="emoji-item">👍</button>
+                <button class="emoji-item">👏</button>
+                <button class="emoji-item">😍</button>
+                <button class="emoji-item">🤩</button>
+                <button class="emoji-item">💯</button>
+                <button class="emoji-item">🎉</button>
+                <button class="emoji-item">✨</button>
+                <button class="emoji-item">💪</button>
+                <button class="emoji-item">🤔</button>
+                <button class="emoji-item">😎</button>
+                <button class="emoji-item">🥰</button>
+                <button class="emoji-item">😭</button>
+                <button class="emoji-item">🤣</button>
+                <button class="emoji-item">😱</button>
+                <button class="emoji-item">🙏</button>
+                <button class="emoji-item">💀</button>
+            </div>
+
+            <!-- إدخال الرسالة -->
+            <div class="chat-input">
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <span class="emoji-toggle" id="emojiToggle"><i class="far fa-smile"></i></span>
+                        <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
+                    </div>
+                    <button class="send-btn" id="sendBtn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -859,11 +872,13 @@
         let isLoggedIn = false;
         let replyTo = null;
         let editingMessage = null;
-        let longPressTimer = null;
-        let isLongPress = false;
-        let selectedMessageId = null;
+        let unsubscribeMessages = null;
+        let typingTimeout = null;
+        let isTyping = false;
 
+        // ============================================================
         // عناصر DOM
+        // ============================================================
         const loginOverlay = document.getElementById('loginOverlay');
         const chatContainer = document.getElementById('chatContainer');
         const usernameInput = document.getElementById('usernameInput');
@@ -876,19 +891,18 @@
         const currentUserSpan = document.getElementById('currentUser');
         const userAvatar = document.getElementById('userAvatar');
         const onlineStatus = document.getElementById('onlineStatus');
-        const typingDots = document.getElementById('typingDots');
         const emojiToggle = document.getElementById('emojiToggle');
         const emojiRail = document.getElementById('emojiRail');
         const emptyState = document.getElementById('emptyState');
+        const logoutBtn = document.getElementById('logoutBtn');
 
         // ============================================================
-        // الساعة في شريط الحالة
+        // الساعة
         // ============================================================
         function updateStatusBar() {
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const mins = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('statusTime').textContent = `${hours}:${mins}`;
+            document.getElementById('statusTime').textContent =
+                String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         }
         updateStatusBar();
         setInterval(updateStatusBar, 30000);
@@ -905,7 +919,7 @@
         });
 
         // ============================================================
-        // شريط الإيموجي (تبديل)
+        // شريط الإيموجي
         // ============================================================
         emojiToggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -913,7 +927,6 @@
             emojiToggle.classList.toggle('active');
         });
 
-        // إغلاق شريط الإيموجي عند النقر خارجه
         document.addEventListener('click', (e) => {
             if (!emojiRail.contains(e.target) && e.target !== emojiToggle && !emojiToggle.contains(e.target)) {
                 emojiRail.classList.remove('active');
@@ -921,7 +934,6 @@
             }
         });
 
-        // إضافة الإيموجي عند النقر عليه
         document.querySelectorAll('.emoji-item').forEach(el => {
             el.addEventListener('click', () => {
                 msgInput.value += el.textContent;
@@ -932,7 +944,7 @@
         });
 
         // ============================================================
-        // إنشاء رسالة في الواجهة
+        // إنشاء عنصر رسالة
         // ============================================================
         function createMessageElement(docId, data, isSelf) {
             const group = document.createElement('div');
@@ -940,44 +952,36 @@
             group.dataset.id = docId;
             group.dataset.sender = data.sender;
 
-            // اسم المرسل
             const sender = document.createElement('div');
             sender.className = 'message-sender';
             sender.textContent = data.sender;
 
-            // فقاعة الرسالة
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble';
 
-            // الرد إذا وجد
             if (data.replyTo) {
                 const replyDiv = document.createElement('div');
                 replyDiv.className = 'reply-preview';
-                replyDiv.innerHTML = `
-                    <span class="reply-sender">@${data.replyTo.sender}</span>
-                    ${data.replyTo.text}
-                `;
+                replyDiv.innerHTML =
+                    `<span class="reply-sender">@${data.replyTo.sender}</span> ${data.replyTo.text.substring(0, 50)}${data.replyTo.text.length > 50 ? '...' : ''}`;
                 bubble.appendChild(replyDiv);
             }
 
-            // نص الرسالة
             const textDiv = document.createElement('div');
             textDiv.className = 'message-text';
             textDiv.textContent = data.text;
             bubble.appendChild(textDiv);
 
-            // التوقيت وحالة القراءة
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';
             if (data.timestamp) {
                 const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
-                timeDiv.innerHTML = `${date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}`;
+                timeDiv.textContent = date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
                 if (isSelf) {
                     timeDiv.innerHTML += ` <span class="read-status"><i class="fas fa-check-double"></i></span>`;
                 }
             }
 
-            // أزرار التفاعل (تظهر عند اللمس المطول)
             const actions = document.createElement('div');
             actions.className = 'message-actions-overlay';
             actions.innerHTML = `
@@ -986,7 +990,6 @@
                 ${isSelf ? `<button class="delete-btn" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
             `;
 
-            // أحداث الأزرار
             actions.querySelector('.reply-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 setReplyTo(docId, data.sender, data.text);
@@ -1017,66 +1020,47 @@
             group.appendChild(timeDiv);
             group.appendChild(actions);
 
-            // ===== أحداث اللمس المطول =====
+            // ===== الضغطة المطولة =====
             let pressTimer = null;
             let isPressed = false;
 
-            group.addEventListener('mousedown', (e) => {
-                if (e.button !== 0) return;
+            const startPress = () => {
                 isPressed = true;
                 pressTimer = setTimeout(() => {
                     if (isPressed) {
-                        showActions(group);
+                        hideAllActions();
+                        actions.classList.add('active');
                     }
                 }, 500);
-            });
+            };
 
-            group.addEventListener('mouseup', () => {
+            const endPress = () => {
                 isPressed = false;
                 clearTimeout(pressTimer);
-            });
+            };
 
-            group.addEventListener('mouseleave', () => {
-                isPressed = false;
-                clearTimeout(pressTimer);
-            });
-
-            // للجوال
+            group.addEventListener('mousedown', startPress);
+            group.addEventListener('mouseup', endPress);
+            group.addEventListener('mouseleave', endPress);
             group.addEventListener('touchstart', (e) => {
                 isPressed = true;
                 pressTimer = setTimeout(() => {
                     if (isPressed) {
                         e.preventDefault();
-                        showActions(group);
+                        hideAllActions();
+                        actions.classList.add('active');
                     }
                 }, 500);
-            });
-
-            group.addEventListener('touchend', () => {
-                isPressed = false;
-                clearTimeout(pressTimer);
-            });
-
-            group.addEventListener('touchmove', () => {
-                isPressed = false;
-                clearTimeout(pressTimer);
-            });
+            }, { passive: true });
+            group.addEventListener('touchend', endPress);
+            group.addEventListener('touchmove', endPress);
 
             return group;
         }
 
         // ============================================================
-        // إظهار وإخفاء أزرار التفاعل
+        // إخفاء كل الأزرار
         // ============================================================
-        function showActions(group) {
-            hideAllActions();
-            const actions = group.querySelector('.message-actions-overlay');
-            if (actions) {
-                actions.classList.add('active');
-                selectedMessageId = group.dataset.id;
-            }
-        }
-
         function hideAllActions() {
             document.querySelectorAll('.message-actions-overlay.active').forEach(el => {
                 el.classList.remove('active');
@@ -1086,7 +1070,7 @@
         document.addEventListener('click', hideAllActions);
 
         // ============================================================
-        // إضافة رسالة للواجهة
+        // إضافة رسالة
         // ============================================================
         function addMessageToUI(docId, data, isSelf) {
             if (emptyState) emptyState.style.display = 'none';
@@ -1121,21 +1105,18 @@
                     if (emptyState) emptyState.style.display = 'none';
                     snapshot.forEach((doc) => {
                         const data = doc.data();
-                        const isSelf = data.sender === currentUser;
-                        addMessageToUI(doc.id, data, isSelf);
+                        addMessageToUI(doc.id, data, data.sender === currentUser);
                     });
                     if (snapshot.empty && emptyState) emptyState.style.display = 'flex';
                 })
                 .catch((error) => {
-                    console.error('❌ Error loading messages:', error);
+                    console.error('❌ Error loading:', error);
                 });
         }
 
         // ============================================================
         // الاستماع للرسائل
         // ============================================================
-        let unsubscribeMessages = null;
-
         function listenToMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
 
@@ -1146,10 +1127,9 @@
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
                             const data = change.doc.data();
-                            const isSelf = data.sender === currentUser;
                             const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
                             if (!existing) {
-                                addMessageToUI(change.doc.id, data, isSelf);
+                                addMessageToUI(change.doc.id, data, data.sender === currentUser);
                             }
                         }
                         if (change.type === 'modified') {
@@ -1213,7 +1193,7 @@
                 })
                 .catch((error) => {
                     console.error('❌ Error sending:', error);
-                    alert('⚠️ فشل الإرسال: ' + error.message);
+                    alert('⚠️ فشل الإرسال');
                 })
                 .finally(() => {
                     sendBtn.disabled = false;
@@ -1247,7 +1227,7 @@
             })
             .catch((error) => {
                 console.error('❌ Error updating:', error);
-                alert('⚠️ فشل التعديل: ' + error.message);
+                alert('⚠️ فشل التعديل');
             });
         }
 
@@ -1260,7 +1240,7 @@
             db.collection('messages').doc(id).delete()
                 .catch((error) => {
                     console.error('❌ Error deleting:', error);
-                    alert('⚠️ فشل الحذف: ' + error.message);
+                    alert('⚠️ فشل الحذف');
                 });
         }
 
@@ -1271,7 +1251,6 @@
             replyTo = { id, sender, text };
             msgInput.placeholder = `رد على @${sender}...`;
             msgInput.focus();
-            // نضيف مؤشر بسيط في الإدخال
         }
 
         function clearReply() {
@@ -1279,7 +1258,6 @@
             msgInput.placeholder = 'اكتب رسالة...';
         }
 
-        // الضغط على Escape لإلغاء الرد
         msgInput.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (editingMessage) {
@@ -1293,7 +1271,7 @@
         });
 
         // ============================================================
-        // تحديث حالة المتصلين
+        // حالة المتصلين
         // ============================================================
         function updateOnlineStatus() {
             db.collection('users')
@@ -1304,7 +1282,7 @@
                     onlineStatus.textContent = count > 1 ? `🟢 ${count} متصل` : '🟢 متصل';
                 })
                 .catch((error) => {
-                    console.error('❌ Error getting online:', error);
+                    console.error('❌ Error:', error);
                 });
         }
 
@@ -1318,7 +1296,7 @@
                 online: true,
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             }).catch((error) => {
-                console.error('❌ Error setting online:', error);
+                console.error('❌ Error:', error);
             });
         }
 
@@ -1327,9 +1305,55 @@
                 online: false,
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             }).catch((error) => {
-                console.error('❌ Error setting offline:', error);
+                console.error('❌ Error:', error);
             });
         }
+
+        // ============================================================
+        // تسجيل الخروج
+        // ============================================================
+        function logout() {
+            if (!confirm('🚪 هل تريد تسجيل الخروج؟')) return;
+
+            setUserOffline(currentUser);
+            addSystemMessage(`👋 ${currentUser} غادر الدردشة`);
+
+            isLoggedIn = false;
+            currentUser = '';
+
+            // إلغاء الاستماع
+            if (unsubscribeMessages) {
+                unsubscribeMessages();
+                unsubscribeMessages = null;
+            }
+
+            // إخفاء الدردشة وإظهار تسجيل الدخول
+            chatContainer.style.display = 'none';
+            loginOverlay.classList.remove('hidden');
+
+            // مسح الرسائل
+            messagesDiv.innerHTML = `<div class="empty-state" id="emptyState">
+                <i class="fas fa-comment-dots"></i>
+                <span>لا توجد رسائل</span>
+            </div>`;
+
+            // إعادة تعيين الإدخال
+            msgInput.disabled = true;
+            sendBtn.disabled = true;
+            msgInput.value = '';
+
+            // مسح التخزين المحلي
+            localStorage.removeItem('chat_username');
+            localStorage.removeItem('chat_color');
+
+            // إعادة تعيين الأزرار
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            sendBtn.style.background = '';
+            clearReply();
+            editingMessage = null;
+        }
+
+        logoutBtn.addEventListener('click', logout);
 
         // ============================================================
         // تسجيل الدخول
@@ -1352,7 +1376,11 @@
                 currentUser = username;
                 isLoggedIn = true;
 
-                loginOverlay.style.display = 'none';
+                // حفظ في localStorage
+                localStorage.setItem('chat_username', username);
+                localStorage.setItem('chat_color', userColor);
+
+                loginOverlay.classList.add('hidden');
                 chatContainer.style.display = 'flex';
                 currentUserSpan.textContent = username;
                 userAvatar.textContent = username.charAt(0).toUpperCase();
@@ -1383,6 +1411,27 @@
         }
 
         // ============================================================
+        // التحقق من وجود مستخدم محفوظ
+        // ============================================================
+        function checkSavedUser() {
+            const savedUsername = localStorage.getItem('chat_username');
+            const savedColor = localStorage.getItem('chat_color');
+
+            if (savedUsername && savedColor) {
+                usernameInput.value = savedUsername;
+                userColor = savedColor;
+
+                // تحديد اللون المحفوظ
+                document.querySelectorAll('.color-circle').forEach(el => {
+                    el.classList.toggle('selected', el.dataset.color === savedColor);
+                });
+
+                // تسجيل الدخول تلقائياً
+                setTimeout(login, 300);
+            }
+        }
+
+        // ============================================================
         // الأحداث
         // ============================================================
         loginBtn.addEventListener('click', login);
@@ -1395,13 +1444,22 @@
             if (e.key === 'Enter') sendMessage();
         });
 
+        // ============================================================
+        // تشغيل التطبيق
+        // ============================================================
         console.log('🚀 Chat app ready!');
+        checkSavedUser();
 
         // ============================================================
-        // تفعيل إيموجي الرموز التعبيرية في شريط الإيموجي
+        // إعادة تعيين حالة التطبيق إذا كان المستخدم غير مسجل
         // ============================================================
-        // إضافة المزيد من الإيموجي عند النقر على شريط الإيموجي نفسه
-        // (تم تضمينها بالفعل في HTML)
+        auth.onAuthStateChanged((user) => {
+            if (!user && !isLoggedIn) {
+                // المستخدم غير مسجل، نعرض شاشة الدخول
+                loginOverlay.classList.remove('hidden');
+                chatContainer.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
