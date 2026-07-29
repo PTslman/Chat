@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>💬 نيزك</title>
+    <title>نيزك - دردشة</title>
+
+    <!-- Google Material Symbols (أيقونات مضمونة 100%) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-    <!-- Font Awesome 6 (CDN موثوق) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <style>
         /* ============================================================
-           RESET
+           RESET & ROOT
            ============================================================ */
         *,
         *::before,
@@ -25,16 +25,13 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ============================================================
-           ROOT VARIABLES
-           ============================================================ */
         :root {
             --bg-app: #0a0a0c;
-            --bg-header: rgba(14, 14, 18, 0.95);
+            --bg-header: rgba(14, 14, 18, 0.94);
             --bg-messages: #0e0e10;
             --bg-bubble-other: #202024;
             --bg-bubble-self: #2b6ef0;
@@ -45,17 +42,14 @@
             --text-muted: #5f5f6b;
             --accent: #2b6ef0;
             --accent-hover: #1a5bd4;
-            --accent-glow: rgba(43, 110, 240, 0.15);
+            --accent-glow: rgba(43, 110, 240, 0.2);
             --green: #23a55a;
             --red: #ed4245;
             --orange: #faa81a;
             --purple: #a78bfa;
-            --radius-lg: 20px;
-            --radius-md: 14px;
+            --radius: 18px;
             --radius-sm: 10px;
-            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
-            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
-            --transition: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
 
         html,
@@ -65,7 +59,6 @@
             background: var(--bg-app);
             color: var(--text-primary);
             font-size: 16px;
-            line-height: 1.5;
         }
 
         /* ============================================================
@@ -83,7 +76,7 @@
         }
 
         /* ============================================================
-           APP
+           APP CONTAINER
            ============================================================ */
         #app {
             display: flex;
@@ -109,9 +102,9 @@
 
         @media (min-width: 441px) {
             .chat-container {
-                border-radius: var(--radius-lg);
+                border-radius: 24px;
                 height: 90vh;
-                box-shadow: var(--shadow-lg);
+                box-shadow: var(--shadow);
             }
         }
 
@@ -125,13 +118,13 @@
         }
 
         /* ============================================================
-           HEADER
+           HEADER (شريط علوي)
            ============================================================ */
         .chat-header {
             background: var(--bg-header);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 10px 18px 10px;
+            padding: 10px 16px 10px;
             padding-top: 46px;
             display: flex;
             justify-content: space-between;
@@ -162,13 +155,12 @@
             min-width: 0;
         }
 
-        .header-brand {
+        .brand {
             display: flex;
             align-items: center;
             gap: 8px;
             font-weight: 700;
             font-size: 17px;
-            letter-spacing: -0.3px;
             color: var(--text-primary);
         }
 
@@ -180,10 +172,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
             color: white;
             box-shadow: 0 0 20px var(--accent-glow);
             flex-shrink: 0;
+        }
+
+        .brand-icon .material-symbols-outlined {
+            font-size: 18px;
+            color: white;
         }
 
         .brand-text {
@@ -195,7 +191,7 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             flex-shrink: 0;
         }
 
@@ -206,15 +202,14 @@
             cursor: pointer;
             padding: 6px 8px;
             border-radius: var(--radius-sm);
-            font-size: 16px;
-            transition: var(--transition);
-            display: inline-flex;
+            transition: 0.2s;
+            display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .header-actions button i {
-            font-size: 16px;
+        .header-actions button .material-symbols-outlined {
+            font-size: 22px;
         }
 
         .header-actions button:hover {
@@ -232,11 +227,11 @@
         }
 
         /* ============================================================
-           MESSAGES
+           MESSAGES (منطقة الرسائل)
            ============================================================ */
         .chat-messages {
             flex: 1;
-            padding: 8px 14px 4px;
+            padding: 6px 14px 4px;
             overflow-y: auto;
             overflow-x: hidden;
             background: var(--bg-messages);
@@ -248,32 +243,32 @@
         }
 
         /* ============================================================
-           MESSAGE BUBBLE
+           MESSAGE BUBBLE (فقاعة الرسالة)
            ============================================================ */
-        .message-group {
+        .msg-group {
             display: flex;
             flex-direction: column;
             max-width: 82%;
-            animation: messageSlide 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: slideUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
             margin-bottom: 1px;
             padding: 0 2px;
         }
 
-        .message-group.self {
+        .msg-group.self {
             align-self: flex-end;
             align-items: flex-end;
         }
 
-        .message-group.other {
+        .msg-group.other {
             align-self: flex-start;
             align-items: flex-start;
         }
 
-        @keyframes messageSlide {
+        @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(10px) scale(0.96);
+                transform: translateY(8px) scale(0.96);
             }
             to {
                 opacity: 1;
@@ -281,45 +276,43 @@
             }
         }
 
-        .message-sender {
+        .msg-sender {
             font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
             padding: 0 12px 2px;
             display: none;
-            letter-spacing: 0.2px;
         }
 
-        .message-group.other .message-sender {
+        .msg-group.other .msg-sender {
             display: block;
         }
 
-        .message-bubble {
+        .msg-bubble {
             padding: 8px 14px 7px;
-            border-radius: 18px;
+            border-radius: var(--radius);
             word-wrap: break-word;
             font-size: 15px;
             line-height: 1.45;
-            letter-spacing: -0.1px;
             max-width: 100%;
             position: relative;
-            transition: var(--transition);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
-        .message-group.self .message-bubble {
+        .msg-group.self .msg-bubble {
             background: var(--bg-bubble-self);
             color: #ffffff;
             border-bottom-right-radius: 4px;
         }
 
-        .message-group.other .message-bubble {
+        .msg-group.other .msg-bubble {
             background: var(--bg-bubble-other);
             color: var(--text-primary);
             border-bottom-left-radius: 4px;
         }
 
-        .message-group.self .message-bubble::after {
+        /* ذيل الفقاعة */
+        .msg-group.self .msg-bubble::after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -330,7 +323,7 @@
             clip-path: polygon(0 0, 100% 0, 100% 100%);
         }
 
-        .message-group.other .message-bubble::after {
+        .msg-group.other .msg-bubble::after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -341,7 +334,8 @@
             clip-path: polygon(0 0, 100% 0, 0 100%);
         }
 
-        .reply-preview {
+        /* الرد */
+        .reply-box {
             background: rgba(255, 255, 255, 0.04);
             border-right: 2px solid var(--accent);
             padding: 3px 10px;
@@ -351,31 +345,31 @@
             color: var(--text-secondary);
         }
 
-        .reply-preview .reply-sender {
+        .reply-box .r-sender {
             color: var(--accent);
             font-weight: 600;
         }
 
-        .message-text {
+        .msg-text {
             font-size: 15px;
             line-height: 1.45;
             word-break: break-word;
         }
 
-        .message-text.is-emoji-only {
+        .msg-text.emoji-big {
             font-size: 38px;
             line-height: 1.2;
             padding: 2px 0;
         }
 
-        .message-text .edited-badge {
+        .msg-text .edited-badge {
             font-size: 10px;
             color: var(--text-muted);
             margin-left: 4px;
             font-weight: 400;
         }
 
-        .message-time {
+        .msg-time {
             font-size: 10px;
             color: var(--text-muted);
             padding: 0 4px;
@@ -383,10 +377,9 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            letter-spacing: 0.1px;
         }
 
-        .message-group.self .message-time {
+        .msg-group.self .msg-time {
             color: rgba(255, 255, 255, 0.3);
         }
 
@@ -396,9 +389,9 @@
         }
 
         /* ============================================================
-           MESSAGE ACTIONS
+           MESSAGE ACTIONS (أزرار الضغطة المطولة)
            ============================================================ */
-        .message-actions-overlay {
+        .msg-actions {
             position: absolute;
             top: -36px;
             background: rgba(26, 26, 30, 0.95);
@@ -408,24 +401,24 @@
             padding: 3px 5px;
             display: none;
             gap: 1px;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             z-index: 20;
             border: 0.5px solid rgba(255, 255, 255, 0.06);
-            animation: actionsPop 0.15s ease;
+            animation: popIn 0.15s ease;
         }
 
-        .message-group.self .message-actions-overlay {
+        .msg-group.self .msg-actions {
             right: 0;
         }
-        .message-group.other .message-actions-overlay {
+        .msg-group.other .msg-actions {
             left: 0;
         }
 
-        .message-actions-overlay.active {
+        .msg-actions.active {
             display: flex;
         }
 
-        @keyframes actionsPop {
+        @keyframes popIn {
             from {
                 transform: scale(0.85) translateY(4px);
                 opacity: 0;
@@ -436,45 +429,42 @@
             }
         }
 
-        .message-actions-overlay button {
+        .msg-actions button {
             background: none;
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            font-size: 13px;
             padding: 4px 8px;
             border-radius: 8px;
-            transition: var(--transition);
-            display: inline-flex;
+            transition: 0.2s;
+            display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .message-actions-overlay button i {
-            font-size: 13px;
+        .msg-actions button .material-symbols-outlined {
+            font-size: 18px;
         }
 
-        .message-actions-overlay button:hover {
+        .msg-actions button:hover {
             background: rgba(255, 255, 255, 0.06);
             color: var(--text-primary);
         }
 
-        .message-actions-overlay button.reply-btn:hover {
+        .msg-actions button.reply:hover {
             color: var(--accent);
         }
-
-        .message-actions-overlay button.delete-btn:hover {
+        .msg-actions button.delete:hover {
             color: var(--red);
         }
-
-        .message-actions-overlay button.report-btn:hover {
+        .msg-actions button.report:hover {
             color: var(--orange);
         }
 
         /* ============================================================
            SYSTEM MESSAGE
            ============================================================ */
-        .system-message {
+        .system-msg {
             text-align: center;
             font-size: 11px;
             color: var(--text-muted);
@@ -484,7 +474,6 @@
             border-radius: 10px;
             max-width: 85%;
             border: 0.5px solid rgba(255, 255, 255, 0.03);
-            letter-spacing: 0.2px;
         }
 
         /* ============================================================
@@ -500,19 +489,18 @@
             gap: 6px;
         }
 
-        .empty-icon {
-            font-size: 44px;
+        .empty-state .empty-icon .material-symbols-outlined {
+            font-size: 48px;
             opacity: 0.15;
-            margin-bottom: 4px;
         }
 
-        .empty-title {
+        .empty-state .empty-title {
             font-size: 15px;
             font-weight: 500;
             opacity: 0.3;
         }
 
-        .empty-sub {
+        .empty-state .empty-sub {
             font-size: 12px;
             opacity: 0.15;
         }
@@ -529,7 +517,6 @@
             border-bottom-left-radius: 4px;
             margin: 2px 0 4px;
             gap: 4px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .typing-indicator.active {
@@ -565,7 +552,7 @@
         }
 
         /* ============================================================
-           EMOJI RAIL
+           EMOJI RAIL (شريط الإيموجي)
            ============================================================ */
         .emoji-rail {
             position: absolute;
@@ -580,10 +567,10 @@
             display: none;
             gap: 4px;
             justify-content: center;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.6);
             border: 0.5px solid rgba(255, 255, 255, 0.04);
             z-index: 30;
-            animation: emojiRailUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: railUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             flex-wrap: wrap;
         }
 
@@ -591,7 +578,7 @@
             display: flex;
         }
 
-        @keyframes emojiRailUp {
+        @keyframes railUp {
             from {
                 transform: translateY(18px) scale(0.92);
                 opacity: 0;
@@ -603,11 +590,11 @@
         }
 
         .emoji-rail .emoji-item {
-            font-size: 30px;
+            font-size: 28px;
             padding: 4px 6px;
             cursor: pointer;
             border-radius: 10px;
-            transition: var(--transition);
+            transition: 0.15s;
             background: none;
             border: none;
             line-height: 1;
@@ -615,9 +602,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 40px;
-            min-height: 40px;
-            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+            min-width: 36px;
+            min-height: 36px;
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
         }
 
         .emoji-rail .emoji-item:hover {
@@ -659,7 +646,7 @@
             display: flex;
             align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.04);
-            transition: var(--transition);
+            transition: 0.2s;
             min-width: 0;
         }
 
@@ -670,16 +657,19 @@
 
         .emoji-toggle {
             color: var(--text-muted);
-            font-size: 20px;
             padding: 4px 6px;
             cursor: pointer;
-            transition: var(--transition);
+            transition: 0.2s;
             flex-shrink: 0;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             background: none;
             border: none;
+        }
+
+        .emoji-toggle .material-symbols-outlined {
+            font-size: 22px;
         }
 
         .emoji-toggle:hover {
@@ -703,7 +693,6 @@
 
         .input-wrapper input::placeholder {
             color: var(--text-muted);
-            font-weight: 400;
         }
 
         .input-wrapper input:disabled {
@@ -717,18 +706,17 @@
             background: var(--accent);
             color: white;
             border: none;
-            font-size: 16px;
             cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
+            transition: 0.2s;
+            display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             box-shadow: 0 2px 12px var(--accent-glow);
         }
 
-        .send-btn i {
-            font-size: 16px;
+        .send-btn .material-symbols-outlined {
+            font-size: 20px;
         }
 
         .send-btn:hover {
@@ -741,10 +729,6 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
-        }
-
-        .send-btn:not(:disabled):active {
-            transform: scale(0.92);
         }
 
         /* ============================================================
@@ -771,12 +755,12 @@
         .login-box {
             background: var(--bg-card);
             padding: 36px 28px 32px;
-            border-radius: var(--radius-lg);
+            border-radius: 24px;
             text-align: center;
             max-width: 380px;
             width: 100%;
             border: 0.5px solid rgba(255, 255, 255, 0.03);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow);
         }
 
         .login-logo {
@@ -788,11 +772,10 @@
             color: var(--text-primary);
             font-size: 26px;
             font-weight: 700;
-            letter-spacing: -0.5px;
             margin-bottom: 2px;
         }
 
-        .login-box h1 .highlight {
+        .login-box h1 .hl {
             background: linear-gradient(135deg, var(--accent), var(--purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -802,7 +785,6 @@
             color: var(--text-secondary);
             font-size: 13px;
             margin-bottom: 20px;
-            letter-spacing: 0.2px;
         }
 
         .login-box input {
@@ -815,7 +797,7 @@
             font-size: 16px;
             text-align: center;
             outline: none;
-            transition: var(--transition);
+            transition: 0.2s;
         }
 
         .login-box input:focus {
@@ -841,7 +823,7 @@
             border-radius: 50%;
             border: 2px solid transparent;
             cursor: pointer;
-            transition: var(--transition);
+            transition: 0.2s;
         }
 
         .color-circle:active {
@@ -864,9 +846,8 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
-            letter-spacing: 0.3px;
-            display: inline-flex;
+            transition: 0.2s;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -876,10 +857,6 @@
             background: var(--accent-hover);
             transform: translateY(-1px);
             box-shadow: 0 4px 24px var(--accent-glow);
-        }
-
-        .login-btn:active {
-            transform: scale(0.97);
         }
 
         .login-btn:disabled {
@@ -907,7 +884,6 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             display: none;
             justify-content: center;
             align-items: center;
@@ -922,11 +898,11 @@
         .modal-box {
             background: var(--bg-card);
             padding: 28px 24px 24px;
-            border-radius: var(--radius-lg);
+            border-radius: 24px;
             max-width: 400px;
             width: 100%;
             border: 0.5px solid rgba(255, 255, 255, 0.03);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow);
             animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
@@ -950,9 +926,9 @@
             gap: 10px;
         }
 
-        .modal-title i {
+        .modal-title .material-symbols-outlined {
             color: var(--accent);
-            font-size: 20px;
+            font-size: 24px;
         }
 
         .modal-desc {
@@ -961,7 +937,7 @@
             margin-bottom: 18px;
         }
 
-        .security-item {
+        .sec-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -969,37 +945,30 @@
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.03);
         }
 
-        .security-item:last-child {
+        .sec-item:last-child {
             border-bottom: none;
         }
 
-        .security-item .info {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-
-        .security-item .info .label {
+        .sec-item .info .label {
             font-size: 14px;
             font-weight: 500;
         }
 
-        .security-item .info .desc {
+        .sec-item .info .desc {
             font-size: 12px;
             color: var(--text-muted);
         }
 
-        .security-item .badge {
+        .sec-item .badge {
             font-size: 11px;
             padding: 3px 12px;
             border-radius: 20px;
             background: var(--green);
             color: white;
             font-weight: 600;
-            letter-spacing: 0.2px;
         }
 
-        .security-item .badge.warning {
+        .sec-item .badge.warning {
             background: var(--orange);
         }
 
@@ -1014,8 +983,8 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
+            transition: 0.2s;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
@@ -1029,42 +998,40 @@
            RESPONSIVE
            ============================================================ */
         @media (max-width: 400px) {
-            .message-group {
+            .msg-group {
                 max-width: 90%;
             }
-            .message-bubble {
+            .msg-bubble {
                 font-size: 14px;
                 padding: 6px 12px;
-            }
-            .message-text {
-                font-size: 14px;
             }
             .chat-header {
                 padding-top: 40px;
                 padding-left: 12px;
                 padding-right: 12px;
             }
-            .header-brand {
+            .brand {
                 font-size: 15px;
             }
             .brand-icon {
                 width: 28px;
                 height: 28px;
-                font-size: 12px;
+            }
+            .brand-icon .material-symbols-outlined {
+                font-size: 16px;
             }
             .login-box {
                 padding: 28px 18px 24px;
             }
             .emoji-rail .emoji-item {
-                font-size: 26px;
-                min-width: 34px;
-                min-height: 34px;
-                padding: 2px 4px;
+                font-size: 24px;
+                min-width: 30px;
+                min-height: 30px;
             }
         }
 
         @media (min-width: 600px) {
-            .message-group {
+            .msg-group {
                 max-width: 68%;
             }
             .chat-messages {
@@ -1073,40 +1040,19 @@
         }
 
         /* ============================================================
-           EMOJI FIX
+           UTILITIES
            ============================================================ */
-        .message-bubble *,
-        .reply-preview *,
-        .system-message,
-        .empty-icon,
-        .login-logo {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            user-select: none;
         }
 
         .emoji-item {
             font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
         }
 
-        /* ============================================================
-           FALLBACK ICONS (في حال فشل تحميل Font Awesome)
-           ============================================================ */
-        .fa,
-        .fas,
-        .far,
-        .fal,
-        .fab,
-        .fa-solid,
-        .fa-regular,
-        .fa-light,
-        .fa-brands {
-            font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Pro', 'Font Awesome 5 Free', 'FontAwesome', sans-serif;
-        }
-
-        /* Fallback باستخدام Unicode */
-        .icon-fallback {
-            display: inline-block;
-            font-size: 16px;
-            line-height: 1;
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -1114,12 +1060,12 @@
 
     <div id="app">
         <!-- ==========================================================
-        LOGIN
+        شاشة الدخول
         ========================================================== -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
                 <div class="login-logo">💬</div>
-                <h1>نيزك <span class="highlight">دردشة</span></h1>
+                <h1>نيزك <span class="hl">دردشة</span></h1>
                 <p class="login-sub">آمنة • سريعة • خاصة</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
                 <div class="color-options" id="colorPicker">
@@ -1132,47 +1078,55 @@
                     <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
                     <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
                 </div>
-                <button class="login-btn" id="loginBtn">🚀 دخول</button>
+                <button class="login-btn" id="loginBtn"><span class="material-symbols-outlined">login</span> دخول</button>
                 <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
                 <div class="error" id="connectionError" style="display:none;"></div>
             </div>
         </div>
 
         <!-- ==========================================================
-        CHAT
+        واجهة الدردشة
         ========================================================== -->
         <div class="chat-container" id="chatContainer" style="display:none;">
 
+            <!-- الهيدر -->
             <div class="chat-header">
                 <div class="status-bar" id="statusTime">12:00</div>
+
                 <div class="header-left">
-                    <div class="header-brand">
-                        <div class="brand-icon"><i class="fas fa-meteor"></i></div>
+                    <div class="brand">
+                        <div class="brand-icon">
+                            <span class="material-symbols-outlined">rocket_launch</span>
+                        </div>
                         <span class="brand-text">نيزك</span>
                     </div>
                 </div>
+
                 <div class="header-actions">
                     <button class="security-btn" id="securityBtn" title="الأمان">
-                        <i class="fas fa-shield-alt"></i>
+                        <span class="material-symbols-outlined">shield</span>
                     </button>
                     <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج">
-                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="material-symbols-outlined">logout</span>
                     </button>
                 </div>
             </div>
 
+            <!-- الرسائل -->
             <div class="chat-messages" id="messages">
                 <div class="empty-state" id="emptyState">
-                    <div class="empty-icon"><i class="fas fa-comment-dots"></i></div>
+                    <div class="empty-icon"><span class="material-symbols-outlined">chat</span></div>
                     <div class="empty-title">لا توجد رسائل</div>
                     <div class="empty-sub">كن أول من يكتب ✨</div>
                 </div>
             </div>
 
+            <!-- مؤشر الكتابة -->
             <div class="typing-indicator" id="typingIndicator">
                 <span></span><span></span><span></span>
             </div>
 
+            <!-- شريط الإيموجي -->
             <div class="emoji-rail" id="emojiRail">
                 <button class="emoji-item">😊</button>
                 <button class="emoji-item">😂</button>
@@ -1200,77 +1154,82 @@
                 <button class="emoji-item">🫶</button>
             </div>
 
+            <!-- الإدخال -->
             <div class="chat-input">
                 <div class="input-row">
                     <div class="input-wrapper">
-                        <button class="emoji-toggle" id="emojiToggle"><i class="far fa-smile"></i></button>
+                        <button class="emoji-toggle" id="emojiToggle">
+                            <span class="material-symbols-outlined">mood</span>
+                        </button>
                         <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
                     </div>
                     <button class="send-btn" id="sendBtn" disabled>
-                        <i class="fas fa-paper-plane"></i>
+                        <span class="material-symbols-outlined">send</span>
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- ==========================================================
-        SECURITY MODAL
+        نافذة الأمان
         ========================================================== -->
         <div class="modal-overlay" id="securityModal">
             <div class="modal-box">
                 <div class="modal-title">
-                    <i class="fas fa-shield-alt"></i> الأمان
+                    <span class="material-symbols-outlined">shield</span> الأمان
                 </div>
                 <p class="modal-desc">حماية خصوصيتك وسلامتك</p>
 
-                <div class="security-item">
+                <div class="sec-item">
                     <div class="info">
-                        <span class="label">🔒 تشفير الرسائل</span>
-                        <span class="desc">جميع الرسائل مشفرة أثناء النقل</span>
+                        <div class="label">🔒 تشفير الرسائل</div>
+                        <div class="desc">جميع الرسائل مشفرة أثناء النقل</div>
                     </div>
                     <span class="badge">مفعّل</span>
                 </div>
 
-                <div class="security-item">
+                <div class="sec-item">
                     <div class="info">
-                        <span class="label">🛡️ حماية XSS</span>
-                        <span class="desc">تنظيف النصوص من الأكواد الضارة</span>
+                        <div class="label">🛡️ حماية XSS</div>
+                        <div class="desc">تنظيف النصوص من الأكواد الضارة</div>
                     </div>
                     <span class="badge">مفعّل</span>
                 </div>
 
-                <div class="security-item">
+                <div class="sec-item">
                     <div class="info">
-                        <span class="label">🚫 حظر المستخدمين</span>
-                        <span class="desc">يمكنك حظر أي مستخدم</span>
+                        <div class="label">🚫 حظر المستخدمين</div>
+                        <div class="desc">يمكنك حظر أي مستخدم</div>
                     </div>
                     <span class="badge warning">قيد التطوير</span>
                 </div>
 
-                <div class="security-item">
+                <div class="sec-item">
                     <div class="info">
-                        <span class="label">📋 تقارير</span>
-                        <span class="desc">الإبلاغ عن رسائل مخالفة</span>
+                        <div class="label">📋 تقارير</div>
+                        <div class="desc">الإبلاغ عن رسائل مخالفة</div>
                     </div>
                     <span class="badge warning">قيد التطوير</span>
                 </div>
 
-                <div class="security-item">
+                <div class="sec-item">
                     <div class="info">
-                        <span class="label">🔑 هوية مجهولة</span>
-                        <span class="desc">دخول بدون بريد أو رقم هاتف</span>
+                        <div class="label">🔑 هوية مجهولة</div>
+                        <div class="desc">دخول بدون بريد أو رقم هاتف</div>
                     </div>
                     <span class="badge">مفعّل</span>
                 </div>
 
-                <button class="close-modal" id="closeSecurityModal"><i class="fas fa-times"></i> إغلاق</button>
+                <button class="close-modal" id="closeSecurityModal">
+                    <span class="material-symbols-outlined">close</span> إغلاق
+                </button>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================================
-        // 🔥 FIREBASE CONFIG
+        // إعدادات Firebase
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDKF6Jb-CLB8xM7TvNfoRnxWgiwD54SOXo",
@@ -1282,71 +1241,68 @@
             measurementId: "G-VEL3PGTKY1"
         };
 
-        // ============================================================
-        // INIT FIREBASE
-        // ============================================================
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
         // ============================================================
-        // SECURITY: Sanitize
+        // دوال الأمان
         // ============================================================
-        function sanitizeHTML(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
         function sanitizeInput(text) {
             return text.replace(/[<>]/g, '').trim();
         }
 
+        function isEmojiOnly(text) {
+            const regex = /^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2700}-\u{27BF}\s]+$/u;
+            return regex.test(text.trim());
+        }
+
         // ============================================================
-        // STATE
+        // الحالة العامة
         // ============================================================
         let currentUser = '';
         let userColor = '#2b6ef0';
         let isLoggedIn = false;
         let replyTo = null;
         let editingMessage = null;
-        let unsubscribeMessages = null;
+        let unsubscribe = null;
         let blockedUsers = JSON.parse(localStorage.getItem('blockedUsers') || '[]');
 
         // ============================================================
-        // DOM REFS
+        // عناصر DOM
         // ============================================================
-        const loginOverlay = document.getElementById('loginOverlay');
-        const chatContainer = document.getElementById('chatContainer');
-        const usernameInput = document.getElementById('usernameInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginError = document.getElementById('loginError');
-        const connectionError = document.getElementById('connectionError');
-        const messagesDiv = document.getElementById('messages');
-        const msgInput = document.getElementById('msgInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const emptyState = document.getElementById('emptyState');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const securityBtn = document.getElementById('securityBtn');
-        const securityModal = document.getElementById('securityModal');
-        const closeSecurityModal = document.getElementById('closeSecurityModal');
-        const emojiToggle = document.getElementById('emojiToggle');
-        const emojiRail = document.getElementById('emojiRail');
-        const typingIndicator = document.getElementById('typingIndicator');
+        const $ = id => document.getElementById(id);
+        const loginOverlay = $('loginOverlay');
+        const chatContainer = $('chatContainer');
+        const usernameInput = $('usernameInput');
+        const loginBtn = $('loginBtn');
+        const loginError = $('loginError');
+        const connectionError = $('connectionError');
+        const messagesDiv = $('messages');
+        const msgInput = $('msgInput');
+        const sendBtn = $('sendBtn');
+        const emptyState = $('emptyState');
+        const logoutBtn = $('logoutBtn');
+        const securityBtn = $('securityBtn');
+        const securityModal = $('securityModal');
+        const closeSecurityModal = $('closeSecurityModal');
+        const emojiToggle = $('emojiToggle');
+        const emojiRail = $('emojiRail');
+        const typingIndicator = $('typingIndicator');
 
         // ============================================================
-        // CLOCK
+        // الساعة
         // ============================================================
-        function updateStatusBar() {
+        function updateClock() {
             const now = new Date();
-            document.getElementById('statusTime').textContent =
+            $('statusTime').textContent =
                 String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         }
-        updateStatusBar();
-        setInterval(updateStatusBar, 30000);
+        updateClock();
+        setInterval(updateClock, 30000);
 
         // ============================================================
-        // COLOR PICKER
+        // اختيار اللون
         // ============================================================
         document.querySelectorAll('.color-circle').forEach(el => {
             el.addEventListener('click', function() {
@@ -1357,7 +1313,7 @@
         });
 
         // ============================================================
-        // EMOJI RAIL
+        // شريط الإيموجي
         // ============================================================
         emojiToggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1382,120 +1338,93 @@
         });
 
         // ============================================================
-        // SECURITY MODAL
+        // نافذة الأمان
         // ============================================================
-        securityBtn.addEventListener('click', () => {
-            securityModal.classList.toggle('active');
-        });
-
-        closeSecurityModal.addEventListener('click', () => {
-            securityModal.classList.remove('active');
-        });
-
+        securityBtn.addEventListener('click', () => securityModal.classList.toggle('active'));
+        closeSecurityModal.addEventListener('click', () => securityModal.classList.remove('active'));
         securityModal.addEventListener('click', (e) => {
-            if (e.target === securityModal) {
-                securityModal.classList.remove('active');
-            }
+            if (e.target === securityModal) securityModal.classList.remove('active');
         });
 
         // ============================================================
-        // CHECK IF TEXT IS EMOJI ONLY
+        // إنشاء عنصر الرسالة
         // ============================================================
-        function isEmojiOnly(text) {
-            const emojiRegex = /^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2700}-\u{27BF}\u{FE00}-\u{FEFF}\s]+$/u;
-            return emojiRegex.test(text.trim());
-        }
-
-        // ============================================================
-        // CREATE MESSAGE ELEMENT
-        // ============================================================
-        function createMessageElement(docId, data, isSelf) {
+        function createMessage(docId, data, isSelf) {
             if (blockedUsers.includes(data.sender) && !isSelf) return null;
 
             const group = document.createElement('div');
-            group.className = `message-group ${isSelf ? 'self' : 'other'}`;
+            group.className = `msg-group ${isSelf ? 'self' : 'other'}`;
             group.dataset.id = docId;
             group.dataset.sender = data.sender;
 
             const sender = document.createElement('div');
-            sender.className = 'message-sender';
-            sender.textContent = sanitizeHTML(data.sender);
+            sender.className = 'msg-sender';
+            sender.textContent = data.sender;
 
             const bubble = document.createElement('div');
-            bubble.className = 'message-bubble';
+            bubble.className = 'msg-bubble';
 
             if (data.replyTo) {
                 const replyDiv = document.createElement('div');
-                replyDiv.className = 'reply-preview';
-                const replyText = sanitizeHTML(data.replyTo.text.substring(0, 50)) + (data.replyTo.text.length > 50 ? '...' :
-                '');
-                replyDiv.innerHTML = `
-                    <span class="reply-sender">@${sanitizeHTML(data.replyTo.sender)}</span>
-                    <span>${replyText}</span>
-                `;
+                replyDiv.className = 'reply-box';
+                replyDiv.innerHTML =
+                    `<span class="r-sender">@${data.replyTo.sender}</span> ${data.replyTo.text.substring(0, 50)}${data.replyTo.text.length > 50 ? '...' : ''}`;
                 bubble.appendChild(replyDiv);
             }
 
             const textDiv = document.createElement('div');
-            textDiv.className = 'message-text';
-
-            const isEmoji = isEmojiOnly(data.text);
-            if (isEmoji) {
-                textDiv.classList.add('is-emoji-only');
-            }
-
+            textDiv.className = 'msg-text';
+            if (isEmojiOnly(data.text)) textDiv.classList.add('emoji-big');
             textDiv.textContent = data.text;
-
             if (data.edited) {
                 const badge = document.createElement('span');
                 badge.className = 'edited-badge';
                 badge.textContent = '(معدّل)';
                 textDiv.appendChild(badge);
             }
-
             bubble.appendChild(textDiv);
 
             const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
+            timeDiv.className = 'msg-time';
             if (data.timestamp) {
                 const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
                 timeDiv.textContent = date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
                 if (isSelf) {
-                    timeDiv.innerHTML += ` <span class="read-status"><i class="fas fa-check-double"></i></span>`;
+                    timeDiv.innerHTML += ` <span class="read-status"><span class="material-symbols-outlined" style="font-size:12px;">done_all</span></span>`;
                 }
             }
 
             const actions = document.createElement('div');
-            actions.className = 'message-actions-overlay';
+            actions.className = 'msg-actions';
             actions.innerHTML = `
-                <button class="reply-btn" title="رد"><i class="fas fa-reply"></i></button>
-                ${isSelf ? `<button class="edit-btn" title="تعديل"><i class="fas fa-pen"></i></button>` : ''}
-                ${isSelf ? `<button class="delete-btn" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
-                <button class="report-btn" title="إبلاغ"><i class="fas fa-flag"></i></button>
+                <button class="reply" title="رد"><span class="material-symbols-outlined">reply</span></button>
+                ${isSelf ? `<button class="edit" title="تعديل"><span class="material-symbols-outlined">edit</span></button>` : ''}
+                ${isSelf ? `<button class="delete" title="حذف"><span class="material-symbols-outlined">delete</span></button>` : ''}
+                <button class="report" title="إبلاغ"><span class="material-symbols-outlined">flag</span></button>
             `;
 
-            actions.querySelector('.reply-btn').addEventListener('click', (e) => {
+            actions.querySelector('.reply').addEventListener('click', (e) => {
                 e.stopPropagation();
-                setReplyTo(docId, data.sender, data.text);
+                setReply(docId, data.sender, data.text);
                 hideAllActions();
             });
 
             if (isSelf) {
-                actions.querySelector('.edit-btn')?.addEventListener('click', (e) => {
+                actions.querySelector('.edit')?.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    startEditing(docId, data.text);
+                    startEdit(docId, data.text);
                     hideAllActions();
                 });
-                actions.querySelector('.delete-btn')?.addEventListener('click', (e) => {
+                actions.querySelector('.delete')?.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    deleteMessage(docId);
+                    deleteMsg(docId);
                     hideAllActions();
                 });
             }
 
-            actions.querySelector('.report-btn').addEventListener('click', (e) => {
+            actions.querySelector('.report').addEventListener('click', (e) => {
                 e.stopPropagation();
-                reportMessage(docId, data.sender);
+                reportMsg(docId, data.sender);
                 hideAllActions();
             });
 
@@ -1504,259 +1433,174 @@
             group.appendChild(timeDiv);
             group.appendChild(actions);
 
-            let pressTimer = null;
-            let isPressed = false;
-
-            const startPress = () => {
-                isPressed = true;
-                pressTimer = setTimeout(() => {
-                    if (isPressed) {
-                        hideAllActions();
-                        actions.classList.add('active');
-                    }
+            // الضغطة المطولة
+            let timer = null,
+                pressed = false;
+            const start = () => {
+                pressed = true;
+                timer = setTimeout(() => {
+                    if (pressed) { hideAllActions();
+                        actions.classList.add('active'); }
                 }, 500);
             };
+            const end = () => { pressed = false;
+                clearTimeout(timer); };
 
-            const endPress = () => {
-                isPressed = false;
-                clearTimeout(pressTimer);
-            };
-
-            group.addEventListener('mousedown', startPress);
-            group.addEventListener('mouseup', endPress);
-            group.addEventListener('mouseleave', endPress);
-            group.addEventListener('touchstart', startPress, { passive: true });
-            group.addEventListener('touchend', endPress);
-            group.addEventListener('touchmove', endPress);
+            group.addEventListener('mousedown', start);
+            group.addEventListener('mouseup', end);
+            group.addEventListener('mouseleave', end);
+            group.addEventListener('touchstart', start, { passive: true });
+            group.addEventListener('touchend', end);
+            group.addEventListener('touchmove', end);
 
             return group;
         }
 
-        // ============================================================
-        // HIDE ALL ACTIONS
-        // ============================================================
         function hideAllActions() {
-            document.querySelectorAll('.message-actions-overlay.active').forEach(el => {
-                el.classList.remove('active');
-            });
+            document.querySelectorAll('.msg-actions.active').forEach(el => el.classList.remove('active'));
         }
         document.addEventListener('click', hideAllActions);
 
         // ============================================================
-        // ADD MESSAGE
+        // إضافة رسالة
         // ============================================================
-        function addMessageToUI(docId, data, isSelf) {
+        function addMessage(docId, data, isSelf) {
             if (emptyState) emptyState.style.display = 'none';
-            const el = createMessageElement(docId, data, isSelf);
-            if (el) {
-                messagesDiv.appendChild(el);
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }
+            const el = createMessage(docId, data, isSelf);
+            if (el) { messagesDiv.appendChild(el);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight; }
         }
 
-        // ============================================================
-        // SYSTEM MESSAGE
-        // ============================================================
-        function addSystemMessage(text) {
+        function addSystem(text) {
             if (emptyState) emptyState.style.display = 'none';
             const div = document.createElement('div');
-            div.className = 'system-message';
+            div.className = 'system-msg';
             div.textContent = text;
             messagesDiv.appendChild(div);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
         // ============================================================
-        // LOAD MESSAGES
+        // تحميل والاستماع للرسائل
         // ============================================================
         function loadMessages() {
             if (emptyState) emptyState.style.display = 'flex';
-
-            db.collection('messages')
-                .orderBy('timestamp', 'asc')
-                .limit(100)
-                .get()
-                .then((snapshot) => {
+            db.collection('messages').orderBy('timestamp', 'asc').limit(100).get()
+                .then(snap => {
                     if (emptyState) emptyState.style.display = 'none';
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        if (blockedUsers.includes(data.sender)) return;
-                        addMessageToUI(doc.id, data, data.sender === currentUser);
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        if (blockedUsers.includes(d.sender)) return;
+                        addMessage(doc.id, d, d.sender === currentUser);
                     });
-                    if (snapshot.empty && emptyState) emptyState.style.display = 'flex';
-                })
-                .catch((error) => {
-                    console.error('❌ Load error:', error);
+                    if (snap.empty && emptyState) emptyState.style.display = 'flex';
                 });
         }
 
-        // ============================================================
-        // LISTEN TO MESSAGES
-        // ============================================================
-        function listenToMessages() {
-            if (unsubscribeMessages) unsubscribeMessages();
-
-            unsubscribeMessages = db.collection('messages')
-                .orderBy('timestamp', 'asc')
-                .limit(100)
-                .onSnapshot((snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        const data = change.doc.data();
-                        if (blockedUsers.includes(data.sender)) return;
-
+        function listenMessages() {
+            if (unsubscribe) unsubscribe();
+            unsubscribe = db.collection('messages').orderBy('timestamp', 'asc').limit(100)
+                .onSnapshot(snap => {
+                    snap.docChanges().forEach(change => {
+                        const d = change.doc.data();
+                        if (blockedUsers.includes(d.sender)) return;
                         if (change.type === 'added') {
-                            const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
-                            if (!existing) {
-                                addMessageToUI(change.doc.id, data, data.sender === currentUser);
-                            }
+                            const exist = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
+                            if (!exist) addMessage(change.doc.id, d, d.sender === currentUser);
                         }
                         if (change.type === 'modified') {
-                            const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
-                            if (existing) {
-                                const textDiv = existing.querySelector('.message-text');
-                                if (textDiv) {
-                                    textDiv.innerHTML = sanitizeHTML(data.text) +
-                                        (data.edited ? ' <span class="edited-badge">(معدّل)</span>' : '');
-                                    if (isEmojiOnly(data.text)) {
-                                        textDiv.classList.add('is-emoji-only');
-                                    } else {
-                                        textDiv.classList.remove('is-emoji-only');
-                                    }
+                            const exist = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
+                            if (exist) {
+                                const txt = exist.querySelector('.msg-text');
+                                if (txt) {
+                                    txt.innerHTML = d.text + (d.edited ? ' <span class="edited-badge">(معدّل)</span>' :
+                                    '');
+                                    if (isEmojiOnly(d.text)) txt.classList.add('emoji-big');
+                                    else txt.classList.remove('emoji-big');
                                 }
                             }
                         }
                         if (change.type === 'removed') {
-                            const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
-                            if (existing) existing.remove();
+                            const exist = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
+                            if (exist) exist.remove();
                         }
                     });
-                    if (snapshot.empty) {
-                        if (emptyState) emptyState.style.display = 'flex';
-                    } else {
-                        if (emptyState) emptyState.style.display = 'none';
-                    }
-                }, (error) => {
-                    console.error('❌ Listen error:', error);
+                    if (snap.empty) { if (emptyState) emptyState.style.display = 'flex'; } else { if (emptyState) emptyState
+                            .style.display = 'none'; }
                 });
         }
 
         // ============================================================
-        // SEND MESSAGE
+        // إرسال رسالة
         // ============================================================
         function sendMessage() {
-            const rawText = msgInput.value.trim();
-            if (!rawText || !isLoggedIn) return;
-
-            const text = sanitizeInput(rawText);
+            const raw = msgInput.value.trim();
+            if (!raw || !isLoggedIn) return;
+            const text = sanitizeInput(raw);
             if (!text) return;
 
             if (editingMessage) {
-                updateMessage(editingMessage.id, text);
+                updateMsg(editingMessage.id, text);
                 return;
             }
 
             sendBtn.disabled = true;
             msgInput.disabled = true;
 
-            const messageData = {
+            const data = {
                 text: text,
                 sender: currentUser,
                 color: userColor,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-
             if (replyTo) {
-                messageData.replyTo = {
+                data.replyTo = {
                     id: replyTo.id,
-                    sender: sanitizeInput(replyTo.sender),
-                    text: sanitizeInput(replyTo.text.substring(0, 60)) + (replyTo.text.length > 60 ? '...' : '')
+                    sender: replyTo.sender,
+                    text: replyTo.text.substring(0, 60) + (replyTo.text.length > 60 ? '...' : '')
                 };
             }
 
-            db.collection('messages').add(messageData)
-                .then(() => {
-                    msgInput.value = '';
+            db.collection('messages').add(data)
+                .then(() => { msgInput.value = '';
                     msgInput.focus();
-                    clearReply();
-                })
-                .catch((error) => {
-                    console.error('❌ Send error:', error);
-                    alert('⚠️ فشل الإرسال');
-                })
-                .finally(() => {
-                    sendBtn.disabled = false;
-                    msgInput.disabled = false;
-                });
+                    clearReply(); })
+                .catch(() => alert('⚠️ فشل الإرسال'))
+                .finally(() => { sendBtn.disabled = false;
+                    msgInput.disabled = false; });
         }
 
         // ============================================================
-        // EDIT MESSAGE
+        // تعديل وحذف
         // ============================================================
-        function startEditing(id, text) {
+        function startEdit(id, text) {
             editingMessage = { id, text };
             msgInput.value = text;
             msgInput.focus();
-            sendBtn.innerHTML = '<i class="fas fa-check"></i>';
+            sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
             sendBtn.style.background = '#faa81a';
         }
 
-        function updateMessage(id, newText) {
+        function updateMsg(id, newText) {
             if (!editingMessage) return;
-
-            db.collection('messages').doc(id).update({
-                text: newText,
-                edited: true
-            })
-            .then(() => {
-                editingMessage = null;
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                sendBtn.style.background = '';
-                msgInput.value = '';
-            })
-            .catch((error) => {
-                console.error('❌ Update error:', error);
-                alert('⚠️ فشل التعديل');
-            });
-        }
-
-        // ============================================================
-        // DELETE MESSAGE
-        // ============================================================
-        function deleteMessage(id) {
-            if (!confirm('🗑️ هل أنت متأكد من حذف هذه الرسالة؟')) return;
-
-            db.collection('messages').doc(id).delete()
-                .catch((error) => {
-                    console.error('❌ Delete error:', error);
-                    alert('⚠️ فشل الحذف');
-                });
-        }
-
-        // ============================================================
-        // REPORT MESSAGE
-        // ============================================================
-        function reportMessage(id, sender) {
-            if (confirm(`📋 هل تريد الإبلاغ عن @${sender}؟`)) {
-                db.collection('reports').add({
-                    messageId: id,
-                    sender: sender,
-                    reportedBy: currentUser,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                })
+            db.collection('messages').doc(id).update({ text: newText, edited: true })
                 .then(() => {
-                    addSystemMessage(`📋 تم الإبلاغ عن @${sender}`);
-                })
-                .catch((error) => {
-                    console.error('❌ Report error:', error);
-                    alert('⚠️ فشل الإبلاغ');
+                    editingMessage = null;
+                    sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+                    sendBtn.style.background = '';
+                    msgInput.value = '';
                 });
-            }
+        }
+
+        function deleteMsg(id) {
+            if (!confirm('🗑️ حذف هذه الرسالة؟')) return;
+            db.collection('messages').doc(id).delete();
         }
 
         // ============================================================
-        // REPLY
+        // رد وتبليغ
         // ============================================================
-        function setReplyTo(id, sender, text) {
+        function setReply(id, sender, text) {
             replyTo = { id, sender, text };
             msgInput.placeholder = `رد على @${sender}...`;
             msgInput.focus();
@@ -1767,11 +1611,19 @@
             msgInput.placeholder = 'اكتب رسالة...';
         }
 
+        function reportMsg(id, sender) {
+            if (confirm(`📋 الإبلاغ عن @${sender}؟`)) {
+                db.collection('reports').add({ messageId: id, sender, reportedBy: currentUser, timestamp: firebase
+                        .firestore.FieldValue.serverTimestamp() })
+                    .then(() => addSystem(`📋 تم الإبلاغ عن @${sender}`));
+            }
+        }
+
         msgInput.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (editingMessage) {
                     editingMessage = null;
-                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
                     sendBtn.style.background = '';
                     msgInput.value = '';
                 }
@@ -1780,136 +1632,85 @@
         });
 
         // ============================================================
-        // LOGOUT
+        // تسجيل الخروج
         // ============================================================
         function logout() {
-            if (!confirm('🚪 هل تريد تسجيل الخروج؟')) return;
-
+            if (!confirm('🚪 تسجيل الخروج؟')) return;
             setUserOffline(currentUser);
-            addSystemMessage(`👋 ${currentUser} غادر الدردشة`);
-
+            addSystem(`👋 ${currentUser} غادر الدردشة`);
             isLoggedIn = false;
             currentUser = '';
-
-            if (unsubscribeMessages) {
-                unsubscribeMessages();
-                unsubscribeMessages = null;
-            }
-
+            if (unsubscribe) unsubscribe();
             chatContainer.style.display = 'none';
             loginOverlay.classList.remove('hidden');
-
-            messagesDiv.innerHTML = `<div class="empty-state" id="emptyState">
-                <div class="empty-icon"><i class="fas fa-comment-dots"></i></div>
-                <div class="empty-title">لا توجد رسائل</div>
-                <div class="empty-sub">كن أول من يكتب ✨</div>
-            </div>`;
-
+            messagesDiv.innerHTML =
+                `<div class="empty-state" id="emptyState"><div class="empty-icon"><span class="material-symbols-outlined">chat</span></div><div class="empty-title">لا توجد رسائل</div><div class="empty-sub">كن أول من يكتب ✨</div></div>`;
             msgInput.disabled = true;
             sendBtn.disabled = true;
-            msgInput.value = '';
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
             sendBtn.style.background = '';
             clearReply();
             editingMessage = null;
         }
-
         logoutBtn.addEventListener('click', logout);
 
         // ============================================================
-        // USER STATUS
+        // حالة المستخدم
         // ============================================================
-        function setUserOnline(username) {
-            db.collection('users').doc(username).set({
-                username: username,
-                color: userColor,
-                online: true,
-                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch((error) => {
-                console.error('❌ Status error:', error);
-            });
+        function setUserOnline(name) {
+            db.collection('users').doc(name).set({ username: name, color: userColor, online: true, lastSeen: firebase
+                    .firestore.FieldValue.serverTimestamp() });
         }
 
-        function setUserOffline(username) {
-            db.collection('users').doc(username).update({
-                online: false,
-                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch((error) => {
-                console.error('❌ Status error:', error);
-            });
+        function setUserOffline(name) {
+            db.collection('users').doc(name).update({ online: false, lastSeen: firebase.firestore.FieldValue
+                    .serverTimestamp() });
         }
 
         // ============================================================
-        // LOGIN
+        // تسجيل الدخول
         // ============================================================
         async function login() {
-            const rawUsername = usernameInput.value.trim();
-            if (!rawUsername || rawUsername.length < 2) {
-                loginError.style.display = 'block';
-                return;
-            }
-
-            const username = sanitizeInput(rawUsername);
-            if (!username) {
-                loginError.textContent = '⚠️ اسم غير صالح';
-                loginError.style.display = 'block';
-                return;
-            }
-
+            const raw = usernameInput.value.trim();
+            if (!raw || raw.length < 2) { loginError.style.display = 'block'; return; }
+            const name = sanitizeInput(raw);
+            if (!name) { loginError.textContent = '⚠️ اسم غير صالح';
+                loginError.style.display = 'block'; return; }
             loginError.style.display = 'none';
             connectionError.style.display = 'none';
-
             loginBtn.disabled = true;
-            loginBtn.textContent = '⏳ جاري...';
+            loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
 
             try {
                 await auth.signInAnonymously();
-
-                currentUser = username;
+                currentUser = name;
                 isLoggedIn = true;
-
                 loginOverlay.classList.add('hidden');
                 chatContainer.style.display = 'flex';
-
                 msgInput.disabled = false;
                 sendBtn.disabled = false;
                 msgInput.focus();
-
-                setUserOnline(username);
-                addSystemMessage(`👋 ${username} انضم إلى الدردشة`);
-
+                setUserOnline(name);
+                addSystem(`👋 ${name} انضم إلى الدردشة`);
                 loadMessages();
-                listenToMessages();
-
-                window.addEventListener('beforeunload', () => {
-                    setUserOffline(username);
-                });
-
-            } catch (error) {
-                console.error('❌ Login error:', error);
-                connectionError.textContent = '❌ ' + error.message;
+                listenMessages();
+                window.addEventListener('beforeunload', () => setUserOffline(name));
+            } catch (e) {
+                connectionError.textContent = '❌ ' + e.message;
                 connectionError.style.display = 'block';
                 loginBtn.disabled = false;
-                loginBtn.textContent = '🚀 دخول';
+                loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
             }
         }
 
         // ============================================================
-        // EVENTS
+        // الأحداث
         // ============================================================
         loginBtn.addEventListener('click', login);
-        usernameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-        });
-
+        usernameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
         sendBtn.addEventListener('click', sendMessage);
-        msgInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+        msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        // ============================================================
-        // AUTH STATE
-        // ============================================================
         auth.onAuthStateChanged((user) => {
             if (!user && !isLoggedIn) {
                 loginOverlay.classList.remove('hidden');
@@ -1917,7 +1718,7 @@
             }
         });
 
-        console.log('🚀 نيزك - دردشة آمنة جاهزة!');
+        console.log('🚀 نيزك - تم إعادة البناء من الصفر!');
     </script>
 </body>
-                                                           </html>
+</html>
