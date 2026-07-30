@@ -98,7 +98,7 @@ function initElements() {
         'profileAvatarPlaceholder', 'profileAvatarBtn', 'profileAvatarInput',
         'profileNameInput', 'profileSaveBtn', 'profileUploadStatus',
         'loginAdminPasswordBox', 'loginAdminPasswordInput', 'loginAdminPasswordError',
-        'replyPreview', 'replyPreviewSender', 'replyPreviewText', 'replyPreviewCancel',
+        'replyBar', 'replyBarSender', 'replyBarText', 'replyBarClose',
         'reactionPicker', 'searchBtn', 'searchBar', 'searchInput',
         'searchResults', 'searchClose', 'fileViewer', 'fileViewerTitle',
         'fileViewerBody', 'fileViewerImage', 'fileViewerFile',
@@ -914,7 +914,7 @@ if (elements.searchInput) {
 }
 
 // ============================================================
-// 💬 إنشاء الرسائل - مع دعم الضغط المطول
+// 💬 إنشاء الرسائل - مع دعم الضغط المطول وشريط الرجعة
 // ============================================================
 let lastSender = '';
 
@@ -1075,7 +1075,7 @@ function createMessage(id, data, self) {
     }
 
     // ============================================================
-    // 🎯 قائمة الإجراءات - تصميم تليجرام
+    // 🎯 قائمة الإجراءات - تصميم تلجرام
     // ============================================================
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
@@ -1197,7 +1197,6 @@ function createMessage(id, data, self) {
     let longPressTimer = null;
     let isLongPress = false;
 
-    // بدء الضغط
     const startPress = function(e) {
         isLongPress = false;
         longPressTimer = setTimeout(() => {
@@ -1206,16 +1205,10 @@ function createMessage(id, data, self) {
         }, 500);
     };
 
-    // إنهاء الضغط
     const endPress = function(e) {
         clearTimeout(longPressTimer);
-        // إذا كان ضغط عادي (غير مطول) ولم يكن هناك خيارات ظاهرة
-        if (!isLongPress && !actions.classList.contains('active')) {
-            // يمكن إضافة سلوك النقر العادي هنا
-        }
     };
 
-    // إضافة مستمعات الأحداث
     group.addEventListener('mousedown', startPress);
     group.addEventListener('mouseup', endPress);
     group.addEventListener('mouseleave', endPress);
@@ -1232,20 +1225,16 @@ function createMessage(id, data, self) {
 // 🎯 إظهار وإخفاء الخيارات
 // ============================================================
 function showMessageActions(actionsElement, messageElement) {
-    // إخفاء جميع الخيارات الأخرى
     document.querySelectorAll('.msg-actions.active').forEach(el => {
         el.classList.remove('active');
     });
     
-    // إظهار الخيارات
     actionsElement.classList.add('active');
     
-    // إظهار الـ overlay
     if (actionsOverlay) {
         actionsOverlay.classList.add('active');
     }
     
-    // منع انتشار النقر
     actionsElement.addEventListener('click', function(e) {
         e.stopPropagation();
     });
@@ -1261,21 +1250,18 @@ function hideAllMessageActions() {
     state.activeMessageId = null;
 }
 
-// إغلاق الخيارات عند النقر على الـ overlay
 if (actionsOverlay) {
     actionsOverlay.addEventListener('click', function() {
         hideAllMessageActions();
     });
 }
 
-// إغلاق الخيارات عند الضغط على Escape
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         hideAllMessageActions();
     }
 });
 
-// إغلاق الخيارات عند التمرير
 if (elements.messages) {
     elements.messages.addEventListener('scroll', function() {
         hideAllMessageActions();
@@ -1832,17 +1818,24 @@ function reportMsg(id, sender) {
 }
 
 // ============================================================
-// ↩️ الرد
+// ============================================================
+// 📌 شريط الرجعة - مثل واتساب
 // ============================================================
 function setReply(id, sender, text) {
     state.replyTo = { id, sender, text };
-    if (elements.replyPreviewSender) {
-        elements.replyPreviewSender.textContent = `@${sender}`;
+    
+    // تحديث شريط الرجعة
+    if (elements.replyBarSender) {
+        elements.replyBarSender.textContent = `@${sender}`;
     }
-    if (elements.replyPreviewText) {
-        elements.replyPreviewText.textContent = text.substring(0, 80) + (text.length > 80 ? '...' : '');
+    if (elements.replyBarText) {
+        elements.replyBarText.textContent = text.substring(0, 80) + (text.length > 80 ? '...' : '');
     }
-    if (elements.replyPreview) elements.replyPreview.style.display = 'flex';
+    if (elements.replyBar) {
+        elements.replyBar.style.display = 'flex';
+        elements.replyBar.style.animation = 'slideDown 0.2s ease';
+    }
+    
     if (elements.msgInput) {
         elements.msgInput.placeholder = 'اكتب ردك...';
         elements.msgInput.focus();
@@ -1851,12 +1844,17 @@ function setReply(id, sender, text) {
 
 function clearReply() {
     state.replyTo = null;
-    if (elements.replyPreview) elements.replyPreview.style.display = 'none';
-    if (elements.msgInput) elements.msgInput.placeholder = 'اكتب رسالة...';
+    if (elements.replyBar) {
+        elements.replyBar.style.display = 'none';
+    }
+    if (elements.msgInput) {
+        elements.msgInput.placeholder = 'اكتب رسالة...';
+    }
 }
 
-if (elements.replyPreviewCancel) {
-    elements.replyPreviewCancel.addEventListener('click', clearReply);
+// إغلاق شريط الرجعة
+if (elements.replyBarClose) {
+    elements.replyBarClose.addEventListener('click', clearReply);
 }
 
 // ============================================================
@@ -2432,9 +2430,10 @@ state.userIP = getHashedIP();
 console.log(`🚀 نيزك ${VERSION} - دردشة متطورة مع جميع الميزات`);
 console.log(`👑 المسؤول: ${ADMIN_NAME}`);
 console.log(`🔒 كلمة المرور: ${ADMIN_PASSWORD}`);
-console.log(`📱 الميزات: سحب للرد • تفاعلات • تعديل • بحث`);
+console.log(`📱 الميزات: سحب للرد • تفاعلات • تعديل • بحث • شريط الرجعة`);
 console.log(`⌨️ Shift+Enter = سطر جديد, Enter = إرسال`);
 console.log(`🖱️ ضغط مطول = قائمة الخيارات`);
+console.log(`📌 شريط الرجعة = مثل واتساب`);
 
 // بدء التطبيق بعد تحميل الصفحة
 if (document.readyState === 'loading') {
