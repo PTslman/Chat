@@ -61,9 +61,6 @@ let isAdminLoginAttempt = false;
 let messageIds = new Set();
 let unreadCount = 0;
 let onlineUsers = new Set();
-let pinnedMessages = [];
-let searchResults = [];
-let isSearching = false;
 
 // ============================================================
 // 🎤 متغيرات التسجيل الصوتي
@@ -164,7 +161,6 @@ const uploadProgressBar = $('uploadProgressBar');
 const uploadProgressText = $('uploadProgressText');
 
 const fileViewer = $('fileViewer');
-const fileViewerContent = $('fileViewerContent');
 const fileViewerTitle = $('fileViewerTitle');
 const fileViewerBody = $('fileViewerBody');
 const fileViewerImage = $('fileViewerImage');
@@ -561,18 +557,22 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
 });
 
 // ============================================================
-// 👑 كشف المسؤول
+// 👑 كشف المسؤول - تم الإصلاح
 // ============================================================
 usernameInput.addEventListener('input', function() {
     const val = this.value.trim();
+    console.log('🔄 تغيير في حقل الاسم:', val);
+    
     if (val === ADMIN_NAME) {
         loginAdminPasswordBox.style.display = 'block';
         loginAdminPasswordInput.value = '';
         loginAdminPasswordError.classList.remove('show');
         isAdminLoginAttempt = true;
+        console.log('👑 تم كشف المسؤول، ظهور حقل كلمة المرور');
     } else {
         loginAdminPasswordBox.style.display = 'none';
         isAdminLoginAttempt = false;
+        console.log('👤 مستخدم عادي');
     }
 });
 
@@ -2193,29 +2193,45 @@ function checkSession() {
 }
 
 // ============================================================
-// 🚪 تسجيل الدخول - الوظيفة الرئيسية
+// 🚪 تسجيل الدخول - الوظيفة الرئيسية (تم إصلاحها بالكامل)
 // ============================================================
 async function login() {
+    console.log('🟢 محاولة تسجيل الدخول...');
+    console.log('🔍 التحقق من عناصر DOM:');
+    console.log('- usernameInput:', usernameInput);
+    console.log('- loginBtn:', loginBtn);
+    console.log('- loginError:', loginError);
+    console.log('- connectionError:', connectionError);
+    console.log('- loginOverlay:', loginOverlay);
+    console.log('- chatContainer:', chatContainer);
+    
     // الحصول على الاسم من حقل الإدخال
     const raw = usernameInput.value.trim();
+    console.log('📝 الاسم المدخل:', raw);
     
     // التحقق من صحة الاسم
     if (!raw || raw.length < 2) {
         loginError.style.display = 'block';
         loginError.textContent = '⚠️ الاسم يجب أن يكون حرفين على الأقل';
+        console.log('❌ خطأ: الاسم قصير جداً');
         return;
     }
 
     // التحقق من كلمة المرور للمسؤول
     if (raw === ADMIN_NAME) {
+        console.log('👑 تم اكتشاف اسم المسؤول');
         const pass = loginAdminPasswordInput.value.trim();
+        console.log('🔑 كلمة المرور المدخلة:', pass ? '****' : '(فارغة)');
+        
         if (pass !== ADMIN_PASSWORD) {
             loginAdminPasswordError.classList.add('show');
             loginAdminPasswordInput.value = '';
             loginAdminPasswordInput.focus();
+            console.log('❌ خطأ: كلمة مرور غير صحيحة');
             return;
         }
         loginAdminPasswordError.classList.remove('show');
+        console.log('✅ كلمة المرور صحيحة');
     }
 
     // تنقية الاسم
@@ -2223,6 +2239,7 @@ async function login() {
     if (!name) {
         loginError.textContent = '⚠️ اسم غير صالح';
         loginError.style.display = 'block';
+        console.log('❌ خطأ: اسم غير صالح');
         return;
     }
 
@@ -2234,20 +2251,33 @@ async function login() {
     showLoading(true);
     loginBtn.disabled = true;
     loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
+    console.log('⏳ جاري تسجيل الدخول...');
 
     try {
         // توليد IP مشوش
         userIP = getHashedIP();
+        console.log('🔒 IP مشوش:', userIP);
 
         // التحقق من وجود المستخدم في قاعدة البيانات
+        console.log('📡 جاري التحقق من المستخدم في Firestore...');
         const userDoc = await db.collection('users').doc(name).get();
         let avatarBase64 = '';
         if (userDoc.exists && userDoc.data().avatar) {
             avatarBase64 = userDoc.data().avatar;
+            console.log('✅ تم العثور على المستخدم مع صورة شخصية');
+        } else {
+            console.log('ℹ️ مستخدم جديد');
         }
 
         // تسجيل دخول مجهول في Firebase Auth
-        await auth.signInAnonymously();
+        console.log('🔐 جاري تسجيل الدخول إلى Firebase Auth...');
+        try {
+            await auth.signInAnonymously();
+            console.log('✅ تم تسجيل الدخول إلى Firebase Auth بنجاح');
+        } catch (authError) {
+            console.error('❌ خطأ في Firebase Auth:', authError);
+            throw new Error('فشل تسجيل الدخول إلى Firebase: ' + authError.message);
+        }
 
         // تعيين المتغيرات العامة
         currentUser = name;
@@ -2256,6 +2286,8 @@ async function login() {
         isAdmin = (name === ADMIN_NAME);
         isMuted = false;
         muteCount = 0;
+        console.log('👤 المستخدم الحالي:', currentUser);
+        console.log('👑 هل هو مسؤول؟', isAdmin);
 
         // إلغاء أي منع سابق
         if (muteTimeout) clearTimeout(muteTimeout);
@@ -2265,25 +2297,31 @@ async function login() {
         if (isAdmin) {
             adminBtn.classList.remove('hidden');
             adminBadge.classList.add('show');
+            console.log('👑 تم تفعيل أزرار المسؤول');
         } else {
             adminBtn.classList.add('hidden');
             adminBadge.classList.remove('show');
         }
 
         // تحميل قائمة المحظورين
+        console.log('📋 جاري تحميل قائمة المحظورين...');
         await loadBlockedUsers();
+        console.log('✅ تم تحميل قائمة المحظورين');
 
         // تبديل الشاشات
         loginOverlay.classList.add('hidden');
         chatContainer.style.display = 'flex';
+        console.log('🔄 تم تبديل الشاشات');
 
         // تفعيل الإدخال
         msgInput.disabled = false;
         sendBtn.disabled = false;
         msgInput.focus();
+        console.log('⌨️ تم تفعيل الإدخال');
 
         // تحديث الصورة الشخصية
         updateAllAvatars(avatarBase64, name);
+        console.log('🖼️ تم تحديث الصورة الشخصية');
 
         // إزالة حالة الخروج القسري للمسؤول
         if (isAdmin) {
@@ -2291,8 +2329,10 @@ async function login() {
         }
 
         // تعيين المستخدم متصل
+        console.log('🟢 جاري تعيين المستخدم متصل...');
         setUserOnline(name);
         saveSession(name, userColor, avatarBase64);
+        console.log('✅ تم تعيين المستخدم متصل');
 
         // تحميل الثيم للمسؤول
         if (isAdmin) {
@@ -2300,6 +2340,7 @@ async function login() {
                 .then(doc => {
                     if (doc.exists && doc.data().theme) {
                         applyTheme(doc.data().theme);
+                        console.log('🎨 تم تحميل الثيم:', doc.data().theme);
                     }
                 })
                 .catch(() => {});
@@ -2308,16 +2349,21 @@ async function login() {
         // رسائل الترحيب
         if (!userDoc.exists) {
             addSystemMessage(`👋 مرحباً ${name}! هذه أول مرة لك في الغروب`);
+            console.log('👋 مستخدم جديد');
         } else if (isAdmin) {
             addSystemMessage(`👑 المسؤول ${name} انضم إلى الدردشة`);
+            console.log('👑 المسؤول انضم');
         } else {
             addSystemMessage(`👋 ${name} انضم إلى الدردشة`);
+            console.log('👋 مستخدم عادي انضم');
         }
 
         // تحميل الرسائل والاستماع
+        console.log('📨 جاري تحميل الرسائل...');
         loadMessages();
         listenMessages();
         loadBadWords();
+        console.log('✅ تم تحميل جميع البيانات');
 
         // مراقبة المستخدمين المتصلين
         db.collection('users').where('online', '==', true).onSnapshot(snapshot => {
@@ -2334,25 +2380,64 @@ async function login() {
         });
 
         console.log(`✅ تم تسجيل الدخول بنجاح: ${name}`);
+        console.log('🎉 اكتملت عملية تسجيل الدخول!');
 
     } catch (error) {
         console.error('❌ خطأ في تسجيل الدخول:', error);
         connectionError.textContent = `❌ ${error.message}`;
         connectionError.style.display = 'block';
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
+        showLoading(false);
+        return;
     }
 
     // إخفاء شاشة التحميل وإعادة الزر
     showLoading(false);
     loginBtn.disabled = false;
     loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
+    console.log('✅ تم إعادة زر الدخول');
 }
+
+// ============================================================
+// 🔄 أحداث الدخول - تم إصلاحها
+// ============================================================
+loginBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    console.log('🖱️ تم الضغط على زر الدخول');
+    login();
+});
+
+usernameInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        console.log('⌨️ تم الضغط على Enter في حقل الاسم');
+        if (isAdminLoginAttempt) {
+            loginAdminPasswordInput.focus();
+            console.log('👑 تحويل التركيز إلى حقل كلمة المرور');
+        } else {
+            login();
+        }
+    }
+});
+
+loginAdminPasswordInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        console.log('⌨️ تم الضغط على Enter في حقل كلمة المرور');
+        login();
+    }
+});
 
 // ============================================================
 // 🔄 بدء التشغيل
 // ============================================================
 function init() {
+    console.log('🚀 بدء تشغيل التطبيق...');
+    
     // تحميل الثيم المحفوظ
     loadSavedTheme();
+    console.log('🎨 تم تحميل الثيم');
     
     // رسالة ترحيب
     infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
@@ -2362,6 +2447,7 @@ function init() {
     // التحقق من وجود جلسة محفوظة
     const session = checkSession();
     if (session) {
+        console.log('💾 تم العثور على جلسة محفوظة:', session.username);
         usernameInput.value = session.username || '';
         userColor = session.color || '#2b6ef0';
         userAvatarBase64 = session.avatar || '';
@@ -2370,7 +2456,11 @@ function init() {
         });
         // محاولة تسجيل الدخول التلقائي
         setTimeout(() => login(), 500);
+    } else {
+        console.log('ℹ️ لا توجد جلسة محفوظة');
     }
+    
+    console.log('✅ تم تهيئة التطبيق بنجاح');
 }
 
 // ============================================================
@@ -2394,39 +2484,16 @@ scrollBottomBtn.addEventListener('click', function() {
 });
 
 // ============================================================
-// 🎯 الأحداث
-// ============================================================
-loginBtn.addEventListener('click', login);
-
-usernameInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        if (isAdminLoginAttempt) {
-            loginAdminPasswordInput.focus();
-        } else {
-            login();
-        }
-    }
-});
-
-loginAdminPasswordInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        login();
-    }
-});
-
-sendBtn.addEventListener('click', sendMessage);
-msgInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') sendMessage();
-});
-
-// ============================================================
 // 🔐 حالة المصادقة
 // ============================================================
 auth.onAuthStateChanged(function(user) {
     if (!user && !isLoggedIn) {
+        console.log('🔐 المستخدم غير مسجل الدخول');
         loginOverlay.classList.remove('hidden');
         chatContainer.style.display = 'none';
         showLoading(false);
+    } else if (user && isLoggedIn) {
+        console.log('🔐 المستخدم مسجل الدخول:', user.uid);
     }
 });
 
@@ -2439,6 +2506,10 @@ console.log(`🚀 نيزك ${VERSION} - دردشة متطورة مع جميع ا
 console.log(`👑 المسؤول: ${ADMIN_NAME}`);
 console.log(`🔒 كلمة المرور: ${ADMIN_PASSWORD}`);
 console.log(`📱 الميزات: سحب للرد • تفاعلات • تعديل • ملفات • صوت • بحث`);
+console.log(`🔒 IP مشوش: ${userIP}`);
 
 // تشغيل التطبيق
-init();
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 تم تحميل الصفحة بالكامل');
+    init();
+});
