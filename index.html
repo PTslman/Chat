@@ -174,44 +174,19 @@
                 <button class="reply-preview-cancel" id="replyPreviewCancel">✖</button>
             </div>
 
-            <!-- منطقة الإدخال -->
+            <!-- منطقة الإدخال - بدون أزرار الإدراج والصوت -->
             <div class="chat-input">
                 <div class="input-row">
-                    <button class="attach-btn" id="attachBtn" title="إرفاق ملف">
-                        <span class="material-symbols-outlined">attach_file</span>
-                    </button>
-                    
                     <div class="input-wrapper">
                         <button class="emoji-toggle" id="emojiToggle">
                             <span class="material-symbols-outlined">mood</span>
                         </button>
                         <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
-                        <button class="voice-btn" id="voiceBtn" title="تسجيل صوتي">
-                            <span class="material-symbols-outlined">mic</span>
-                        </button>
                     </div>
                     
                     <button class="send-btn" id="sendBtn" disabled>
                         <span class="material-symbols-outlined">send</span>
                     </button>
-                </div>
-
-                <!-- شريط التحميل للملفات -->
-                <div class="upload-progress" id="uploadProgress" style="display:none;">
-                    <div class="upload-progress-bar" id="uploadProgressBar"></div>
-                    <span class="upload-progress-text" id="uploadProgressText">جاري الرفع...</span>
-                </div>
-
-                <!-- إعدادات التسجيل الصوتي -->
-                <div class="voice-recording" id="voiceRecording" style="display:none;">
-                    <div class="voice-recording-indicator">
-                        <span class="recording-dot"></span>
-                        <span class="recording-time" id="recordingTime">00:00</span>
-                    </div>
-                    <div class="voice-recording-actions">
-                        <button class="voice-cancel" id="voiceCancel">✖ إلغاء</button>
-                        <button class="voice-send" id="voiceSend">📤 إرسال</button>
-                    </div>
                 </div>
             </div>
 
