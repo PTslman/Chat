@@ -826,7 +826,6 @@ searchInput.addEventListener('input', function() {
         return;
     }
 
-    // البحث في الرسائل الموجودة
     const results = [];
     const messages = messagesDiv.querySelectorAll('.msg-group');
     messages.forEach(msg => {
@@ -865,7 +864,6 @@ searchInput.addEventListener('input', function() {
     searchResults.innerHTML = html;
     searchResults.classList.add('active');
 
-    // التمرير إلى الرسالة عند النقر على النتيجة
     document.querySelectorAll('.search-result-item').forEach(item => {
         item.addEventListener('click', function() {
             const index = parseInt(this.dataset.index);
@@ -956,7 +954,6 @@ voiceSend.addEventListener('click', async function() {
         const path = `audio/${currentUser}/${fileName}`;
         const downloadURL = await uploadFileToStorage(recordedBlob, path);
 
-        // إرسال الرسالة الصوتية
         const data = {
             text: '🎤 رسالة صوتية',
             sender: currentUser,
@@ -1001,7 +998,7 @@ attachBtn.addEventListener('click', function() {
 });
 
 async function handleFileUpload(file) {
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
         alert('⚠️ حجم الملف كبير جداً (الحد الأقصى 10MB)');
         return;
@@ -1013,7 +1010,6 @@ async function handleFileUpload(file) {
         const path = `files/${currentUser}/${fileName}`;
         const downloadURL = await uploadFileToStorage(file, path);
 
-        // تحديد نوع الملف
         let fileType = 'file';
         let fileIcon = 'attach_file';
         let displayText = `📎 ${file.name}`;
@@ -1120,7 +1116,6 @@ function createMessage(id, data, self) {
     group.dataset.sender = data.sender;
     lastSender = data.sender;
 
-    // الصورة الرمزية
     const avatar = document.createElement('div');
     avatar.className = 'msg-avatar';
     const avatarData = data.avatar || '';
@@ -1143,7 +1138,6 @@ function createMessage(id, data, self) {
     const content = document.createElement('div');
     content.className = 'msg-content';
 
-    // اسم المرسل
     const sender = document.createElement('div');
     sender.className = 'msg-sender';
     sender.textContent = data.sender;
@@ -1154,7 +1148,6 @@ function createMessage(id, data, self) {
         sender.appendChild(tag);
     }
 
-    // الفقاعة
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
 
@@ -1165,13 +1158,11 @@ function createMessage(id, data, self) {
         bubble.appendChild(reply);
     }
 
-    // النص
     const text = document.createElement('div');
     text.className = 'msg-text';
     if (data.deleted) {
         text.innerHTML = '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>';
     } else {
-        // عرض الملفات
         if (data.file) {
             const fileDiv = document.createElement('div');
             fileDiv.className = 'msg-file';
@@ -1184,7 +1175,6 @@ function createMessage(id, data, self) {
                 <button class="file-download material-symbols-outlined">download</button>
             `;
             
-            // عرض الصور مباشرة
             if (data.file.type === 'image') {
                 const img = document.createElement('img');
                 img.src = data.file.url;
@@ -1213,7 +1203,6 @@ function createMessage(id, data, self) {
                 });
             }
         } else if (data.audio) {
-            // رسالة صوتية
             const audioDiv = document.createElement('div');
             audioDiv.className = 'msg-audio';
             const duration = data.audioDuration ? ` (${data.audioDuration}ث)` : '';
@@ -1225,7 +1214,6 @@ function createMessage(id, data, self) {
             `;
             bubble.appendChild(audioDiv);
         } else {
-            // نص عادي
             if (isEmojiOnly(data.text)) text.classList.add('emoji-big');
             text.textContent = data.text;
             if (data.edited) {
@@ -1238,7 +1226,6 @@ function createMessage(id, data, self) {
         }
     }
 
-    // الوقت
     const time = document.createElement('div');
     time.className = 'msg-time';
     if (data.timestamp) {
@@ -1249,13 +1236,11 @@ function createMessage(id, data, self) {
         }
     }
 
-    // التفاعلات
     const reactions = document.createElement('div');
     reactions.className = 'msg-reactions';
     if (data.reactions && Object.keys(data.reactions).length > 0) {
-        const reactionMap = data.reactions;
-        Object.keys(reactionMap).forEach(emoji => {
-            const users = reactionMap[emoji] || [];
+        Object.keys(data.reactions).forEach(emoji => {
+            const users = data.reactions[emoji] || [];
             const count = users.length;
             const reacted = users.includes(currentUser);
             const reactionEl = document.createElement('button');
@@ -1269,7 +1254,6 @@ function createMessage(id, data, self) {
         });
     }
 
-    // قائمة الإجراءات
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
     let actionsHTML = `
@@ -1346,7 +1330,7 @@ function createMessage(id, data, self) {
         group.appendChild(content);
     }
 
-    // سحب للرد (Swipe to Reply)
+    // سحب للرد
     let startX = 0, startY = 0, isSwiping = false;
     group.addEventListener('touchstart', function(e) {
         const touch = e.touches[0];
@@ -1657,20 +1641,17 @@ function listenMessages() {
                 if (change.type === 'modified') {
                     const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
                     if (existing) {
-                        // تحديث النص
                         const text = existing.querySelector('.msg-text');
                         if (text) {
                             if (data.deleted) {
                                 text.innerHTML = '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>';
                             } else if (data.file || data.audio) {
-                                // لا نغير النص للملفات
                             } else {
                                 text.innerHTML = data.text + (data.edited ? ' <span class="edited-badge">(معدّل)</span>' : '');
                                 if (isEmojiOnly(data.text)) text.classList.add('emoji-big');
                                 else text.classList.remove('emoji-big');
                             }
                         }
-                        // تحديث التفاعلات
                         const reactionsContainer = existing.querySelector('.msg-reactions');
                         if (reactionsContainer) {
                             reactionsContainer.innerHTML = '';
@@ -2212,15 +2193,20 @@ function checkSession() {
 }
 
 // ============================================================
-// 🚪 تسجيل الدخول
+// 🚪 تسجيل الدخول - الوظيفة الرئيسية
 // ============================================================
 async function login() {
+    // الحصول على الاسم من حقل الإدخال
     const raw = usernameInput.value.trim();
+    
+    // التحقق من صحة الاسم
     if (!raw || raw.length < 2) {
         loginError.style.display = 'block';
+        loginError.textContent = '⚠️ الاسم يجب أن يكون حرفين على الأقل';
         return;
     }
 
+    // التحقق من كلمة المرور للمسؤول
     if (raw === ADMIN_NAME) {
         const pass = loginAdminPasswordInput.value.trim();
         if (pass !== ADMIN_PASSWORD) {
@@ -2232,6 +2218,7 @@ async function login() {
         loginAdminPasswordError.classList.remove('show');
     }
 
+    // تنقية الاسم
     const name = sanitizeInput(raw);
     if (!name) {
         loginError.textContent = '⚠️ اسم غير صالح';
@@ -2239,24 +2226,30 @@ async function login() {
         return;
     }
 
+    // إخفاء رسائل الخطأ
     loginError.style.display = 'none';
     connectionError.style.display = 'none';
 
+    // إظهار شاشة التحميل وتعطيل الزر
     showLoading(true);
     loginBtn.disabled = true;
     loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
 
     try {
+        // توليد IP مشوش
         userIP = getHashedIP();
 
+        // التحقق من وجود المستخدم في قاعدة البيانات
         const userDoc = await db.collection('users').doc(name).get();
         let avatarBase64 = '';
         if (userDoc.exists && userDoc.data().avatar) {
             avatarBase64 = userDoc.data().avatar;
         }
 
+        // تسجيل دخول مجهول في Firebase Auth
         await auth.signInAnonymously();
 
+        // تعيين المتغيرات العامة
         currentUser = name;
         userAvatarBase64 = avatarBase64;
         isLoggedIn = true;
@@ -2264,9 +2257,11 @@ async function login() {
         isMuted = false;
         muteCount = 0;
 
+        // إلغاء أي منع سابق
         if (muteTimeout) clearTimeout(muteTimeout);
         mutedNotice.classList.remove('active');
 
+        // إظهار/إخفاء أزرار المسؤول
         if (isAdmin) {
             adminBtn.classList.remove('hidden');
             adminBadge.classList.add('show');
@@ -2275,24 +2270,31 @@ async function login() {
             adminBadge.classList.remove('show');
         }
 
+        // تحميل قائمة المحظورين
         await loadBlockedUsers();
 
+        // تبديل الشاشات
         loginOverlay.classList.add('hidden');
         chatContainer.style.display = 'flex';
 
+        // تفعيل الإدخال
         msgInput.disabled = false;
         sendBtn.disabled = false;
         msgInput.focus();
 
+        // تحديث الصورة الشخصية
         updateAllAvatars(avatarBase64, name);
 
+        // إزالة حالة الخروج القسري للمسؤول
         if (isAdmin) {
             db.collection('users').doc(name).update({ forceLogout: false }).catch(() => {});
         }
 
+        // تعيين المستخدم متصل
         setUserOnline(name);
         saveSession(name, userColor, avatarBase64);
 
+        // تحميل الثيم للمسؤول
         if (isAdmin) {
             db.collection('settings').doc('theme').get()
                 .then(doc => {
@@ -2303,6 +2305,7 @@ async function login() {
                 .catch(() => {});
         }
 
+        // رسائل الترحيب
         if (!userDoc.exists) {
             addSystemMessage(`👋 مرحباً ${name}! هذه أول مرة لك في الغروب`);
         } else if (isAdmin) {
@@ -2311,6 +2314,7 @@ async function login() {
             addSystemMessage(`👋 ${name} انضم إلى الدردشة`);
         }
 
+        // تحميل الرسائل والاستماع
         loadMessages();
         listenMessages();
         loadBadWords();
@@ -2322,19 +2326,22 @@ async function login() {
             updateOnlineCount();
         });
 
+        // حفظ حالة الخروج عند إغلاق الصفحة
         window.addEventListener('beforeunload', function() {
             if (currentUser) {
                 db.collection('users').doc(currentUser).update({ online: false });
             }
         });
 
+        console.log(`✅ تم تسجيل الدخول بنجاح: ${name}`);
+
     } catch (error) {
+        console.error('❌ خطأ في تسجيل الدخول:', error);
         connectionError.textContent = `❌ ${error.message}`;
         connectionError.style.display = 'block';
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
     }
 
+    // إخفاء شاشة التحميل وإعادة الزر
     showLoading(false);
     loginBtn.disabled = false;
     loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
@@ -2344,11 +2351,15 @@ async function login() {
 // 🔄 بدء التشغيل
 // ============================================================
 function init() {
+    // تحميل الثيم المحفوظ
     loadSavedTheme();
+    
+    // رسالة ترحيب
     infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
     infoMsg.classList.add('show');
     setTimeout(() => infoMsg.classList.remove('show'), 3000);
 
+    // التحقق من وجود جلسة محفوظة
     const session = checkSession();
     if (session) {
         usernameInput.value = session.username || '';
@@ -2357,7 +2368,8 @@ function init() {
         document.querySelectorAll('.color-circle').forEach(el => {
             el.classList.toggle('selected', el.dataset.color === userColor);
         });
-        setTimeout(() => login(), 300);
+        // محاولة تسجيل الدخول التلقائي
+        setTimeout(() => login(), 500);
     }
 }
 
@@ -2428,4 +2440,5 @@ console.log(`👑 المسؤول: ${ADMIN_NAME}`);
 console.log(`🔒 كلمة المرور: ${ADMIN_PASSWORD}`);
 console.log(`📱 الميزات: سحب للرد • تفاعلات • تعديل • ملفات • صوت • بحث`);
 
+// تشغيل التطبيق
 init();
