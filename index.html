@@ -6,14 +6,14 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>نيزك v3.0 - دردشة عصرية</title>
+    <title>نيزك v3.1 - دردشة عصرية</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <style>
         /* ============================================================
-           نيزك v3.0.0 - التصميم النهائي
+           نيزك v3.1.0 - التصميم النهائي
            ============================================================ */
         * {
             margin: 0;
@@ -50,7 +50,7 @@
             --radius: 16px;
             --radius-sm: 10px;
             --radius-bubble: 18px;
-            --version: "v3.0.0";
+            --version: "v3.1.0";
             --avatar-size: 36px;
         }
 
@@ -1064,7 +1064,6 @@
             opacity: 0.5;
         }
 
-        /* تم إزالة قسم اختيار الصورة من تسجيل الدخول */
         .color-options {
             display: flex;
             gap: 8px;
@@ -1923,13 +1922,13 @@
     <div id="app">
 
         <!-- ============================================================
-        LOGIN SCREEN - بدون صورة
+        LOGIN SCREEN
         ============================================================ -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
                 <div class="login-logo">💬</div>
                 <h1>نيزك <span class="hl">دردشة</span></h1>
-                <p class="login-sub">آمنة • سريعة • خاصة • v3.0</p>
+                <p class="login-sub">آمنة • سريعة • خاصة • v3.1</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
 
                 <div class="color-options" id="colorPicker">
@@ -1943,7 +1942,6 @@
                     <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
                 </div>
 
-                <!-- ADMIN PASSWORD - يظهر فقط عند كتابة slx23m -->
                 <div class="login-admin-password-box" id="loginAdminPasswordBox">
                     <input type="password" id="loginAdminPasswordInput" placeholder="كلمة المرور..." maxlength="20">
                     <div class="error-msg" id="loginAdminPasswordError">❌ كلمة المرور غير صحيحة</div>
@@ -1967,7 +1965,7 @@
             <div class="chat-header">
                 <div class="status-bar">
                     <span id="statusTime">12:00</span>
-                    <span class="version">v3.0.0</span>
+                    <span class="version">v3.1.0</span>
                 </div>
                 <div class="header-left">
                     <div class="header-avatar" id="headerAvatar" title="الملف الشخصي">
@@ -2028,12 +2026,12 @@
             </div>
 
             <div class="app-footer show" id="appFooter">
-                نيزك v3.0.0 • جميع الحقوق محفوظة
+                نيزك v3.1.0 • جميع الحقوق محفوظة
             </div>
         </div>
 
         <!-- ============================================================
-        PROFILE MODAL - فقط هنا يمكن تعديل الصورة
+        PROFILE MODAL
         ============================================================ -->
         <div class="modal-overlay profile-modal" id="profileModal">
             <div class="modal-box">
@@ -2149,7 +2147,7 @@
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT - نيزك v3.0.0 (النسخة النهائية)
+    JAVASCRIPT - نيزك v3.1.0 (إصلاح عرض جميع الرسائل)
     ============================================================ -->
     <script>
         // ============================================================
@@ -2177,7 +2175,7 @@
         // ============================================================
         const ADMIN_NAME = "slx23m";
         const ADMIN_PASSWORD = "1442";
-        const VERSION = "v3.0.0";
+        const VERSION = "v3.1.0";
 
         // ============================================================
         // 🚫 DEFAULT BAD WORDS
@@ -3021,16 +3019,16 @@
         }
 
         // ============================================================
-        // 📥 LOAD & LISTEN
+        // 📥 LOAD & LISTEN - إزالة limit(100)
         // ============================================================
         function loadMessages() {
             if (emptyState) emptyState.style.display = 'flex';
             lastSender = '';
             messageIds.clear();
 
+            // 🔥 إزالة limit(100) - تحميل جميع الرسائل
             db.collection('messages')
                 .orderBy('timestamp', 'asc')
-                .limit(100)
                 .get()
                 .then(function(s) {
                     if (emptyState) emptyState.style.display = 'none';
@@ -3074,6 +3072,12 @@
 
                         if (s.empty && emptyState) emptyState.style.display = 'flex';
                         showRules();
+
+                        // عرض عدد الرسائل
+                        var count = tempMessages.length;
+                        if (count > 0) {
+                            console.log('📊 عدد الرسائل المحملة: ' + count);
+                        }
                     });
 
                 })
@@ -3086,9 +3090,9 @@
             if (unsubscribe) unsubscribe();
             lastSender = '';
 
+            // 🔥 إزالة limit(100) - الاستماع لجميع الرسائل الجديدة
             unsubscribe = db.collection('messages')
                 .orderBy('timestamp', 'asc')
-                .limit(100)
                 .onSnapshot(function(s) {
                     s.docChanges().forEach(function(c) {
                         var d = c.doc.data();
@@ -3689,7 +3693,6 @@
 
                 var avatarBase64 = '';
 
-                // جلب الصورة المخزنة من Firestore إذا كانت موجودة
                 if (check.exists) {
                     var userDoc = await db.collection('users').doc(name).get();
                     if (userDoc.exists && userDoc.data().avatar) {
@@ -3825,7 +3828,7 @@
         // ============================================================
         userIP = getHashedIP();
 
-        console.log('🚀 نيزك ' + VERSION + ' - الإصدار النهائي');
+        console.log('🚀 نيزك ' + VERSION + ' - إصلاح عرض جميع الرسائل');
         console.log('👑 المسؤول: ' + ADMIN_NAME);
         console.log('🔒 كلمة المرور: ' + ADMIN_PASSWORD);
         console.log('🔒 IP مشوش: ' + userIP);
@@ -3835,9 +3838,9 @@
         console.log('🌓 نظام الثيمات مفعل');
         console.log('📸 الصور الشخصية مخزنة في Firestore (Base64)');
         console.log('📋 منع تكرار الرسائل مفعل');
-        console.log('📋 ترتيب الرسائل ثابت ومستقر');
+        console.log('📋 عرض جميع الرسائل بدون حد أقصى');
 
         autoLogin();
     </script>
 </body>
-                </html>
+    </html>
