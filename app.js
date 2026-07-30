@@ -23,7 +23,7 @@ const auth = firebase.auth();
 // ============================================================
 const ADMIN_NAME = "slx23m";
 const ADMIN_PASSWORD = "1442";
-const VERSION = "v3.5.0";
+const VERSION = "v4.0.0";
 
 // ============================================================
 // 🚫 الكلمات المحظورة الافتراضية
@@ -58,6 +58,8 @@ let userAvatarBase64 = '';
 let tempAvatarBase64 = '';
 let isAdminLoginAttempt = false;
 let messageIds = new Set();
+let unreadCount = 0;
+let onlineUsers = new Set();
 
 // ============================================================
 // 📄 عناصر DOM
@@ -103,6 +105,8 @@ const themeToggle = $('themeToggle');
 const themeIcon = $('themeIcon');
 const themeOptions = $('themeOptions');
 const scrollBottomBtn = $('scrollBottomBtn');
+const newMsgBadge = $('newMsgBadge');
+const onlineCount = $('onlineCount');
 
 const headerAvatar = $('headerAvatar');
 const headerAvatarPlaceholder = $('headerAvatarPlaceholder');
@@ -120,6 +124,13 @@ const profileUploadStatus = $('profileUploadStatus');
 const loginAdminPasswordBox = $('loginAdminPasswordBox');
 const loginAdminPasswordInput = $('loginAdminPasswordInput');
 const loginAdminPasswordError = $('loginAdminPasswordError');
+
+const replyPreview = $('replyPreview');
+const replyPreviewSender = $('replyPreviewSender');
+const replyPreviewText = $('replyPreviewText');
+const replyPreviewCancel = $('replyPreviewCancel');
+
+const reactionPicker = $('reactionPicker');
 
 // ============================================================
 // 📸 دوال الصورة الشخصية
@@ -148,9 +159,9 @@ function updateAvatarUI(element, placeholder, avatarBase64, name) {
     } else {
         const initials = getInitials(name);
         const color = getAvatarColor(name);
-        const fontSize = element === profileAvatarPreview ? '32px' : '16px';
+        const fontSize = element === profileAvatarPreview ? '34px' : '16px';
         element.innerHTML = `
-            <span class="avatar-placeholder" style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${fontSize};font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">
+            <span style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${fontSize};font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">
                 ${initials}
             </span>
         `;
@@ -165,7 +176,7 @@ function updateAllAvatars(avatarBase64, name) {
 }
 
 // ============================================================
-// 🖼️ ضغط الصورة إلى Base64
+// 🖼️ ضغط الصورة
 // ============================================================
 function compressImageToBase64(file, maxWidth, maxHeight, quality, statusElement) {
     return new Promise((resolve, reject) => {
@@ -435,6 +446,9 @@ document.addEventListener('click', function(e) {
         emojiRail.classList.remove('active');
         emojiToggle.classList.remove('active');
     }
+    if (!reactionPicker.contains(e.target)) {
+        reactionPicker.classList.remove('active');
+    }
 });
 
 document.querySelectorAll('.emoji-item').forEach(el => {
@@ -571,20 +585,12 @@ adminPasswordInput.addEventListener('keypress', function(e) {
 closeAdminModal.addEventListener('click', function() {
     adminModal.classList.remove('active');
     isAdminVerified = false;
-    adminPanel.style.display = 'none';
-    adminPasswordBox.style.display = 'block';
-    adminPasswordInput.value = '';
-    adminPasswordError.classList.remove('show');
 });
 
 adminModal.addEventListener('click', function(e) {
     if (e.target === this) {
         adminModal.classList.remove('active');
         isAdminVerified = false;
-        adminPanel.style.display = 'none';
-        adminPasswordBox.style.display = 'block';
-        adminPasswordInput.value = '';
-        adminPasswordError.classList.remove('show');
     }
 });
 
@@ -733,7 +739,7 @@ function createMessage(id, data, self) {
         avatar.style.display = 'flex';
         avatar.style.alignItems = 'center';
         avatar.style.justifyContent = 'center';
-        avatar.style.fontSize = '11px';
+        avatar.style.fontSize = '12px';
         avatar.style.fontWeight = '600';
         avatar.style.color = '#fff';
     }
@@ -759,7 +765,7 @@ function createMessage(id, data, self) {
     if (data.replyTo) {
         const reply = document.createElement('div');
         reply.className = 'reply-box';
-        reply.innerHTML = `<span class="r-sender">@${data.replyTo.sender}</span> ${data.replyTo.text.substring(0, 50)}${data.replyTo.text.length > 50 ? '...' : ''}`;
+        reply.innerHTML = `<span class="r-sender">@${data.replyTo.sender}</span> ${data.replyTo.text.substring(0, 60)}${data.replyTo.text.length > 60 ? '...' : ''}`;
         bubble.appendChild(reply);
     }
 
@@ -776,12 +782,6 @@ function createMessage(id, data, self) {
             ed.textContent = '(معدّل)';
             text.appendChild(ed);
         }
-        if (data.warning) {
-            const wb = document.createElement('span');
-            wb.className = 'warning-badge';
-            wb.textContent = '⚠️ كلمة ممنوعة';
-            text.appendChild(wb);
-        }
     }
     bubble.appendChild(text);
 
@@ -796,15 +796,40 @@ function createMessage(id, data, self) {
         }
     }
 
+    // التفاعلات
+    const reactions = document.createElement('div');
+    reactions.className = 'msg-reactions';
+    if (data.reactions && Object.keys(data.reactions).length > 0) {
+        const reactionMap = data.reactions;
+        const uniqueReactions = Object.keys(reactionMap);
+        uniqueReactions.forEach(emoji => {
+            const users = reactionMap[emoji] || [];
+            const count = users.length;
+            const reacted = users.includes(currentUser);
+            const reactionEl = document.createElement('button');
+            reactionEl.className = `msg-reaction${reacted ? ' reacted' : ''}`;
+            reactionEl.innerHTML = `${emoji} <span class="reaction-count">${count}</span>`;
+            reactionEl.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleReaction(id, emoji);
+            });
+            reactions.appendChild(reactionEl);
+        });
+    }
+
     // قائمة الإجراءات
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
     let actionsHTML = `
         <button class="reply" title="رد"><span class="material-symbols-outlined">reply</span></button>
-        <button class="report" title="إبلاغ"><span class="material-symbols-outlined">flag</span></button>
+        <button class="react" title="تفاعل"><span class="material-symbols-outlined">emoji_emotions</span></button>
     `;
+    if (data.sender === currentUser && !data.deleted) {
+        actionsHTML += `<button class="edit" title="تعديل"><span class="material-symbols-outlined">edit</span></button>`;
+    }
+    actionsHTML += `<button class="report" title="إبلاغ"><span class="material-symbols-outlined">flag</span></button>`;
     if (isAdmin && !data.deleted) {
-        actionsHTML += `<button class="delete" title="حذف نهائي"><span class="material-symbols-outlined">delete_forever</span></button>`;
+        actionsHTML += `<button class="delete" title="حذف"><span class="material-symbols-outlined">delete_forever</span></button>`;
     }
     if (isAdmin && data.sender !== ADMIN_NAME) {
         actionsHTML += `<button class="block" title="حظر"><span class="material-symbols-outlined">block</span></button>`;
@@ -816,19 +841,27 @@ function createMessage(id, data, self) {
         setReply(id, data.sender, data.text);
         hideAllActions();
     });
+    actions.querySelector('.react')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        showReactionPicker(id);
+        hideAllActions();
+    });
+    actions.querySelector('.edit')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        startEdit(id, data.text);
+        hideAllActions();
+    });
     actions.querySelector('.report')?.addEventListener('click', function(e) {
         e.stopPropagation();
         reportMsg(id, data.sender);
         hideAllActions();
     });
-    const del = actions.querySelector('.delete');
-    if (del) del.addEventListener('click', function(e) {
+    actions.querySelector('.delete')?.addEventListener('click', function(e) {
         e.stopPropagation();
         deleteMsg(id);
         hideAllActions();
     });
-    const blk = actions.querySelector('.block');
-    if (blk) blk.addEventListener('click', function(e) {
+    actions.querySelector('.block')?.addEventListener('click', function(e) {
         e.stopPropagation();
         blockUser(data.sender);
         hideAllActions();
@@ -836,6 +869,9 @@ function createMessage(id, data, self) {
 
     content.appendChild(sender);
     content.appendChild(bubble);
+    if (reactions.children.length > 0) {
+        content.appendChild(reactions);
+    }
     content.appendChild(time);
     content.appendChild(actions);
 
@@ -847,9 +883,57 @@ function createMessage(id, data, self) {
         group.appendChild(content);
     }
 
+    // سحب للرد (Swipe to Reply)
+    let startX = 0, startY = 0, isSwiping = false;
+    group.addEventListener('touchstart', function(e) {
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        isSwiping = true;
+    }, { passive: true });
+
+    group.addEventListener('touchmove', function(e) {
+        if (!isSwiping) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 0.8) {
+            e.preventDefault();
+            const self = data.sender === currentUser;
+            const direction = self ? -1 : 1;
+            if (deltaX * direction > 0) {
+                group.style.transform = `translateX(${deltaX * direction}px)`;
+                group.style.opacity = 1 - Math.min(Math.abs(deltaX) / 200, 0.5);
+                group.style.transition = 'none';
+            }
+        }
+    }, { passive: false });
+
+    group.addEventListener('touchend', function(e) {
+        if (!isSwiping) return;
+        isSwiping = false;
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - startX;
+        const self = data.sender === currentUser;
+        const direction = self ? -1 : 1;
+        if (deltaX * direction > 80) {
+            // تم السحب للرد
+            if (!data.deleted && data.sender !== currentUser) {
+                setReply(id, data.sender, data.text);
+            }
+            group.style.transform = '';
+            group.style.opacity = '';
+            group.style.transition = '';
+        } else {
+            // إعادة للوضع الطبيعي
+            group.style.transform = '';
+            group.style.opacity = '';
+            group.style.transition = '';
+        }
+    }, { passive: true });
+
     // الضغط المطول
-    let timer = null,
-        pressed = false;
+    let timer = null, pressed = false;
     group.addEventListener('mousedown', function() {
         pressed = true;
         timer = setTimeout(() => {
@@ -894,6 +978,57 @@ function hideAllActions() {
 document.addEventListener('click', hideAllActions);
 
 // ============================================================
+// 😊 لوحة التفاعلات
+// ============================================================
+let currentReactionMessageId = null;
+
+function showReactionPicker(messageId) {
+    currentReactionMessageId = messageId;
+    reactionPicker.classList.toggle('active');
+    // وضع اللوحة فوق الرسالة
+    const msgEl = document.querySelector(`[data-id="${messageId}"]`);
+    if (msgEl) {
+        const rect = msgEl.getBoundingClientRect();
+        const containerRect = document.querySelector('.chat-container').getBoundingClientRect();
+        const top = rect.top - containerRect.top - 60;
+        reactionPicker.style.top = Math.max(10, top) + 'px';
+    }
+}
+
+document.querySelectorAll('.reaction-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (currentReactionMessageId) {
+            toggleReaction(currentReactionMessageId, this.dataset.reaction);
+            reactionPicker.classList.remove('active');
+            currentReactionMessageId = null;
+        }
+    });
+});
+
+function toggleReaction(messageId, emoji) {
+    const msgRef = db.collection('messages').doc(messageId);
+    db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(msgRef);
+        if (!doc.exists) return;
+        const data = doc.data();
+        const reactions = data.reactions || {};
+        if (!reactions[emoji]) {
+            reactions[emoji] = [];
+        }
+        const index = reactions[emoji].indexOf(currentUser);
+        if (index > -1) {
+            reactions[emoji].splice(index, 1);
+            if (reactions[emoji].length === 0) {
+                delete reactions[emoji];
+            }
+        } else {
+            reactions[emoji].push(currentUser);
+        }
+        transaction.update(msgRef, { reactions });
+    }).catch(err => console.error('❌ خطأ في التفاعل:', err));
+}
+
+// ============================================================
 // 📨 إضافة رسالة
 // ============================================================
 function addMessage(id, data, self) {
@@ -904,8 +1039,25 @@ function addMessage(id, data, self) {
     const el = createMessage(id, data, self);
     if (el) {
         messagesDiv.appendChild(el);
+        if (!isScrolledToBottom()) {
+            unreadCount++;
+            updateNewMsgBadge();
+        }
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         updateMessageCount();
+    }
+}
+
+function isScrolledToBottom() {
+    return messagesDiv.scrollTop + messagesDiv.clientHeight >= messagesDiv.scrollHeight - 50;
+}
+
+function updateNewMsgBadge() {
+    if (unreadCount > 0) {
+        newMsgBadge.textContent = unreadCount;
+        newMsgBadge.style.display = 'flex';
+    } else {
+        newMsgBadge.style.display = 'none';
     }
 }
 
@@ -940,7 +1092,7 @@ function showRules() {
 }
 
 // ============================================================
-// 📊 عدد الرسائل
+// 📊 عدد الرسائل والمستخدمين
 // ============================================================
 function updateMessageCount() {
     const count = messagesDiv.querySelectorAll('.msg-group, .system-msg').length;
@@ -953,6 +1105,10 @@ function updateMessageCount() {
         div.innerHTML = `📬 <span>${count}</span> رسالة`;
         messagesDiv.insertBefore(div, messagesDiv.firstChild);
     }
+}
+
+function updateOnlineCount() {
+    onlineCount.textContent = `🟢 ${onlineUsers.size}`;
 }
 
 // ============================================================
@@ -1055,6 +1211,27 @@ function listenMessages() {
                                 else text.classList.remove('emoji-big');
                             }
                         }
+                        // تحديث التفاعلات
+                        const reactionsContainer = existing.querySelector('.msg-reactions');
+                        if (reactionsContainer) {
+                            reactionsContainer.innerHTML = '';
+                            if (data.reactions && Object.keys(data.reactions).length > 0) {
+                                const reactionMap = data.reactions;
+                                Object.keys(reactionMap).forEach(emoji => {
+                                    const users = reactionMap[emoji] || [];
+                                    const count = users.length;
+                                    const reacted = users.includes(currentUser);
+                                    const reactionEl = document.createElement('button');
+                                    reactionEl.className = `msg-reaction${reacted ? ' reacted' : ''}`;
+                                    reactionEl.innerHTML = `${emoji} <span class="reaction-count">${count}</span>`;
+                                    reactionEl.addEventListener('click', function(e) {
+                                        e.stopPropagation();
+                                        toggleReaction(change.doc.id, emoji);
+                                    });
+                                    reactionsContainer.appendChild(reactionEl);
+                                });
+                            }
+                        }
                     }
                 }
 
@@ -1106,7 +1283,8 @@ function sendMessage() {
         color: userColor,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         ip: userIP,
-        avatar: userAvatarBase64
+        avatar: userAvatarBase64,
+        reactions: {}
     };
 
     if (replyTo) {
@@ -1122,6 +1300,8 @@ function sendMessage() {
             msgInput.value = '';
             msgInput.focus();
             clearReply();
+            unreadCount = 0;
+            updateNewMsgBadge();
         })
         .catch(() => {
             alert('⚠️ فشل الإرسال');
@@ -1140,7 +1320,7 @@ function startEdit(id, text) {
     msgInput.value = text;
     msgInput.focus();
     sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
-    sendBtn.style.background = '#faa81a';
+    sendBtn.style.background = 'var(--orange)';
 }
 
 function updateMsg(id, newText) {
@@ -1314,14 +1494,20 @@ function reportMsg(id, sender) {
 // ============================================================
 function setReply(id, sender, text) {
     replyTo = { id, sender, text };
-    msgInput.placeholder = `رد على @${sender}...`;
+    replyPreviewSender.textContent = `@${sender}`;
+    replyPreviewText.textContent = text.substring(0, 80) + (text.length > 80 ? '...' : '');
+    replyPreview.style.display = 'flex';
+    msgInput.placeholder = 'اكتب ردك...';
     msgInput.focus();
 }
 
 function clearReply() {
     replyTo = null;
+    replyPreview.style.display = 'none';
     msgInput.placeholder = 'اكتب رسالة...';
 }
+
+replyPreviewCancel.addEventListener('click', clearReply);
 
 msgInput.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -1353,6 +1539,8 @@ function loadAdminUsers() {
                 .then(onlineSnapshot => {
                     const onlineSet = new Set();
                     onlineSnapshot.forEach(doc => onlineSet.add(doc.id));
+                    onlineUsers = onlineSet;
+                    updateOnlineCount();
 
                     db.collection('violations').get()
                         .then(violationsSnapshot => {
@@ -1383,7 +1571,7 @@ function loadAdminUsers() {
                                                 ${avatarHtml}
                                             </div>
                                             <span>${data.username}${data.username === ADMIN_NAME ? ' 👑' : ''}${blocked ? ' 🚫' : ''}${online ? ' 🟢' : ' ⚪'}</span>
-                                            ${vcount > 0 ? `<span class="muted-badge">⚠️ ${vcount}</span>` : ''}
+                                            ${vcount > 0 ? `<span style="font-size:9px;color:var(--orange);background:rgba(250,168,26,0.08);padding:0 5px;border-radius:4px;">⚠️ ${vcount}</span>` : ''}
                                         </div>
                                         <div class="user-actions">
                                             ${data.username !== ADMIN_NAME ? `
@@ -1485,6 +1673,10 @@ function performLogout() {
     userAvatarBase64 = '';
     tempAvatarBase64 = '';
     messageIds.clear();
+    unreadCount = 0;
+    updateNewMsgBadge();
+    onlineUsers.clear();
+    updateOnlineCount();
 }
 
 logoutBtn.addEventListener('click', logout);
@@ -1519,13 +1711,6 @@ function setUserOnline(name) {
         forceLogout: false,
         avatar: userAvatarBase64 || '',
         firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-    });
-}
-
-function setUserOffline(name) {
-    db.collection('users').doc(name).update({
-        online: false,
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     });
 }
@@ -1672,6 +1857,13 @@ async function login() {
         listenMessages();
         loadBadWords();
 
+        // مراقبة المستخدمين المتصلين
+        db.collection('users').where('online', '==', true).onSnapshot(snapshot => {
+            onlineUsers.clear();
+            snapshot.forEach(doc => onlineUsers.add(doc.id));
+            updateOnlineCount();
+        });
+
         window.addEventListener('beforeunload', function() {
             if (currentUser) {
                 db.collection('users').doc(currentUser).update({ online: false });
@@ -1717,10 +1909,18 @@ function init() {
 messagesDiv.addEventListener('scroll', function() {
     const atBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 50;
     scrollBottomBtn.classList.toggle('show', !atBottom);
+    if (atBottom && unreadCount > 0) {
+        unreadCount = 0;
+        updateNewMsgBadge();
+    }
 });
 
 scrollBottomBtn.addEventListener('click', function() {
     messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' });
+    if (unreadCount > 0) {
+        unreadCount = 0;
+        updateNewMsgBadge();
+    }
 });
 
 // ============================================================
@@ -1765,14 +1965,9 @@ auth.onAuthStateChanged(function(user) {
 // ============================================================
 userIP = getHashedIP();
 
-console.log(`🚀 نيزك ${VERSION} - أقدم فوق، أحدث تحت (مثل الدردشة الطبيعية)`);
+console.log(`🚀 نيزك ${VERSION} - دردشة تفاعلية مع سحب للرد`);
 console.log(`👑 المسؤول: ${ADMIN_NAME}`);
 console.log(`🔒 كلمة المرور: ${ADMIN_PASSWORD}`);
-console.log(`🔒 IP مشوش: ${userIP}`);
-console.log(`🚫 عدد الكلمات المحظورة: ${DEFAULT_BAD_WORDS.length}`);
-console.log('💾 ميزة حفظ الجلسة مفعلة');
-console.log('📱 تسجيل الدخول المتعدد من نفس الاسم مفعل');
-console.log('🌓 نظام الثيمات مفعل');
-console.log('📸 الصور الشخصية مخزنة في Firestore (Base64)');
+console.log(`📱 ميزات جديدة: سحب للرد • تفاعلات • تعديل للجميع`);
 
 init();
