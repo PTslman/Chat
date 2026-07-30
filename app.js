@@ -12,17 +12,83 @@ const firebaseConfig = {
 };
 
 // ============================================================
-// 🚀 تهيئة Firebase
+// 🚀 تهيئة Firebase مع إعادة المحاولة
 // ============================================================
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-const storage = firebase.storage();
+let db = null;
+let auth = null;
+let storage = null;
+let firebaseReady = false;
+let connectionRetries = 0;
+const MAX_RETRIES = 10;
 
-// تمكين التخزين المؤقت دون اتصال
-db.enablePersistence({ synchronizeTabs: true })
-    .then(() => console.log('✅ تم تمكين التخزين المؤقت'))
-    .catch((err) => console.warn('⚠️ تعذر تمكين التخزين المؤقت:', err));
+function initFirebase() {
+    try {
+        console.log('🔄 جاري تهيئة Firebase...');
+        
+        // التحقق من تحميل Firebase SDK
+        if (typeof firebase === 'undefined') {
+            console.error('❌ Firebase SDK لم يتم تحميله');
+            retryFirebase();
+            return false;
+        }
+        
+        // تهيئة Firebase إذا لم تكن مهيأة
+        if (!firebase.apps || firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+            console.log('✅ تم تهيئة Firebase بنجاح');
+        }
+        
+        // الحصول على الخدمات
+        db = firebase.firestore();
+        auth = firebase.auth();
+        storage = firebase.storage();
+        
+        // تمكين التخزين المؤقت
+        db.enablePersistence({ synchronizeTabs: true })
+            .then(() => {
+                console.log('✅ تم تمكين التخزين المؤقت');
+                firebaseReady = true;
+            })
+            .catch((err) => {
+                console.warn('⚠️ تعذر تمكين التخزين المؤقت:', err);
+                firebaseReady = true;
+            });
+        
+        return true;
+    } catch (error) {
+        console.error('❌ خطأ في تهيئة Firebase:', error);
+        retryFirebase();
+        return false;
+    }
+}
+
+function retryFirebase() {
+    if (connectionRetries < MAX_RETRIES) {
+        connectionRetries++;
+        console.log(`🔄 محاولة إعادة التهيئة (${connectionRetries}/${MAX_RETRIES})...`);
+        setTimeout(() => {
+            initFirebase();
+        }, 2000);
+    } else {
+        console.error('❌ فشل تهيئة Firebase بعد عدة محاولات');
+        // عرض رسالة للمستخدم
+        if (elements.connectionError) {
+            elements.connectionError.textContent = '⚠️ تعذر الاتصال بخادم Firebase. يرجى التحقق من اتصالك بالإنترنت.';
+            elements.connectionError.style.display = 'block';
+        }
+    }
+}
+
+// بدء التهيئة
+initFirebase();
+
+// محاولة إعادة التهيئة كل 10 ثواني
+setInterval(() => {
+    if (!firebaseReady || !db || !auth) {
+        console.log('🔄 محاولة إعادة تهيئة Firebase...');
+        initFirebase();
+    }
+}, 10000);
 
 // ============================================================
 // 👑 إعدادات المسؤول
@@ -37,12 +103,11 @@ const VERSION = "v5.0.0";
 const DEFAULT_BAD_WORDS = [
     'كس', 'قحب', 'عاهر', 'زاني', 'زنا', 'خنا', 'لوط',
     'منيوك', 'شرموط', 'قحبة', 'عاهرة', 'زانية', 'خنيث',
-    'مخنث', 'لاطي', 'لوطي', 'شاذ', 'منيوكة', 'شرموطة',
-    'مومس', 'داعر', 'داعرة', 'فاجر', 'فاجرة'
+    'مخنث', 'لاطي', 'لوطي', 'شاذ', 'منيوكة', 'شرموطة'
 ];
 
 // ============================================================
-// 📦 حالة التطبيق (State)
+// 📦 حالة التطبيق
 // ============================================================
 const state = {
     currentUser: '',
@@ -265,6 +330,23 @@ function compressImageToBase64(file, maxWidth, maxHeight, quality, statusElement
 }
 
 // ============================================================
+// 🔍 التحقق من Firebase - دالة مساعدة
+// ============================================================
+function checkFirebase() {
+    if (!db || !auth) {
+        console.error('❌ Firebase غير جاهز');
+        if (elements.connectionError) {
+            elements.connectionError.textContent = '⚠️ جاري تهيئة الاتصال... يرجى الانتظار';
+            elements.connectionError.style.display = 'block';
+        }
+        // محاولة إعادة التهيئة
+        initFirebase();
+        return false;
+    }
+    return true;
+}
+
+// ============================================================
 // 👤 الملف الشخصي
 // ============================================================
 function openProfileModal() {
@@ -279,6 +361,8 @@ function openProfileModal() {
 }
 
 async function saveProfile() {
+    if (!checkFirebase()) return;
+    
     const newName = elements.profileNameInput ? elements.profileNameInput.value.trim() : '';
     if (!newName || newName.length < 2) {
         alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
@@ -323,7 +407,7 @@ async function saveProfile() {
 
     } catch (error) {
         console.error('❌ خطأ في حفظ الملف الشخصي:', error);
-        alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي');
+        alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي: ' + error.message);
     }
 
     showLoading(false);
@@ -348,7 +432,7 @@ function applyTheme(theme) {
         localStorage.setItem('chat_theme', theme);
     } catch (e) {}
 
-    if (state.isAdmin && state.isAdminVerified) {
+    if (state.isAdmin && state.isAdminVerified && db) {
         db.collection('settings').doc('theme').set({ theme }).catch(() => {});
     }
 }
@@ -369,17 +453,21 @@ function loadSavedTheme() {
         }
     } catch (e) {}
 
-    db.collection('settings').doc('theme').get()
-        .then(doc => {
-            if (doc.exists && doc.data().theme) {
-                applyTheme(doc.data().theme);
-            } else {
+    if (db) {
+        db.collection('settings').doc('theme').get()
+            .then(doc => {
+                if (doc.exists && doc.data().theme) {
+                    applyTheme(doc.data().theme);
+                } else {
+                    applyTheme('dark');
+                }
+            })
+            .catch(() => {
                 applyTheme('dark');
-            }
-        })
-        .catch(() => {
-            applyTheme('dark');
-        });
+            });
+    } else {
+        applyTheme('dark');
+    }
 }
 
 // ============================================================
@@ -683,6 +771,7 @@ if (elements.adminModal) {
 // 🚫 الكلمات المحظورة
 // ============================================================
 function loadBadWords() {
+    if (!db) return;
     db.collection('settings').doc('badwords').get()
         .then(doc => {
             state.badWords = (doc.exists && doc.data().words) ? doc.data().words : DEFAULT_BAD_WORDS;
@@ -694,13 +783,14 @@ function loadBadWords() {
 }
 
 function saveBadWords() {
+    if (!db) return;
     db.collection('settings').doc('badwords').set({ words: state.badWords });
 }
 
 function renderBadWords() {
     if (!elements.badwordsList) return;
     if (!state.badWords.length) {
-        elements.badwordsList.innerHTML = '<span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>';
+        elements.badwordsList.innerHTML = '<span style="color:var(--whatsapp-text-muted);font-size:11px;">لا توجد كلمات محظورة</span>';
         return;
     }
     let html = '';
@@ -792,13 +882,15 @@ function handleBadWord(text, sender) {
         const duration = state.muteCount * 60;
         addSystemMessage(`⚠️ تنبيه: @${sender} استخدم كلمة ممنوعة "${found}" (المخالفة رقم ${state.muteCount})`, 'warning');
         applyMute(duration);
-        db.collection('violations').add({
-            user: sender,
-            word: found,
-            text: text,
-            count: state.muteCount,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        if (db) {
+            db.collection('violations').add({
+                user: sender,
+                word: found,
+                text: text,
+                count: state.muteCount,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
         return true;
     }
     return false;
@@ -870,7 +962,7 @@ if (elements.searchInput) {
         if (!elements.searchResults) return;
         
         if (results.length === 0) {
-            elements.searchResults.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:13px;text-align:center;">🔍 لا توجد نتائج</div>';
+            elements.searchResults.innerHTML = '<div style="padding:8px;color:var(--whatsapp-text-muted);font-size:13px;text-align:center;">🔍 لا توجد نتائج</div>';
             elements.searchResults.classList.add('active');
             return;
         }
@@ -894,9 +986,11 @@ if (elements.searchInput) {
                 const result = results[index];
                 if (result && result.element) {
                     result.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    result.element.style.background = 'var(--accent-glow)';
+                    result.element.style.background = 'var(--whatsapp-teal)';
+                    result.element.style.opacity = '0.5';
                     setTimeout(() => {
                         result.element.style.background = '';
+                        result.element.style.opacity = '';
                     }, 2000);
                     if (elements.searchBar) elements.searchBar.style.display = 'none';
                     if (elements.searchResults) {
@@ -1023,7 +1117,7 @@ function createMessage(id, data, self) {
             const duration = data.audioDuration ? ` (${data.audioDuration}ث)` : '';
             audioDiv.innerHTML = `
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                    <span style="font-size:12px;color:var(--text-muted);">🎤 رسالة صوتية${duration}</span>
+                    <span style="font-size:12px;color:var(--whatsapp-text-muted);">🎤 رسالة صوتية${duration}</span>
                 </div>
                 <audio controls><source src="${data.audio}" type="audio/webm"></audio>
             `;
@@ -1071,9 +1165,7 @@ function createMessage(id, data, self) {
         });
     }
 
-    // ============================================================
-    // 🎯 قائمة الإجراءات
-    // ============================================================
+    // قائمة الإجراءات
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
     actions.id = `actions-${id}`;
@@ -1129,9 +1221,7 @@ function createMessage(id, data, self) {
     
     actions.innerHTML = actionsHTML;
 
-    // ============================================================
-    // 🔧 ربط أحداث الأزرار
-    // ============================================================
+    // ربط أحداث الأزرار
     actions.querySelector('.reply')?.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
@@ -1215,9 +1305,7 @@ function createMessage(id, data, self) {
         group.appendChild(content);
     }
 
-    // ============================================================
-    // 🖱️ الضغط المطول
-    // ============================================================
+    // الضغط المطول
     let longPressTimer = null;
     let isLongPress = false;
 
@@ -1308,7 +1396,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// منع الإغلاق عند النقر على الخيارات
 document.addEventListener('mousedown', function(e) {
     if (e.target.closest('.msg-actions')) {
         e.stopPropagation();
@@ -1321,7 +1408,6 @@ document.addEventListener('touchstart', function(e) {
     }
 }, { passive: true });
 
-// إغلاق الخيارات عند التمرير
 if (elements.messages) {
     elements.messages.addEventListener('scroll', function() {
         hideAllMessageActions(100);
@@ -1360,6 +1446,7 @@ document.querySelectorAll('.reaction-option').forEach(btn => {
 });
 
 function toggleReaction(messageId, emoji) {
+    if (!db) return;
     const msgRef = db.collection('messages').doc(messageId);
     db.runTransaction(async (transaction) => {
         const doc = await transaction.get(msgRef);
@@ -1483,6 +1570,11 @@ function updateOnlineCount() {
 // 📥 تحميل الرسائل
 // ============================================================
 function loadMessages() {
+    if (!checkFirebase()) {
+        setTimeout(loadMessages, 2000);
+        return;
+    }
+    
     if (elements.emptyState) elements.emptyState.style.display = 'flex';
     lastSender = '';
     state.messageIds.clear();
@@ -1535,10 +1627,16 @@ function loadMessages() {
         })
         .catch(err => {
             console.error('❌ خطأ في تحميل الرسائل:', err);
+            setTimeout(loadMessages, 3000);
         });
 }
 
 function listenMessages() {
+    if (!checkFirebase()) {
+        setTimeout(listenMessages, 2000);
+        return;
+    }
+    
     if (state.unsubscribe) state.unsubscribe();
     lastSender = '';
 
@@ -1634,6 +1732,10 @@ function sendMessage() {
         alert('⛔ أنت ممنوع من الكتابة حالياً');
         return;
     }
+    if (!checkFirebase()) {
+        alert('⚠️ جاري تهيئة الاتصال... يرجى المحاولة مرة أخرى');
+        return;
+    }
     
     const text = sanitizeInput(raw);
     if (!text) return;
@@ -1667,8 +1769,11 @@ function sendMessage() {
         };
     }
 
+    console.log('📤 جاري إرسال الرسالة...', data);
+
     db.collection('messages').add(data)
         .then(() => {
+            console.log('✅ تم إرسال الرسالة بنجاح');
             if (elements.msgInput) elements.msgInput.value = '';
             if (elements.msgInput) elements.msgInput.focus();
             clearReply();
@@ -1694,12 +1799,12 @@ function startEdit(id, text) {
     if (elements.msgInput) elements.msgInput.focus();
     if (elements.sendBtn) {
         elements.sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
-        elements.sendBtn.style.background = 'var(--orange)';
+        elements.sendBtn.style.background = 'var(--whatsapp-orange)';
     }
 }
 
 function updateMsg(id, newText) {
-    if (!state.editingMessage) return;
+    if (!state.editingMessage || !db) return;
     
     db.collection('messages').doc(id).update({ text: newText, edited: true })
         .then(() => {
@@ -1719,6 +1824,7 @@ function updateMsg(id, newText) {
 function deleteMsg(id) {
     if (!state.isAdmin) return;
     if (!confirm('🗑️ هل أنت متأكد من حذف هذه الرسالة نهائياً؟\nلا يمكن استعادتها بعد الحذف.')) return;
+    if (!db) return;
     
     db.collection('messages').doc(id).delete()
         .then(() => {
@@ -1738,6 +1844,7 @@ function deleteMsg(id) {
 function clearChat() {
     if (!state.isAdmin || !state.isAdminVerified) return;
     if (!confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل نهائياً؟\nلا يمكن استعادتها بعد الحذف.')) return;
+    if (!db) return;
 
     showLoading(true);
     db.collection('messages').get()
@@ -1773,6 +1880,7 @@ if (elements.clearChatBtn) {
 function blockUser(username) {
     if (!state.isAdmin || username === ADMIN_NAME) return;
     if (!confirm(`🚫 حظر @${username} نهائياً؟`)) return;
+    if (!db) return;
     
     if (!state.blockedUsers.includes(username)) {
         state.blockedUsers.push(username);
@@ -1791,6 +1899,7 @@ function blockUser(username) {
 function unblockUser(username) {
     if (!state.isAdmin) return;
     if (!confirm(`🔓 هل أنت متأكد من فك الحظر عن @${username}؟`)) return;
+    if (!db) return;
     
     const index = state.blockedUsers.indexOf(username);
     if (index > -1) {
@@ -1811,6 +1920,7 @@ function deleteUserAccount(username) {
     if (!state.isAdmin || username === ADMIN_NAME) return;
     if (!confirm(`⚠️ هل أنت متأكد من حذف حساب @${username} بالكامل؟\nسيتم حذف جميع رسائله وبياناته نهائياً.`))
         return;
+    if (!db) return;
 
     showLoading(true);
     db.collection('users').doc(username).delete()
@@ -1848,6 +1958,7 @@ function deleteUserAccount(username) {
 // 📋 تحميل المحظورين
 // ============================================================
 function loadBlockedUsers() {
+    if (!db) return Promise.resolve([]);
     return db.collection('blocked').doc('list').get()
         .then(doc => {
             state.blockedUsers = (doc.exists && doc.data().users) ? doc.data().users : [];
@@ -1863,6 +1974,7 @@ function loadBlockedUsers() {
 // 📋 الإبلاغ
 // ============================================================
 function reportMsg(id, sender) {
+    if (!db) return;
     if (confirm(`📋 الإبلاغ عن @${sender}؟`)) {
         db.collection('reports').add({
             messageId: id,
@@ -1921,21 +2033,21 @@ function loadAdminUsers() {
     if (!state.isAdmin || !state.isAdminVerified) return;
     if (!db) {
         if (elements.adminUsersList) {
-            elements.adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">جاري الاتصال...</div>';
+            elements.adminUsersList.innerHTML = '<div style="color:var(--whatsapp-text-muted);font-size:12px;">جاري الاتصال...</div>';
         }
         setTimeout(loadAdminUsers, 2000);
         return;
     }
     
     if (elements.adminUsersList) {
-        elements.adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">جاري التحميل...</div>';
+        elements.adminUsersList.innerHTML = '<div style="color:var(--whatsapp-text-muted);font-size:12px;">جاري التحميل...</div>';
     }
 
     db.collection('users').get()
         .then(snapshot => {
             if (snapshot.empty) {
                 if (elements.adminUsersList) {
-                    elements.adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>';
+                    elements.adminUsersList.innerHTML = '<div style="color:var(--whatsapp-text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>';
                 }
                 return;
             }
@@ -1976,7 +2088,7 @@ function loadAdminUsers() {
                                                 ${avatarHtml}
                                             </div>
                                             <span>${data.username}${data.username === ADMIN_NAME ? ' 👑' : ''}${blocked ? ' 🚫' : ''}${online ? ' 🟢' : ' ⚪'}</span>
-                                            ${vcount > 0 ? `<span style="font-size:9px;color:var(--orange);background:rgba(250,168,26,0.08);padding:0 5px;border-radius:4px;">⚠️ ${vcount}</span>` : ''}
+                                            ${vcount > 0 ? `<span style="font-size:9px;color:var(--whatsapp-orange);background:rgba(251,191,36,0.1);padding:0 5px;border-radius:4px;">⚠️ ${vcount}</span>` : ''}
                                         </div>
                                         <div class="user-actions">
                                             ${data.username !== ADMIN_NAME ? `
@@ -2010,6 +2122,7 @@ if (elements.forceLogoutBtn) {
     elements.forceLogoutBtn.addEventListener('click', function() {
         if (!state.isAdmin || !state.isAdminVerified) return;
         if (!confirm('⚠️ هل أنت متأكد من تسجيل خروج جميع المستخدمين؟')) return;
+        if (!db) return;
 
         showLoading(true);
         db.collection('users').where('online', '==', true).get()
@@ -2181,17 +2294,14 @@ function checkSession() {
 async function login() {
     console.log('🟢 محاولة تسجيل الدخول...');
     
-    if (!db || !auth) {
-        console.error('❌ Firebase غير جاهز');
-        if (elements.connectionError) {
-            elements.connectionError.textContent = '⚠️ جاري تهيئة الاتصال... يرجى المحاولة مرة أخرى';
-            elements.connectionError.style.display = 'block';
-        }
-        setTimeout(() => login(), 2000);
+    if (!checkFirebase()) {
+        console.log('⏳ Firebase غير جاهز، انتظار...');
+        setTimeout(login, 2000);
         return;
     }
     
     const raw = elements.usernameInput ? elements.usernameInput.value.trim() : '';
+    console.log('📝 الاسم المدخل:', raw);
     
     if (!raw || raw.length < 2) {
         if (elements.loginError) {
@@ -2202,7 +2312,9 @@ async function login() {
     }
 
     if (raw === ADMIN_NAME) {
+        console.log('👑 تم اكتشاف اسم المسؤول');
         const pass = elements.loginAdminPasswordInput ? elements.loginAdminPasswordInput.value.trim() : '';
+        console.log('🔑 كلمة المرور المدخلة:', pass ? '****' : '(فارغة)');
         
         if (pass !== ADMIN_PASSWORD) {
             if (elements.loginAdminPasswordError) {
@@ -2212,11 +2324,13 @@ async function login() {
                 elements.loginAdminPasswordInput.value = '';
                 elements.loginAdminPasswordInput.focus();
             }
+            console.log('❌ كلمة مرور غير صحيحة');
             return;
         }
         if (elements.loginAdminPasswordError) {
             elements.loginAdminPasswordError.classList.remove('show');
         }
+        console.log('✅ كلمة المرور صحيحة');
     }
 
     const name = sanitizeInput(raw);
@@ -2234,56 +2348,81 @@ async function login() {
     showLoading(true);
     if (elements.loginBtn) {
         elements.loginBtn.disabled = true;
-        elements.loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
+        elements.loginBtn.innerHTML = '⏳ جاري...';
     }
+    console.log('⏳ جاري تسجيل الدخول...');
 
     try {
         state.userIP = getHashedIP();
+        console.log('🔒 IP مشوش:', state.userIP);
 
+        // التحقق من المستخدم
+        console.log('📡 جاري التحقق من المستخدم...');
         const userDoc = await db.collection('users').doc(name).get();
         let avatarBase64 = '';
         if (userDoc.exists && userDoc.data().avatar) {
             avatarBase64 = userDoc.data().avatar;
+            console.log('✅ تم العثور على المستخدم');
+        } else {
+            console.log('ℹ️ مستخدم جديد');
         }
 
-        await auth.signInAnonymously();
+        // تسجيل الدخول
+        console.log('🔐 جاري تسجيل الدخول إلى Firebase Auth...');
+        try {
+            await auth.signInAnonymously();
+            console.log('✅ تم تسجيل الدخول إلى Firebase Auth');
+        } catch (authError) {
+            console.error('❌ خطأ في Firebase Auth:', authError);
+            throw new Error('فشل تسجيل الدخول: ' + authError.message);
+        }
 
+        // تعيين المتغيرات
         state.currentUser = name;
         state.userAvatarBase64 = avatarBase64;
         state.isLoggedIn = true;
         state.isAdmin = (name === ADMIN_NAME);
         state.isMuted = false;
         state.muteCount = 0;
+        console.log('👤 المستخدم:', state.currentUser);
+        console.log('👑 مسؤول:', state.isAdmin);
 
         if (state.muteTimeout) clearTimeout(state.muteTimeout);
         if (elements.mutedNotice) elements.mutedNotice.classList.remove('active');
 
+        // أزرار المسؤول
         if (state.isAdmin) {
             if (elements.adminBtn) elements.adminBtn.classList.remove('hidden');
             if (elements.adminBadge) elements.adminBadge.classList.add('show');
+            console.log('👑 تم تفعيل أزرار المسؤول');
         } else {
             if (elements.adminBtn) elements.adminBtn.classList.add('hidden');
             if (elements.adminBadge) elements.adminBadge.classList.remove('show');
         }
 
+        // تحميل المحظورين
+        console.log('📋 جاري تحميل المحظورين...');
         await loadBlockedUsers();
+        console.log('✅ تم تحميل المحظورين');
 
+        // تبديل الشاشات
         if (elements.loginOverlay) elements.loginOverlay.classList.add('hidden');
         if (elements.chatContainer) elements.chatContainer.style.display = 'flex';
+        console.log('🔄 تم تبديل الشاشات');
 
+        // تفعيل الإدخال
         if (elements.msgInput) elements.msgInput.disabled = false;
         if (elements.sendBtn) elements.sendBtn.disabled = false;
         if (elements.msgInput) elements.msgInput.focus();
 
+        // تحديث الصورة
         updateAllAvatars(avatarBase64, name);
 
-        if (state.isAdmin && db) {
-            db.collection('users').doc(name).update({ forceLogout: false }).catch(() => {});
-        }
-
+        // تعيين المستخدم متصل
         setUserOnline(name);
         saveSession(name, state.userColor, avatarBase64);
 
+        // تحميل الثيم
         if (state.isAdmin && db) {
             db.collection('settings').doc('theme').get()
                 .then(doc => {
@@ -2294,6 +2433,7 @@ async function login() {
                 .catch(() => {});
         }
 
+        // رسائل الترحيب
         if (!userDoc.exists) {
             addSystemMessage(`👋 مرحباً ${name}! هذه أول مرة لك في الغروب`);
         } else if (state.isAdmin) {
@@ -2302,10 +2442,14 @@ async function login() {
             addSystemMessage(`👋 ${name} انضم إلى الدردشة`);
         }
 
+        // تحميل الرسائل
+        console.log('📨 جاري تحميل الرسائل...');
         loadMessages();
         listenMessages();
         loadBadWords();
+        console.log('✅ تم تحميل جميع البيانات');
 
+        // مراقبة المستخدمين
         if (db) {
             db.collection('users').where('online', '==', true).onSnapshot(snapshot => {
                 state.onlineUsers.clear();
@@ -2319,6 +2463,8 @@ async function login() {
                 db.collection('users').doc(state.currentUser).update({ online: false });
             }
         });
+
+        console.log(`✅ تم تسجيل الدخول بنجاح: ${name}`);
 
     } catch (error) {
         console.error('❌ خطأ في تسجيل الدخول:', error);
@@ -2347,6 +2493,7 @@ async function login() {
 if (elements.loginBtn) {
     elements.loginBtn.addEventListener('click', function(e) {
         e.preventDefault();
+        console.log('🖱️ تم الضغط على زر الدخول');
         login();
     });
 }
@@ -2432,8 +2579,12 @@ function init() {
         }, 3000);
     }
 
+    // التحقق من Firebase
+    checkFirebase();
+
     const session = checkSession();
     if (session) {
+        console.log('💾 جلسة محفوظة:', session.username);
         if (elements.usernameInput) elements.usernameInput.value = session.username || '';
         state.userColor = session.color || '#2b6ef0';
         state.userAvatarBase64 = session.avatar || '';
@@ -2441,6 +2592,8 @@ function init() {
             el.classList.toggle('selected', el.dataset.color === state.userColor);
         });
         setTimeout(() => login(), 500);
+    } else {
+        console.log('ℹ️ لا توجد جلسة محفوظة');
     }
 }
 
@@ -2484,23 +2637,21 @@ if (elements.sendBtn) {
 // ============================================================
 state.userIP = getHashedIP();
 
-console.log(`🚀 نيزك ${VERSION} - دردشة متطورة مع جميع الميزات`);
+console.log(`🚀 نيزك ${VERSION} - دردشة متطورة`);
 console.log(`👑 المسؤول: ${ADMIN_NAME}`);
 console.log(`🔒 كلمة المرور: ${ADMIN_PASSWORD}`);
-console.log(`📱 الميزات: سحب للرد • تفاعلات • تعديل • بحث • شريط الرجعة`);
 console.log(`⌨️ Shift+Enter = سطر جديد, Enter = إرسال`);
 console.log(`🖱️ ضغط مطول = قائمة الخيارات`);
-console.log(`📌 شريط الرجعة = مثل واتساب`);
 
 // بدء التطبيق بعد تحميل الصفحة
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('📄 تم تحميل الصفحة بالكامل');
+        console.log('📄 تم تحميل الصفحة');
         init();
     });
 } else {
-    console.log('📄 الصفحة جاهزة بالفعل');
+    console.log('📄 الصفحة جاهزة');
     init();
 }
 
-console.log('✅ تم تحميل التطبيق بالكامل');
+console.log('✅ تم تحميل التطبيق');
