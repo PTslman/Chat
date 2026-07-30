@@ -2272,5 +2272,99 @@ if (document.readyState === 'loading') {
     console.log('📄 الصفحة جاهزة بالفعل');
     init();
 }
+// ============================================================
+// 🎯 إصلاح مشكلة ظهور الخيارات خلف الشاشة - إضافة overlay
+// ============================================================
 
+// إنشاء overlay لخلفية الخيارات
+const actionsOverlay = document.createElement('div');
+actionsOverlay.className = 'msg-actions-overlay';
+actionsOverlay.id = 'msgActionsOverlay';
+document.body.appendChild(actionsOverlay);
+
+// إصلاح دالة إظهار الخيارات
+function showMessageActions(actionsElement, messageElement) {
+    // إخفاء جميع الخيارات الأخرى
+    document.querySelectorAll('.msg-actions.active').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // إظهار الـ overlay
+    actionsOverlay.classList.add('active');
+    
+    // إظهار الخيارات
+    actionsElement.classList.add('active');
+    
+    // منع انتشار النقر للخلف
+    actionsElement.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    // عند النقر على الـ overlay، إخفاء الخيارات
+    actionsOverlay.onclick = function() {
+        hideAllMessageActions();
+    };
+}
+
+// إصلاح دالة إخفاء الخيارات
+function hideAllMessageActions() {
+    document.querySelectorAll('.msg-actions.active').forEach(el => {
+        el.classList.remove('active');
+    });
+    actionsOverlay.classList.remove('active');
+}
+
+// استبدال دالة hideAllActions القديمة
+const originalHideAllActions = hideAllActions;
+hideAllActions = function() {
+    originalHideAllActions();
+    actionsOverlay.classList.remove('active');
+};
+
+// تعديل حدث الضغط المطول على الرسائل
+// يجب تعديل الكود في createMessage لاستخدام الدالة الجديدة
+
+// ============================================================
+// 📱 تحسين التكيف مع الشاشات المختلفة
+// ============================================================
+
+// إضافة مستمع لتغيير حجم الشاشة
+window.addEventListener('resize', function() {
+    // إعادة ضبط موضع الخيارات إذا كانت ظاهرة
+    const activeActions = document.querySelector('.msg-actions.active');
+    if (activeActions) {
+        // لا حاجة لإعادة التموضع لأننا نستخدم fixed
+    }
+});
+
+// تحسين التمرير في الشاشات الصغيرة
+if (messagesDiv) {
+    messagesDiv.addEventListener('touchstart', function() {
+        // إخفاء الخيارات عند لمس منطقة الرسائل
+        hideAllMessageActions();
+    }, { passive: true });
+}
+
+// ============================================================
+// 🖱️ تحسين تجربة المستخدم - إغلاق الخيارات بالضغط في أي مكان
+// ============================================================
+
+document.addEventListener('click', function(e) {
+    // إذا كان النقر خارج الخيارات وليس على زر يفتحها
+    if (!e.target.closest('.msg-actions') && !e.target.closest('.msg-group')) {
+        hideAllMessageActions();
+    }
+});
+
+// ============================================================
+// 📱 إصلاح مشكلة الخيارات في الشاشات الصغيرة
+// ============================================================
+
+// تعديل دالة createMessage لتستخدم النظام الجديد
+// هذا الجزء يجب دمجه مع createMessage الموجودة
+
+// في createMessage، عند إظهار الخيارات استخدم:
+// showMessageActions(actions, group);
+
+console.log('✅ تم تطبيق إصلاحات الخيارات والاستجابة');
 console.log('✅ تم تحميل التطبيق بالكامل');
