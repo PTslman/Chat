@@ -1,5 +1,5 @@
 /* ============================================================
-   نيزك v4.0.0 - تصميم تفاعلي عصري
+   نيزك v5.0.0 - تصميم متطور
    ============================================================ */
 
 * {
@@ -32,6 +32,7 @@
     --orange: #faa81a;
     --gold: #facc15;
     --purple: #a78bfa;
+    --pink: #f472b6;
     --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
     --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.2);
     --radius: 16px;
@@ -77,8 +78,6 @@
     --accent: #8b5cf6;
     --accent-hover: #7c3aed;
     --accent-glow: rgba(139, 92, 246, 0.2);
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-    --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="admin-forest"] {
@@ -98,8 +97,6 @@
     --accent: #34d399;
     --accent-hover: #2bbf8a;
     --accent-glow: rgba(52, 211, 153, 0.18);
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-    --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="admin-rose"] {
@@ -119,8 +116,25 @@
     --accent: #f472b6;
     --accent-hover: #ec4899;
     --accent-glow: rgba(244, 114, 182, 0.18);
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-    --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="admin-ocean"] {
+    --bg-app: #080e12;
+    --bg-header: rgba(12, 20, 30, 0.92);
+    --bg-messages: #0a121e;
+    --bg-bubble-other: #142234;
+    --bg-bubble-self: #1a8c8c;
+    --bg-input: #0e1a28;
+    --bg-card: #0e1822;
+    --bg-hover: rgba(26, 140, 140, 0.08);
+    --text-primary: #dcecf0;
+    --text-secondary: #8ab0b8;
+    --text-muted: #4a7078;
+    --text-bubble-other: #dcecf0;
+    --text-bubble-self: #ffffff;
+    --accent: #1a8c8c;
+    --accent-hover: #157a7a;
+    --accent-glow: rgba(26, 140, 140, 0.18);
 }
 
 html, body {
@@ -356,6 +370,105 @@ input, textarea {
     display: none;
 }
 
+.header-actions .search-btn:hover {
+    color: var(--accent);
+}
+
+/* ===== شريط البحث ===== */
+.search-bar {
+    background: var(--bg-card);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
+    padding: 8px 12px;
+    flex-shrink: 0;
+    animation: slideDown 0.3s ease;
+}
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border-radius: 12px;
+    padding: 6px 12px;
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.search-input-wrapper .material-symbols-outlined {
+    color: var(--text-muted);
+    font-size: 20px;
+}
+
+.search-input-wrapper input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+}
+
+.search-input-wrapper input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.search-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    transition: var(--transition);
+}
+
+.search-close:hover {
+    color: var(--red);
+    transform: scale(1.1);
+}
+
+.search-results {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 8px;
+    display: none;
+}
+
+.search-results.active {
+    display: block;
+}
+
+.search-result-item {
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.search-result-item:hover {
+    background: var(--bg-hover);
+}
+
+.search-result-item .result-sender {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.search-result-item .result-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.search-result-item .result-time {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
 /* ===== الرسائل ===== */
 .chat-messages {
     flex: 1;
@@ -381,6 +494,7 @@ input, textarea {
     margin-bottom: 4px;
     padding: 0 4px;
     transition: var(--transition);
+    cursor: default;
 }
 
 @keyframes messageSlideUp {
@@ -518,6 +632,89 @@ input, textarea {
 
 .msg-group.other.grouped .msg-bubble {
     border-radius: 14px 14px 14px 4px;
+}
+
+/* ===== الملفات المرفقة ===== */
+.msg-file {
+    margin-top: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 0.5px solid rgba(255, 255, 255, 0.04);
+}
+
+.msg-file:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.msg-file .file-icon {
+    font-size: 28px;
+    color: var(--accent);
+}
+
+.msg-file .file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.msg-file .file-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg-file .file-size {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.msg-file .file-download {
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    transition: var(--transition);
+}
+
+.msg-file .file-download:hover {
+    transform: scale(1.1);
+}
+
+/* ===== الصور ===== */
+.msg-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    margin-top: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.msg-image:hover {
+    transform: scale(1.02);
+}
+
+/* ===== التسجيلات الصوتية ===== */
+.msg-audio {
+    margin-top: 4px;
+    width: 100%;
+    max-width: 200px;
+}
+
+.msg-audio audio {
+    width: 100%;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
 }
 
 /* ===== الرد ===== */
@@ -698,6 +895,12 @@ input, textarea {
 .msg-actions button.react:hover {
     color: var(--gold);
 }
+.msg-actions button.copy:hover {
+    color: var(--purple);
+}
+.msg-actions button.pin:hover {
+    color: var(--gold);
+}
 
 /* ===== رسائل النظام ===== */
 .system-msg {
@@ -759,6 +962,12 @@ input, textarea {
     background: rgba(35, 165, 90, 0.02);
 }
 
+.system-msg.info {
+    color: var(--accent);
+    border-color: var(--accent-glow);
+    background: var(--accent-glow);
+}
+
 /* ===== الحالة الفارغة ===== */
 .empty-state {
     flex: 1;
@@ -809,6 +1018,7 @@ input, textarea {
     margin: 4px 0 8px;
     gap: 4px;
     animation: typingFade 0.4s ease;
+    align-items: center;
 }
 
 @keyframes typingFade {
@@ -839,6 +1049,12 @@ input, textarea {
 }
 .typing-indicator span:nth-child(3) {
     animation-delay: 0.4s;
+}
+
+.typing-indicator .typing-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-right: 6px;
 }
 
 @keyframes typingBounce {
@@ -1154,6 +1370,16 @@ input, textarea {
     color: var(--text-secondary);
 }
 
+.voice-btn.recording {
+    color: var(--red);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
 .send-btn {
     width: 42px;
     height: 42px;
@@ -1188,6 +1414,97 @@ input, textarea {
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+}
+
+/* ===== شريط التحميل ===== */
+.upload-progress {
+    background: var(--bg-input);
+    border-radius: 8px;
+    height: 6px;
+    position: relative;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.upload-progress-text {
+    position: absolute;
+    top: -18px;
+    right: 0;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* ===== التسجيل الصوتي ===== */
+.voice-recording {
+    background: var(--bg-input);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+    animation: slideDown 0.2s ease;
+}
+
+.voice-recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recording-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: pulse 0.8s infinite;
+}
+
+.recording-time {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.voice-recording-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.voice-recording-actions button {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.voice-cancel {
+    background: rgba(237, 66, 69, 0.1);
+    color: var(--red);
+}
+
+.voice-cancel:hover {
+    background: rgba(237, 66, 69, 0.2);
+}
+
+.voice-send {
+    background: var(--accent);
+    color: #fff;
+}
+
+.voice-send:hover {
+    background: var(--accent-hover);
 }
 
 .muted-notice {
@@ -1249,10 +1566,14 @@ input, textarea {
     border-radius: 50%;
     width: 20px;
     height: 20px;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     border: 2px solid var(--bg-messages);
+}
+
+.scroll-bottom-btn .new-msg-badge.show {
+    display: flex;
 }
 
 /* ===== شاشة تسجيل الدخول ===== */
@@ -1665,6 +1986,77 @@ input, textarea {
 
 .close-modal:hover {
     background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.02);
+}
+
+/* ===== عارض الملفات ===== */
+.file-viewer .modal-box {
+    max-width: 500px;
+}
+
+.file-viewer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.file-viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-viewer-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.file-viewer-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+    transition: var(--transition);
+}
+
+.file-viewer-close:hover {
+    color: var(--red);
+    transform: scale(1.1);
+}
+
+.file-viewer-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.file-viewer-file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+}
+
+.file-download-btn {
+    padding: 8px 20px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.file-download-btn:hover {
+    background: var(--accent-hover);
     transform: scale(1.02);
 }
 
@@ -2161,6 +2553,10 @@ input, textarea {
         height: 40px;
         font-size: 20px;
         bottom: 76px;
+    }
+    .msg-image {
+        max-width: 150px;
+        max-height: 150px;
     }
 }
 
