@@ -5,27 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>نيزك v2.1 - دردشة عصرية</title>
+    <title>نيزك v2.3 - دردشة عصرية</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <style>
-        /* ============================================================
-           نيزك v2.1.0 - تصميم متناغم بالكامل
-           ============================================================ */
-
-        /* ---------- RESET ---------- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
 
-        /* ---------- الثيمات ---------- */
         :root {
             --bg-app: #0a0a0c;
             --bg-header: rgba(14, 14, 18, 0.92);
@@ -53,13 +48,10 @@
             --radius: 16px;
             --radius-sm: 10px;
             --radius-bubble: 18px;
-            --version: "v2.1.0";
-            --header-height: 56px;
-            --input-height: 56px;
-            --status-height: 22px;
+            --version: "v2.3.0";
+            --avatar-size: 36px;
         }
 
-        /* الثيم النهاري */
         [data-theme="light"] {
             --bg-app: #eef0f3;
             --bg-header: rgba(255, 255, 255, 0.92);
@@ -78,7 +70,6 @@
             --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04);
         }
 
-        /* ثيمات المسؤول */
         [data-theme="admin-dark"] {
             --bg-app: #0a0a12;
             --bg-header: rgba(16, 16, 26, 0.92);
@@ -142,7 +133,6 @@
             --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
 
-        /* ---------- BASE ---------- */
         html,
         body {
             height: 100%;
@@ -173,7 +163,6 @@
             background: var(--bg-app);
         }
 
-        /* ---------- CHAT CONTAINER ---------- */
         .chat-container {
             width: 100%;
             max-width: 440px;
@@ -205,7 +194,6 @@
             }
         }
 
-        /* ---------- HEADER ---------- */
         .chat-header {
             background: var(--bg-header);
             backdrop-filter: blur(20px);
@@ -217,7 +205,7 @@
             align-items: center;
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
             flex-shrink: 0;
-            min-height: var(--header-height);
+            min-height: 56px;
             position: relative;
             z-index: 10;
         }
@@ -250,38 +238,68 @@
             min-width: 0;
         }
 
+        .header-avatar {
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0;
+            cursor: pointer;
+            overflow: hidden;
+            border: 2px solid var(--accent-glow);
+            box-shadow: 0 0 12px var(--accent-glow);
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .header-avatar:hover {
+            transform: scale(1.05);
+            border-color: var(--accent);
+        }
+
+        .header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header-avatar .avatar-placeholder {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
         .brand {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-weight: 700;
             font-size: 17px;
             color: var(--text-primary);
             letter-spacing: -0.3px;
-        }
-
-        .brand-icon {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, var(--accent), var(--purple));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            box-shadow: 0 0 16px var(--accent-glow);
-            flex-shrink: 0;
-        }
-
-        .brand-icon .material-symbols-outlined {
-            font-size: 16px;
-            color: #fff;
+            min-width: 0;
         }
 
         .brand-text {
             background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .admin-badge {
@@ -293,6 +311,7 @@
             font-weight: 700;
             margin-left: 4px;
             display: none;
+            flex-shrink: 0;
         }
 
         .admin-badge.show {
@@ -343,17 +362,11 @@
             display: none;
         }
 
-        .header-actions .theme-toggle {
-            font-size: 18px;
-            border-radius: 8px;
-        }
-
         .header-actions .theme-toggle:hover {
             background: var(--bg-hover);
             color: var(--accent);
         }
 
-        /* ---------- MESSAGES ---------- */
         .chat-messages {
             flex: 1;
             padding: 6px 12px 2px;
@@ -367,67 +380,83 @@
             min-height: 0;
         }
 
-        /* ---------- MESSAGE BUBBLE ---------- */
+        /* ===== MESSAGE GROUP ===== */
         .msg-group {
             display: flex;
-            flex-direction: column;
-            max-width: 86%;
+            align-items: flex-end;
+            gap: 6px;
+            max-width: 100%;
             animation: slideUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
             padding: 0 2px;
         }
 
         .msg-group.self {
-            align-self: flex-end;
-            align-items: flex-end;
+            flex-direction: row-reverse;
+            justify-content: flex-start;
         }
 
         .msg-group.other {
-            align-self: flex-start;
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        .msg-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 16px;
+            align-self: flex-end;
+        }
+
+        .msg-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .msg-group.grouped .msg-avatar {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .msg-group.self .msg-avatar {
+            order: 2;
+        }
+
+        .msg-group.other .msg-avatar {
+            order: 0;
+        }
+
+        .msg-content {
+            display: flex;
+            flex-direction: column;
+            max-width: 78%;
+            position: relative;
+        }
+
+        .msg-group.self .msg-content {
+            align-items: flex-end;
+        }
+
+        .msg-group.other .msg-content {
             align-items: flex-start;
-        }
-
-        .msg-group.grouped {
-            margin-top: 0;
-        }
-
-        .msg-group.grouped .msg-sender {
-            display: none;
-        }
-
-        .msg-group.grouped .msg-bubble {
-            border-radius: 14px;
-        }
-
-        .msg-group.self.grouped .msg-bubble {
-            border-bottom-right-radius: 4px;
-        }
-
-        .msg-group.other.grouped .msg-bubble {
-            border-bottom-left-radius: 4px;
-        }
-
-        .msg-group:not(.grouped) {
-            margin-top: 6px;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px) scale(0.96);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
         }
 
         .msg-sender {
             font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
-            padding: 0 12px 2px;
+            padding: 0 2px 2px 0;
             display: none;
         }
 
@@ -444,6 +473,7 @@
             margin-left: 4px;
         }
 
+        /* ===== BUBBLE ===== */
         .msg-bubble {
             padding: 8px 14px 7px;
             border-radius: var(--radius-bubble);
@@ -453,7 +483,6 @@
             max-width: 100%;
             position: relative;
             box-shadow: var(--shadow-sm);
-            transition: 0.15s;
         }
 
         .msg-group.self .msg-bubble {
@@ -468,31 +497,9 @@
             border-bottom-left-radius: 4px;
         }
 
-        .msg-group.self .msg-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: -7px;
-            width: 14px;
-            height: 14px;
-            background: var(--bg-bubble-self);
-            clip-path: polygon(0 0, 100% 0, 100% 100%);
-            border-radius: 0 0 0 3px;
-        }
-
+        /* إزالة المثلث المزعج */
+        .msg-group.self .msg-bubble::after,
         .msg-group.other .msg-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: -7px;
-            width: 14px;
-            height: 14px;
-            background: var(--bg-bubble-other);
-            clip-path: polygon(0 0, 100% 0, 0 100%);
-            border-radius: 0 0 3px 0;
-        }
-
-        .msg-group.grouped .msg-bubble::after {
             display: none;
         }
 
@@ -508,7 +515,6 @@
             border-radius: 14px 14px 14px 4px;
         }
 
-        /* ---------- REPLY ---------- */
         .reply-box {
             background: rgba(255, 255, 255, 0.04);
             border-right: 2px solid var(--accent);
@@ -524,7 +530,6 @@
             font-weight: 600;
         }
 
-        /* ---------- TEXT ---------- */
         .msg-text {
             font-size: 15px;
             line-height: 1.45;
@@ -560,11 +565,10 @@
             margin-left: 4px;
         }
 
-        /* ---------- TIME ---------- */
         .msg-time {
             font-size: 10px;
             color: var(--text-muted);
-            padding: 0 4px;
+            padding: 0 2px;
             margin-top: 1px;
             display: flex;
             align-items: center;
@@ -581,10 +585,10 @@
             color: var(--accent);
         }
 
-        /* ---------- MESSAGE ACTIONS ---------- */
+        /* ===== ACTIONS ===== */
         .msg-actions {
             position: absolute;
-            top: -36px;
+            top: -34px;
             background: var(--bg-card);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -655,7 +659,7 @@
             color: var(--red);
         }
 
-        /* ---------- SYSTEM ---------- */
+        /* ===== SYSTEM ===== */
         .system-msg {
             text-align: center;
             font-size: 11px;
@@ -703,7 +707,6 @@
             background: rgba(35, 165, 90, 0.02);
         }
 
-        /* ---------- EMPTY ---------- */
         .empty-state {
             flex: 1;
             display: flex;
@@ -730,7 +733,6 @@
             opacity: 0.12;
         }
 
-        /* ---------- TYPING ---------- */
         .typing-indicator {
             display: none;
             align-self: flex-start;
@@ -774,7 +776,6 @@
             }
         }
 
-        /* ---------- EMOJI RAIL ---------- */
         .emoji-rail {
             position: absolute;
             bottom: 68px;
@@ -838,7 +839,6 @@
             background: var(--bg-hover);
         }
 
-        /* ---------- INPUT ---------- */
         .chat-input {
             padding: 6px 12px 10px;
             background: var(--bg-messages);
@@ -971,7 +971,6 @@
             display: block;
         }
 
-        /* ---------- LOGIN ---------- */
         .login-overlay {
             position: fixed;
             top: 0;
@@ -1049,11 +1048,81 @@
             opacity: 0.5;
         }
 
+        .login-avatar-section {
+            margin: 14px 0 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .login-avatar-preview {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            overflow: hidden;
+            border: 2px solid var(--accent-glow);
+            box-shadow: 0 0 20px var(--accent-glow);
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .login-avatar-preview:hover {
+            transform: scale(1.05);
+            border-color: var(--accent);
+        }
+
+        .login-avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .login-avatar-preview .avatar-placeholder {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .login-avatar-btn {
+            padding: 4px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .login-avatar-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
         .color-options {
             display: flex;
             gap: 8px;
             justify-content: center;
-            margin: 14px 0 18px;
+            margin: 6px 0 14px;
             flex-wrap: wrap;
         }
 
@@ -1124,7 +1193,123 @@
             display: block;
         }
 
-        /* ---------- MODAL ---------- */
+        /* ===== PROFILE MODAL ===== */
+        .profile-modal .modal-box {
+            max-width: 360px;
+        }
+
+        .profile-avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 16px;
+        }
+
+        .profile-avatar-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            overflow: hidden;
+            border: 2px solid var(--accent-glow);
+            box-shadow: 0 0 24px var(--accent-glow);
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .profile-avatar-preview:hover {
+            transform: scale(1.05);
+            border-color: var(--accent);
+        }
+
+        .profile-avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-preview .avatar-placeholder {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .profile-avatar-btn {
+            padding: 4px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .profile-avatar-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .profile-name-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            transition: 0.2s;
+            margin: 4px 0 8px;
+        }
+
+        .profile-name-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .profile-save-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .profile-save-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1232,7 +1417,7 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
-        /* ---------- ADMIN ---------- */
+        /* ===== ADMIN ===== */
         .admin-password-box input {
             width: 100%;
             padding: 12px 14px;
@@ -1319,11 +1504,25 @@
             flex-wrap: wrap;
         }
 
-        .admin-panel .user-item .user-info .user-color {
-            width: 10px;
-            height: 10px;
+        .admin-panel .user-item .user-info .user-avatar-small {
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            display: inline-block;
+            background: var(--text-muted);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .admin-panel .user-item .user-info .user-avatar-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .admin-panel .user-item .user-info .muted-badge {
@@ -1376,7 +1575,6 @@
             background: rgba(35, 165, 90, 0.1);
         }
 
-        /* ---------- THEME SETTINGS ---------- */
         .theme-settings {
             margin-top: 10px;
             border-top: 0.5px solid rgba(255, 255, 255, 0.04);
@@ -1429,7 +1627,6 @@
             font-size: 14px;
         }
 
-        /* ---------- BAD WORDS ---------- */
         .badwords-section {
             margin-top: 10px;
             border-top: 0.5px solid rgba(255, 255, 255, 0.04);
@@ -1526,7 +1723,6 @@
             color: var(--red);
         }
 
-        /* ---------- FORCE LOGOUT & CLEAR CHAT ---------- */
         .force-logout-btn,
         .clear-chat-btn {
             background: rgba(237, 66, 69, 0.1);
@@ -1553,7 +1749,6 @@
             font-size: 14px;
         }
 
-        /* ---------- LOADING ---------- */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -1603,7 +1798,6 @@
             font-size: 13px;
         }
 
-        /* ---------- FOOTER ---------- */
         .app-footer {
             display: none;
             text-align: center;
@@ -1620,14 +1814,23 @@
             display: block;
         }
 
-        /* ---------- RESPONSIVE ---------- */
+        .file-input-hidden {
+            display: none;
+        }
+
         @media (max-width: 400px) {
             .msg-group {
-                max-width: 90%;
+                gap: 4px;
             }
             .msg-bubble {
                 font-size: 14px;
                 padding: 7px 12px 6px;
+            }
+            .msg-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 9px;
+                margin-bottom: 14px;
             }
             .chat-header {
                 padding-top: 36px;
@@ -1638,12 +1841,10 @@
             .brand {
                 font-size: 15px;
             }
-            .brand-icon {
-                width: 26px;
-                height: 26px;
-            }
-            .brand-icon .material-symbols-outlined {
-                font-size: 14px;
+            .header-avatar {
+                width: 30px;
+                height: 30px;
+                font-size: 13px;
             }
             .login-box {
                 padding: 24px 16px 20px;
@@ -1668,6 +1869,16 @@
                 font-size: 10px;
                 top: 8px;
             }
+            .login-avatar-preview {
+                width: 60px;
+                height: 60px;
+                font-size: 22px;
+            }
+            .profile-avatar-preview {
+                width: 68px;
+                height: 68px;
+                font-size: 26px;
+            }
         }
 
         @media (max-width: 360px) {
@@ -1691,15 +1902,14 @@
         }
 
         @media (min-width: 600px) {
-            .msg-group {
-                max-width: 68%;
+            .msg-content {
+                max-width: 72%;
             }
             .chat-messages {
                 padding: 10px 20px 6px;
             }
         }
 
-        /* ---------- UTILITY ---------- */
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             user-select: none;
@@ -1716,9 +1926,6 @@
 </head>
 <body>
 
-    <!-- ============================================================
-    LOADING
-    ============================================================ -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
@@ -1726,9 +1933,6 @@
         </div>
     </div>
 
-    <!-- ============================================================
-    APP
-    ============================================================ -->
     <div id="app">
 
         <!-- LOGIN -->
@@ -1736,8 +1940,20 @@
             <div class="login-box">
                 <div class="login-logo">💬</div>
                 <h1>نيزك <span class="hl">دردشة</span></h1>
-                <p class="login-sub">آمنة • سريعة • خاصة • v2.1</p>
+                <p class="login-sub">آمنة • سريعة • خاصة • v2.3</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
+
+                <div class="login-avatar-section">
+                    <div class="login-avatar-preview" id="loginAvatarPreview">
+                        <span class="avatar-placeholder" id="loginAvatarPlaceholder">👤</span>
+                    </div>
+                    <button class="login-avatar-btn" id="loginAvatarBtn">
+                        <span class="material-symbols-outlined" style="font-size:16px;">photo_camera</span>
+                        اختر صورة
+                    </button>
+                    <input type="file" id="loginAvatarInput" class="file-input-hidden" accept="image/*">
+                </div>
+
                 <div class="color-options" id="colorPicker">
                     <div class="color-circle selected" style="background:#2b6ef0;" data-color="#2b6ef0"></div>
                     <div class="color-circle" style="background:#ed4245;" data-color="#ed4245"></div>
@@ -1748,6 +1964,7 @@
                     <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
                     <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
                 </div>
+
                 <button class="login-btn" id="loginBtn"><span class="material-symbols-outlined">login</span> دخول</button>
                 <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
                 <div class="error" id="connectionError" style="display:none;"></div>
@@ -1764,12 +1981,14 @@
             <div class="chat-header">
                 <div class="status-bar">
                     <span id="statusTime">12:00</span>
-                    <span class="version">v2.1.0</span>
+                    <span class="version">v2.3.0</span>
                 </div>
                 <div class="header-left">
+                    <div class="header-avatar" id="headerAvatar" title="الملف الشخصي">
+                        <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
+                    </div>
                     <div class="brand">
-                        <div class="brand-icon"><span class="material-symbols-outlined">rocket_launch</span></div>
-                        <span class="brand-text">نيزك</span>
+                        <span class="brand-text" id="headerUsername">المستخدم</span>
                         <span class="admin-badge" id="adminBadge">👑 مسؤول</span>
                     </div>
                 </div>
@@ -1823,7 +2042,39 @@
             </div>
 
             <div class="app-footer show" id="appFooter">
-                نيزك v2.1.0 • جميع الحقوق محفوظة
+                نيزك v2.3.0 • جميع الحقوق محفوظة
+            </div>
+        </div>
+
+        <!-- PROFILE MODAL -->
+        <div class="modal-overlay profile-modal" id="profileModal">
+            <div class="modal-box">
+                <div class="modal-title">
+                    <span class="material-symbols-outlined" style="color:var(--accent);">account_circle</span>
+                    الملف الشخصي
+                </div>
+                <p class="modal-desc">تعديل اسمك وصورتك الشخصية</p>
+
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-preview" id="profileAvatarPreview">
+                        <span class="avatar-placeholder" id="profileAvatarPlaceholder">👤</span>
+                    </div>
+                    <button class="profile-avatar-btn" id="profileAvatarBtn">
+                        <span class="material-symbols-outlined" style="font-size:16px;">photo_camera</span>
+                        تغيير الصورة
+                    </button>
+                    <input type="file" id="profileAvatarInput" class="file-input-hidden" accept="image/*">
+                </div>
+
+                <input type="text" class="profile-name-input" id="profileNameInput" placeholder="اسم المستخدم..." maxlength="20">
+
+                <button class="profile-save-btn" id="profileSaveBtn">
+                    <span class="material-symbols-outlined">save</span> حفظ التغييرات
+                </button>
+
+                <button class="close-modal" id="closeProfileModal">
+                    <span class="material-symbols-outlined">close</span> إغلاق
+                </button>
             </div>
         </div>
 
@@ -1904,9 +2155,6 @@
 
     </div>
 
-    <!-- ============================================================
-    JAVASCRIPT - نيزك v2.1.0
-    ============================================================ -->
     <script>
         // ============================================================
         // 🔥 FIREBASE CONFIG
@@ -1923,13 +2171,14 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        const storage = firebase.storage();
 
         // ============================================================
         // 👑 ADMIN CONFIG
         // ============================================================
         const ADMIN_NAME = "slx23m";
         const ADMIN_PASSWORD = "Slman1442";
-        const VERSION = "v2.1.0";
+        const VERSION = "v2.3.0";
 
         // ============================================================
         // 🚫 DEFAULT BAD WORDS
@@ -1959,7 +2208,10 @@
             isMuted = false,
             muteTimeout = null,
             muteCount = 0,
-            currentTheme = 'dark';
+            currentTheme = 'dark',
+            userAvatarURL = '',
+            userAvatarFile = null,
+            tempAvatarFile = null;
 
         // ============================================================
         // 📄 DOM REFERENCES
@@ -2003,6 +2255,149 @@
         const themeToggle = $('themeToggle'),
             themeIcon = $('themeIcon'),
             themeOptions = $('themeOptions');
+
+        const headerAvatar = $('headerAvatar');
+        const headerAvatarPlaceholder = $('headerAvatarPlaceholder');
+        const headerUsername = $('headerUsername');
+        const profileModal = $('profileModal');
+        const closeProfileModal = $('closeProfileModal');
+        const profileAvatarPreview = $('profileAvatarPreview');
+        const profileAvatarPlaceholder = $('profileAvatarPlaceholder');
+        const profileAvatarBtn = $('profileAvatarBtn');
+        const profileAvatarInput = $('profileAvatarInput');
+        const profileNameInput = $('profileNameInput');
+        const profileSaveBtn = $('profileSaveBtn');
+
+        const loginAvatarPreview = $('loginAvatarPreview');
+        const loginAvatarPlaceholder = $('loginAvatarPlaceholder');
+        const loginAvatarBtn = $('loginAvatarBtn');
+        const loginAvatarInput = $('loginAvatarInput');
+
+        // ============================================================
+        // 📸 AVATAR FUNCTIONS
+        // ============================================================
+        function getInitials(name) {
+            if (!name) return '👤';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+
+        function getAvatarColor(name) {
+            const colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6', '#60a5fa', '#34d399'];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function updateAvatarUI(element, placeholder, avatarURL, name) {
+            if (!element) return;
+            if (avatarURL && avatarURL.startsWith('http')) {
+                element.innerHTML = `<img src="${avatarURL}" alt="صورة شخصية">`;
+                if (placeholder) placeholder.textContent = '';
+            } else {
+                const initials = getInitials(name);
+                const color = getAvatarColor(name);
+                const fontSize = element === loginAvatarPreview ? '28px' :
+                    element === profileAvatarPreview ? '32px' : '16px';
+                element.innerHTML =
+                    `<span class="avatar-placeholder" style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${fontSize};font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">${initials}</span>`;
+                if (placeholder) placeholder.textContent = '';
+            }
+        }
+
+        function updateAllAvatars(avatarURL, name) {
+            updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarURL, name);
+            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarURL, name);
+            updateAvatarUI(loginAvatarPreview, loginAvatarPlaceholder, avatarURL, name);
+            if (headerUsername) headerUsername.textContent = name;
+        }
+
+        // ============================================================
+        // 📤 UPLOAD AVATAR TO FIREBASE
+        // ============================================================
+        function uploadAvatar(file, username) {
+            return new Promise((resolve, reject) => {
+                if (!file) return resolve(null);
+
+                const storageRef = storage.ref(`avatars/${username}_${Date.now()}.jpg`);
+                const uploadTask = storageRef.put(file);
+
+                uploadTask.on('state_changed',
+                    null,
+                    (error) => reject(error),
+                    () => {
+                        storageRef.getDownloadURL().then((url) => {
+                            resolve(url);
+                        }).catch(reject);
+                    }
+                );
+            });
+        }
+
+        // ============================================================
+        // 👤 PROFILE FUNCTIONS
+        // ============================================================
+        function openProfileModal() {
+            if (!isLoggedIn) return;
+            profileNameInput.value = currentUser;
+            profileModal.classList.add('active');
+            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, userAvatarURL, currentUser);
+        }
+
+        async function saveProfile() {
+            const newName = profileNameInput.value.trim();
+            if (!newName || newName.length < 2) {
+                alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                let newAvatarURL = userAvatarURL;
+
+                if (tempAvatarFile) {
+                    const url = await uploadAvatar(tempAvatarFile, currentUser);
+                    if (url) newAvatarURL = url;
+                    tempAvatarFile = null;
+                }
+
+                const oldName = currentUser;
+
+                await db.collection('users').doc(oldName).update({
+                    username: newName,
+                    avatar: newAvatarURL,
+                    color: userColor
+                });
+
+                currentUser = newName;
+                userAvatarURL = newAvatarURL;
+                updateAllAvatars(newAvatarURL, newName);
+
+                if (oldName !== newName) {
+                    const messagesSnap = await db.collection('messages')
+                        .where('sender', '==', oldName)
+                        .get();
+                    const batch = db.batch();
+                    messagesSnap.forEach(doc => {
+                        batch.update(doc.ref, { sender: newName, avatar: newAvatarURL });
+                    });
+                    await batch.commit();
+                }
+
+                addSystemMessage(`✅ تم تحديث الملف الشخصي لـ ${newName}`, 'success');
+                profileModal.classList.remove('active');
+
+            } catch (error) {
+                console.error('❌ خطأ في حفظ الملف الشخصي:', error);
+                alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي');
+            }
+
+            showLoading(false);
+        }
 
         // ============================================================
         // 🌓 THEME SYSTEM
@@ -2138,6 +2533,89 @@
                 if (!isAdmin || !isAdminVerified) return;
                 applyTheme(this.dataset.theme);
             });
+        });
+
+        // ============================================================
+        // 📸 AVATAR EVENTS - Login
+        // ============================================================
+        loginAvatarBtn.addEventListener('click', function() {
+            loginAvatarInput.click();
+        });
+
+        loginAvatarPreview.addEventListener('click', function() {
+            loginAvatarInput.click();
+        });
+
+        loginAvatarInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    loginAvatarPreview.innerHTML = `<img src="${ev.target.result}" alt="صورة شخصية">`;
+                    loginAvatarPlaceholder.textContent = '';
+                    tempAvatarFile = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ============================================================
+        // 📸 AVATAR EVENTS - Profile
+        // ============================================================
+        profileAvatarBtn.addEventListener('click', function() {
+            profileAvatarInput.click();
+        });
+
+        profileAvatarPreview.addEventListener('click', function() {
+            profileAvatarInput.click();
+        });
+
+        profileAvatarInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    profileAvatarPreview.innerHTML = `<img src="${ev.target.result}" alt="صورة شخصية">`;
+                    profileAvatarPlaceholder.textContent = '';
+                    tempAvatarFile = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ============================================================
+        // 👤 PROFILE EVENTS
+        // ============================================================
+        headerAvatar.addEventListener('click', function() {
+            if (isLoggedIn) openProfileModal();
+        });
+
+        closeProfileModal.addEventListener('click', function() {
+            profileModal.classList.remove('active');
+            tempAvatarFile = null;
+        });
+
+        profileModal.addEventListener('click', function(e) {
+            if (e.target === profileModal) {
+                profileModal.classList.remove('active');
+                tempAvatarFile = null;
+            }
+        });
+
+        profileSaveBtn.addEventListener('click', saveProfile);
+
+        profileNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') saveProfile();
         });
 
         // ============================================================
@@ -2286,6 +2764,7 @@
         // ============================================================
         function createMessage(id, d, self) {
             if (blockedUsers.includes(d.sender) && !self) return null;
+
             var g = document.createElement('div');
             var grouped = (d.sender === lastSender && lastSender !== '');
             g.className = 'msg-group ' + (self ? 'self' : 'other') + (grouped ? ' grouped' : '');
@@ -2293,13 +2772,35 @@
             g.dataset.sender = d.sender;
             lastSender = d.sender;
 
-            var s = document.createElement('div');
-            s.className = 'msg-sender';
-            s.textContent = d.sender;
-            if (d.sender === ADMIN_NAME) { var t = document.createElement('span');
-                t.className = 'admin-tag';
-                t.textContent = '👑 مسؤول';
-                s.appendChild(t); }
+            var avatar = document.createElement('div');
+            avatar.className = 'msg-avatar';
+            if (d.avatar && d.avatar.startsWith('http')) {
+                avatar.innerHTML = `<img src="${d.avatar}" alt="${d.sender}">`;
+            } else {
+                const initials = getInitials(d.sender);
+                const color = getAvatarColor(d.sender);
+                avatar.style.background = color;
+                avatar.textContent = initials;
+                avatar.style.display = 'flex';
+                avatar.style.alignItems = 'center';
+                avatar.style.justifyContent = 'center';
+                avatar.style.fontSize = '11px';
+                avatar.style.fontWeight = '600';
+                avatar.style.color = '#fff';
+            }
+
+            var content = document.createElement('div');
+            content.className = 'msg-content';
+
+            var sender = document.createElement('div');
+            sender.className = 'msg-sender';
+            sender.textContent = d.sender;
+            if (d.sender === ADMIN_NAME) {
+                var tag = document.createElement('span');
+                tag.className = 'admin-tag';
+                tag.textContent = '👑 مسؤول';
+                sender.appendChild(tag);
+            }
 
             var b = document.createElement('div');
             b.className = 'msg-bubble';
@@ -2364,10 +2865,18 @@
                 blockUser(d.sender);
                 hideAllActions(); });
 
-            if (!grouped) g.appendChild(s);
-            g.appendChild(b);
-            g.appendChild(tm);
-            g.appendChild(a);
+            content.appendChild(sender);
+            content.appendChild(b);
+            content.appendChild(tm);
+            content.appendChild(a);
+
+            if (self) {
+                g.appendChild(content);
+                g.appendChild(avatar);
+            } else {
+                g.appendChild(avatar);
+                g.appendChild(content);
+            }
 
             var timer = null,
                 pressed = false;
@@ -2385,6 +2894,7 @@
                 clearTimeout(timer); });
             g.addEventListener('touchmove', function() { pressed = false;
                 clearTimeout(timer); });
+
             return g;
         }
 
@@ -2426,8 +2936,18 @@
             lastSender = '';
             db.collection('messages').orderBy('timestamp', 'asc').limit(100).get().then(function(s) {
                 if (emptyState) emptyState.style.display = 'none';
-                s.forEach(function(d) { var dt = d.data(); if (blockedUsers.includes(dt.sender)) return;
-                    addMessage(d.id, dt, dt.sender === currentUser); });
+                s.forEach(function(d) {
+                    var dt = d.data();
+                    if (blockedUsers.includes(dt.sender)) return;
+                    db.collection('users').doc(dt.sender).get().then(function(userDoc) {
+                        if (userDoc.exists) {
+                            dt.avatar = userDoc.data().avatar || '';
+                        }
+                        addMessage(d.id, dt, dt.sender === currentUser);
+                    }).catch(function() {
+                        addMessage(d.id, dt, dt.sender === currentUser);
+                    });
+                });
                 if (s.empty && emptyState) emptyState.style.display = 'flex';
                 showRules();
             });
@@ -2440,27 +2960,54 @@
                 s.docChanges().forEach(function(c) {
                     var d = c.doc.data();
                     if (blockedUsers.includes(d.sender)) return;
-                    if (c.type === 'added') {
-                        var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
-                        if (!ex) addMessage(c.doc.id, d, d.sender === currentUser);
-                    }
-                    if (c.type === 'modified') {
-                        var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
-                        if (ex) {
-                            var txt = ex.querySelector('.msg-text');
-                            if (txt) {
-                                if (d.deleted) { txt.innerHTML =
-                                        '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>'; } else {
-                                    txt.innerHTML = d.text + (d.edited ? ' <span class="edited-badge">(معدّل)</span>' :
-                                        '');
-                                    if (isEmojiOnly(d.text)) txt.classList.add('emoji-big');
-                                    else txt.classList.remove('emoji-big');
+                    db.collection('users').doc(d.sender).get().then(function(userDoc) {
+                        if (userDoc.exists) {
+                            d.avatar = userDoc.data().avatar || '';
+                        }
+                        if (c.type === 'added') {
+                            var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
+                            if (!ex) addMessage(c.doc.id, d, d.sender === currentUser);
+                        }
+                        if (c.type === 'modified') {
+                            var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
+                            if (ex) {
+                                var txt = ex.querySelector('.msg-text');
+                                if (txt) {
+                                    if (d.deleted) { txt.innerHTML =
+                                            '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>'; } else {
+                                        txt.innerHTML = d.text + (d.edited ? ' <span class="edited-badge">(معدّل)</span>' :
+                                            '');
+                                        if (isEmojiOnly(d.text)) txt.classList.add('emoji-big');
+                                        else txt.classList.remove('emoji-big');
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (c.type === 'removed') { var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]'); if (ex)
-                            ex.remove(); }
+                        if (c.type === 'removed') { var ex = messagesDiv.querySelector('[data-id="' + c.doc.id +
+                            '"]'); if (ex) ex.remove(); }
+                    }).catch(function() {
+                        if (c.type === 'added') {
+                            var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
+                            if (!ex) addMessage(c.doc.id, d, d.sender === currentUser);
+                        }
+                        if (c.type === 'modified') {
+                            var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
+                            if (ex) {
+                                var txt = ex.querySelector('.msg-text');
+                                if (txt) {
+                                    if (d.deleted) { txt.innerHTML =
+                                            '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>'; } else {
+                                        txt.innerHTML = d.text + (d.edited ? ' <span class="edited-badge">(معدّل)</span>' :
+                                            '');
+                                        if (isEmojiOnly(d.text)) txt.classList.add('emoji-big');
+                                        else txt.classList.remove('emoji-big');
+                                    }
+                                }
+                            }
+                        }
+                        if (c.type === 'removed') { var ex = messagesDiv.querySelector('[data-id="' + c.doc.id +
+                            '"]'); if (ex) ex.remove(); }
+                    });
                 });
                 if (s.empty) { if (emptyState) emptyState.style.display = 'flex'; } else { if (emptyState) emptyState
                         .style.display = 'none'; }
@@ -2480,8 +3027,14 @@
             if (editingMessage) { updateMsg(editingMessage.id, text); return; }
             sendBtn.disabled = true;
             msgInput.disabled = true;
-            var data = { text: text, sender: currentUser, color: userColor, timestamp: firebase.firestore.FieldValue
-                    .serverTimestamp(), ip: userIP };
+            var data = {
+                text: text,
+                sender: currentUser,
+                color: userColor,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                ip: userIP,
+                avatar: userAvatarURL
+            };
             if (replyTo) { data.replyTo = { id: replyTo.id, sender: replyTo.sender, text: replyTo.text.substring(0,
                         60) + (replyTo.text.length > 60 ? '...' : '') }; }
             db.collection('messages').add(data).then(function() { msgInput.value = '';
@@ -2680,8 +3233,14 @@
                             var online = onlineSet.has(dt.username);
                             var color = dt.color || '#2b6ef0';
                             var vcount = vc[dt.username] || 0;
+                            var avatarHtml = '';
+                            if (dt.avatar && dt.avatar.startsWith('http')) {
+                                avatarHtml = `<img src="${dt.avatar}" alt="${dt.username}">`;
+                            } else {
+                                avatarHtml = getInitials(dt.username);
+                            }
                             h +=
-                                `<div class="user-item"><div class="user-info"><span class="user-color" style="background:${color};"></span><span>${dt.username} ${dt.username === ADMIN_NAME ? '👑' : ''} ${blocked ? '🚫' : ''} ${online ? '🟢' : '⚪'}</span>${vcount > 0 ? `<span class="muted-badge">⚠️ ${vcount}</span>` : ''}</div><div class="user-actions">${dt.username !== ADMIN_NAME ? `${blocked ? `<button class="unblock-user" onclick="unblockUser('${dt.username}')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>` : `<button class="block-user" onclick="blockUser('${dt.username}')" title="حظر"><span class="material-symbols-outlined">block</span></button>`}<button class="delete-user" onclick="deleteUserAccount('${dt.username}')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button></div>` : ''}</div>`;
+                                `<div class="user-item"><div class="user-info"><div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:${getAvatarColor(dt.username)};color:#fff;font-weight:600;">${avatarHtml}</div><span>${dt.username} ${dt.username === ADMIN_NAME ? '👑' : ''} ${blocked ? '🚫' : ''} ${online ? '🟢' : '⚪'}</span>${vcount > 0 ? `<span class="muted-badge">⚠️ ${vcount}</span>` : ''}</div><div class="user-actions">${dt.username !== ADMIN_NAME ? `${blocked ? `<button class="unblock-user" onclick="unblockUser('${dt.username}')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>` : `<button class="block-user" onclick="blockUser('${dt.username}')" title="حظر"><span class="material-symbols-outlined">block</span></button>`}<button class="delete-user" onclick="deleteUserAccount('${dt.username}')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button></div>` : ''}</div>`;
                         });
                         adminUsersList.innerHTML = h;
                     });
@@ -2769,6 +3328,7 @@
                 ip: userIP,
                 online: true,
                 forceLogout: false,
+                avatar: userAvatarURL || '',
                 firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -2782,19 +3342,18 @@
         }
 
         // ============================================================
-        // 🔍 CHECK USER
+        // 🔍 CHECK USER - كل شخص يقدر يسجل دخول بنفس الاسم
         // ============================================================
         function checkUserInDB(username) {
             return db.collection('users').doc(username).get().then(function(d) {
                 if (d.exists) {
                     var dt = d.data();
+                    // المسؤول له صلاحية خاصة
                     if (username === ADMIN_NAME) {
                         return { exists: true, sameIP: true, isAdmin: true };
                     }
-                    if (dt.ip === userIP) {
-                        return { exists: true, sameIP: true, isAdmin: false };
-                    }
-                    return { exists: true, sameIP: false, isAdmin: false };
+                    // أي شخص يقدر يسجل دخول بنفس الاسم (عدد غير محدود)
+                    return { exists: true, sameIP: true, isAdmin: false };
                 }
                 return { exists: false, sameIP: false, isAdmin: false };
             });
@@ -2803,12 +3362,13 @@
         // ============================================================
         // 💾 SAVE SESSION
         // ============================================================
-        function saveSession(username, color) {
+        function saveSession(username, color, avatar) {
             try {
                 const session = {
                     username: username,
                     color: color,
                     ip: userIP,
+                    avatar: avatar || '',
                     timestamp: Date.now()
                 };
                 localStorage.setItem('chat_session', JSON.stringify(session));
@@ -2853,21 +3413,24 @@
             loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
             try {
                 userIP = getHashedIP();
-                var check = await checkUserInDB(name);
 
-                if (!check.sameIP && name !== ADMIN_NAME) {
-                    if (check.exists) {
-                        connectionError.textContent = '❌ هذا الاسم مستخدم من جهاز آخر';
-                        connectionError.style.display = 'block';
-                        loginBtn.disabled = false;
-                        loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
-                        showLoading(false);
-                        return;
+                // كل شخص يقدر يسجل دخول بنفس الاسم
+                const check = await checkUserInDB(name);
+
+                // رفع الصورة إذا كانت موجودة
+                let avatarURL = '';
+                if (tempAvatarFile) {
+                    try {
+                        avatarURL = await uploadAvatar(tempAvatarFile, name);
+                    } catch (e) {
+                        console.warn('⚠️ فشل رفع الصورة:', e);
                     }
+                    tempAvatarFile = null;
                 }
 
                 await auth.signInAnonymously();
                 currentUser = name;
+                userAvatarURL = avatarURL;
                 isLoggedIn = true;
                 isAdmin = (name === ADMIN_NAME);
                 isMuted = false;
@@ -2883,9 +3446,12 @@
                 msgInput.disabled = false;
                 sendBtn.disabled = false;
                 msgInput.focus();
+
+                updateAllAvatars(avatarURL, name);
+
                 if (isAdmin) db.collection('users').doc(name).update({ forceLogout: false }).catch(function() {});
                 setUserOnline(name);
-                saveSession(name, userColor);
+                saveSession(name, userColor, avatarURL);
 
                 if (isAdmin) {
                     db.collection('settings').doc('theme').get()
@@ -2930,6 +3496,11 @@
                         el.classList.toggle('selected', el.dataset.color === session.color);
                     });
                 }
+                if (session.avatar) {
+                    userAvatarURL = session.avatar;
+                    loginAvatarPreview.innerHTML = `<img src="${session.avatar}" alt="صورة شخصية">`;
+                    loginAvatarPlaceholder.textContent = '';
+                }
                 setTimeout(function() {
                     login();
                 }, 500);
@@ -2970,10 +3541,11 @@
         console.log('🔒 IP مشوش: ' + userIP);
         console.log('🚫 عدد الكلمات المحظورة: ' + DEFAULT_BAD_WORDS.length);
         console.log('💾 ميزة حفظ الجلسة مفعلة');
-        console.log('📱 تسجيل الدخول المتعدد من نفس الجهاز مفعل');
+        console.log('📱 تسجيل الدخول المتعدد من نفس الاسم مفعل');
         console.log('🌓 نظام الثيمات مفعل');
+        console.log('📸 الصور الشخصية مفعلة');
 
         autoLogin();
     </script>
 </body>
-                </html>
+    </html>
