@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>نيزك v3.5 - دردشة عصرية</title>
+    <title>نيزك v4.0 - دردشة تفاعلية</title>
     
-    <!-- ===== ربط ملفات التصميم ===== -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- ===== Firebase SDK ===== -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -26,15 +25,13 @@
         </div>
     </div>
 
-    <!-- ===== التطبيق ===== -->
     <div id="app">
-        
         <!-- ===== شاشة تسجيل الدخول ===== -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
                 <div class="login-logo">💬</div>
                 <h1>نيزك <span class="hl">دردشة</span></h1>
-                <p class="login-sub">آمنة • سريعة • خاصة • v3.5</p>
+                <p class="login-sub">آمنة • سريعة • تفاعلية • v4.0</p>
                 
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
                 
@@ -61,10 +58,6 @@
                 <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
                 <div class="error" id="connectionError" style="display:none;"></div>
                 <div class="info-msg" id="infoMsg"></div>
-                
-                <div style="margin-top:10px;font-size:11px;color:var(--text-muted);opacity:0.35;">
-                    🔒 حفظ الجلسة على هذا الجهاز
-                </div>
             </div>
         </div>
 
@@ -75,7 +68,8 @@
             <div class="chat-header">
                 <div class="status-bar">
                     <span id="statusTime">12:00</span>
-                    <span class="version">v3.5.0</span>
+                    <span class="version">v4.0.0</span>
+                    <span class="online-count" id="onlineCount">🟢 0</span>
                 </div>
                 <div class="header-left">
                     <div class="header-avatar" id="headerAvatar" title="الملف الشخصي">
@@ -114,6 +108,7 @@
             <!-- زر التمرير للأسفل -->
             <button class="scroll-bottom-btn" id="scrollBottomBtn" title="الانتقال للأسفل">
                 <span class="material-symbols-outlined">arrow_downward</span>
+                <span class="new-msg-badge" id="newMsgBadge">0</span>
             </button>
 
             <!-- مؤشر الكتابة -->
@@ -126,40 +121,56 @@
 
             <!-- لوحة الإيموجي -->
             <div class="emoji-rail" id="emojiRail">
-                <button class="emoji-item">😊</button>
-                <button class="emoji-item">😂</button>
-                <button class="emoji-item">❤️</button>
-                <button class="emoji-item">🔥</button>
-                <button class="emoji-item">👍</button>
-                <button class="emoji-item">👏</button>
-                <button class="emoji-item">😍</button>
-                <button class="emoji-item">🤩</button>
-                <button class="emoji-item">💯</button>
-                <button class="emoji-item">🎉</button>
-                <button class="emoji-item">✨</button>
-                <button class="emoji-item">💪</button>
-                <button class="emoji-item">🤔</button>
-                <button class="emoji-item">😎</button>
-                <button class="emoji-item">🥰</button>
-                <button class="emoji-item">😭</button>
-                <button class="emoji-item">🤣</button>
-                <button class="emoji-item">😱</button>
-                <button class="emoji-item">🙏</button>
-                <button class="emoji-item">💀</button>
-                <button class="emoji-item">🫡</button>
-                <button class="emoji-item">👀</button>
-                <button class="emoji-item">🤝</button>
-                <button class="emoji-item">🫶</button>
+                <button class="emoji-item">😊</button><button class="emoji-item">😂</button>
+                <button class="emoji-item">❤️</button><button class="emoji-item">🔥</button>
+                <button class="emoji-item">👍</button><button class="emoji-item">👏</button>
+                <button class="emoji-item">😍</button><button class="emoji-item">🤩</button>
+                <button class="emoji-item">💯</button><button class="emoji-item">🎉</button>
+                <button class="emoji-item">✨</button><button class="emoji-item">💪</button>
+                <button class="emoji-item">🤔</button><button class="emoji-item">😎</button>
+                <button class="emoji-item">🥰</button><button class="emoji-item">😭</button>
+                <button class="emoji-item">🤣</button><button class="emoji-item">😱</button>
+                <button class="emoji-item">🙏</button><button class="emoji-item">💀</button>
+                <button class="emoji-item">🫡</button><button class="emoji-item">👀</button>
+                <button class="emoji-item">🤝</button><button class="emoji-item">🫶</button>
+            </div>
+
+            <!-- لوحة التفاعلات -->
+            <div class="reaction-picker" id="reactionPicker">
+                <button class="reaction-option" data-reaction="❤️">❤️</button>
+                <button class="reaction-option" data-reaction="😂">😂</button>
+                <button class="reaction-option" data-reaction="😍">😍</button>
+                <button class="reaction-option" data-reaction="🔥">🔥</button>
+                <button class="reaction-option" data-reaction="👍">👍</button>
+                <button class="reaction-option" data-reaction="👏">👏</button>
+                <button class="reaction-option" data-reaction="😱">😱</button>
+                <button class="reaction-option" data-reaction="💀">💀</button>
+                <button class="reaction-option" data-reaction="🤣">🤣</button>
+                <button class="reaction-option" data-reaction="🥰">🥰</button>
             </div>
 
             <!-- منطقة الإدخال -->
             <div class="chat-input">
+                <div class="reply-preview" id="replyPreview" style="display:none;">
+                    <div class="reply-preview-content">
+                        <span class="reply-preview-sender" id="replyPreviewSender">@user</span>
+                        <span class="reply-preview-text" id="replyPreviewText">رسالة...</span>
+                    </div>
+                    <button class="reply-preview-cancel" id="replyPreviewCancel">✖</button>
+                </div>
+                
                 <div class="input-row">
+                    <button class="attach-btn" id="attachBtn" title="إرفاق">
+                        <span class="material-symbols-outlined">attach_file</span>
+                    </button>
                     <div class="input-wrapper">
                         <button class="emoji-toggle" id="emojiToggle">
                             <span class="material-symbols-outlined">mood</span>
                         </button>
                         <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
+                        <button class="voice-btn" id="voiceBtn" title="تسجيل صوتي">
+                            <span class="material-symbols-outlined">mic</span>
+                        </button>
                     </div>
                     <button class="send-btn" id="sendBtn" disabled>
                         <span class="material-symbols-outlined">send</span>
@@ -168,7 +179,7 @@
             </div>
 
             <div class="app-footer show" id="appFooter">
-                نيزك v3.5.0 • جميع الحقوق محفوظة
+                نيزك v4.0.0 • جميع الحقوق محفوظة
             </div>
         </div>
 
@@ -308,7 +319,6 @@
 
     </div>
 
-    <!-- ===== ربط ملف JavaScript ===== -->
     <script src="app.js"></script>
 </body>
-</html>
+    </html>
