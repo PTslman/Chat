@@ -6,14 +6,14 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>نيزك v3.3 - دردشة عصرية</title>
+    <title>نيزك v3.5 - دردشة عصرية</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <style>
         /* ============================================================
-           نيزك v3.3.0 - التصميم النهائي
+           نيزك v3.5.0 - التصميم النهائي
            ============================================================ */
         * {
             margin: 0;
@@ -50,7 +50,7 @@
             --radius: 16px;
             --radius-sm: 10px;
             --radius-bubble: 18px;
-            --version: "v3.3.0";
+            --version: "v3.5.0";
             --avatar-size: 36px;
         }
 
@@ -407,21 +407,21 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* ===== MESSAGE GROUP - تصميم واتساب ===== */
+        /* ===== MESSAGE GROUP - طبيعي (أقدم فوق، أحدث تحت) ===== */
         .msg-group {
             display: flex;
             align-items: flex-end;
             gap: 6px;
             max-width: 100%;
-            animation: messageSlideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: messageSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             margin-bottom: 2px;
             padding: 0 2px;
         }
 
-        @keyframes messageSlideDown {
+        @keyframes messageSlideUp {
             from {
                 opacity: 0;
-                transform: translateY(-20px) scale(0.95);
+                transform: translateY(20px) scale(0.95);
             }
             to {
                 opacity: 1;
@@ -710,13 +710,13 @@
             max-width: 85%;
             border: 0.5px solid rgba(255, 255, 255, 0.03);
             opacity: 0.8;
-            animation: systemSlide 0.3s ease;
+            animation: systemSlideUp 0.3s ease;
         }
 
-        @keyframes systemSlide {
+        @keyframes systemSlideUp {
             from {
                 opacity: 0;
-                transform: translateY(-10px) scale(0.95);
+                transform: translateY(20px) scale(0.95);
             }
             to {
                 opacity: 1;
@@ -1898,8 +1898,8 @@
             display: block;
         }
 
-        /* ===== SCROLL BUTTON ===== */
-        .scroll-top-btn {
+        /* ===== SCROLL TO BOTTOM ===== */
+        .scroll-bottom-btn {
             position: absolute;
             bottom: 80px;
             right: 16px;
@@ -1920,12 +1920,12 @@
             animation: fadeIn 0.3s ease;
         }
 
-        .scroll-top-btn:hover {
+        .scroll-bottom-btn:hover {
             transform: scale(1.08);
             background: var(--accent-hover);
         }
 
-        .scroll-top-btn.show {
+        .scroll-bottom-btn.show {
             display: flex;
         }
 
@@ -2109,7 +2109,7 @@
             <div class="login-box">
                 <div class="login-logo">💬</div>
                 <h1>نيزك <span class="hl">دردشة</span></h1>
-                <p class="login-sub">آمنة • سريعة • خاصة • v3.3</p>
+                <p class="login-sub">آمنة • سريعة • خاصة • v3.5</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
 
                 <div class="color-options" id="colorPicker">
@@ -2146,7 +2146,7 @@
             <div class="chat-header">
                 <div class="status-bar">
                     <span id="statusTime">12:00</span>
-                    <span class="version">v3.3.0</span>
+                    <span class="version">v3.5.0</span>
                 </div>
                 <div class="header-left">
                     <div class="header-avatar" id="headerAvatar" title="الملف الشخصي">
@@ -2175,9 +2175,9 @@
                 </div>
             </div>
 
-            <!-- زر التمرير للأعلى (للأحدث) -->
-            <button class="scroll-top-btn" id="scrollTopBtn" title="الانتقال للأعلى (الأحدث)">
-                <span class="material-symbols-outlined">arrow_upward</span>
+            <!-- زر التمرير للأسفل (للأحدث) -->
+            <button class="scroll-bottom-btn" id="scrollBottomBtn" title="الانتقال للأسفل (أحدث الرسائل)">
+                <span class="material-symbols-outlined">arrow_downward</span>
             </button>
 
             <div class="typing-indicator" id="typingIndicator">
@@ -2212,7 +2212,7 @@
             </div>
 
             <div class="app-footer show" id="appFooter">
-                نيزك v3.3.0 • جميع الحقوق محفوظة
+                نيزك v3.5.0 • جميع الحقوق محفوظة
             </div>
         </div>
 
@@ -2333,7 +2333,7 @@
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT - نيزك v3.3.0 (عرض من الأحدث للأقدم مع أنيميشن)
+    JAVASCRIPT - نيزك v3.5.0 (الأقدم فوق، الأحدث تحت)
     ============================================================ -->
     <script>
         // ============================================================
@@ -2361,7 +2361,7 @@
         // ============================================================
         const ADMIN_NAME = "slx23m";
         const ADMIN_PASSWORD = "1442";
-        const VERSION = "v3.3.0";
+        const VERSION = "v3.5.0";
 
         // ============================================================
         // 🚫 DEFAULT BAD WORDS
@@ -2396,7 +2396,6 @@
         let tempAvatarBase64 = '';
         let isAdminLoginAttempt = false;
         let messageIds = new Set();
-        let isAtTop = true;
 
         // ============================================================
         // 📄 DOM REFERENCES
@@ -2440,7 +2439,7 @@
         const themeToggle = $('themeToggle');
         const themeIcon = $('themeIcon');
         const themeOptions = $('themeOptions');
-        const scrollTopBtn = $('scrollTopBtn');
+        const scrollBottomBtn = $('scrollBottomBtn');
 
         const headerAvatar = $('headerAvatar');
         const headerAvatarPlaceholder = $('headerAvatarPlaceholder');
@@ -3026,7 +3025,7 @@
         }
 
         // ============================================================
-        // 💬 MESSAGE - عرض من الأحدث للأقدم (تصاعدي)
+        // 💬 MESSAGE - أقدم فوق، أحدث تحت
         // ============================================================
         function createMessage(id, d, self) {
             if (blockedUsers.indexOf(d.sender) !== -1 && !self) return null;
@@ -3176,7 +3175,7 @@
         document.addEventListener('click', hideAllActions);
 
         // ============================================================
-        // 📨 ADD MESSAGE - إضافة في الأعلى (الأحدث أولاً)
+        // 📨 ADD MESSAGE - أقدم فوق، أحدث تحت
         // ============================================================
         function addMessage(id, d, self) {
             if (messageIds.has(id)) return;
@@ -3185,8 +3184,8 @@
             if (emptyState) emptyState.style.display = 'none';
             var el = createMessage(id, d, self);
             if (el) {
-                // إضافة في البداية (الأحدث أولاً)
-                messagesDiv.insertBefore(el, messagesDiv.firstChild);
+                messagesDiv.appendChild(el);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 updateMessageCount();
             }
         }
@@ -3197,7 +3196,8 @@
             var d = document.createElement('div');
             d.className = 'system-msg' + (type ? ' ' + type : '');
             d.innerHTML = t;
-            messagesDiv.insertBefore(d, messagesDiv.firstChild);
+            messagesDiv.appendChild(d);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
             updateMessageCount();
         }
 
@@ -3207,7 +3207,8 @@
             var div = document.createElement('div');
             div.className = 'system-msg rules';
             div.innerHTML = rulesText;
-            messagesDiv.insertBefore(div, messagesDiv.firstChild);
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
             updateMessageCount();
         }
 
@@ -3223,23 +3224,20 @@
                 var div = document.createElement('div');
                 div.className = 'msg-count';
                 div.innerHTML = '📬 <span>' + count + '</span> رسالة';
-                // إضافة في البداية تحت القوانين
-                var firstChild = messagesDiv.firstChild;
-                messagesDiv.insertBefore(div, firstChild);
+                messagesDiv.insertBefore(div, messagesDiv.firstChild);
             }
         }
 
         // ============================================================
-        // 📥 LOAD & LISTEN - من الأحدث للأقدم (تصاعدي)
+        // 📥 LOAD & LISTEN - أقدم فوق، أحدث تحت
         // ============================================================
         function loadMessages() {
             if (emptyState) emptyState.style.display = 'flex';
             lastSender = '';
             messageIds.clear();
 
-            // تحميل من الأحدث للأقدم
             db.collection('messages')
-                .orderBy('timestamp', 'desc')
+                .orderBy('timestamp', 'asc')
                 .get()
                 .then(function(s) {
                     if (emptyState) emptyState.style.display = 'none';
@@ -3269,7 +3267,7 @@
                     });
 
                     Promise.all(promises).then(function() {
-                        // ترتيب من الأحدث للأقدم (المستخدم حالياً)
+                        // أقدم فوق، أحدث تحت (الترتيب الطبيعي)
                         tempMessages.forEach(function(item) {
                             addMessage(item.id, item.data, item.data.sender === currentUser);
                         });
@@ -3278,8 +3276,10 @@
                         showRules();
                         updateMessageCount();
 
-                        // التمرير للأعلى (لرؤية الأحدث)
-                        messagesDiv.scrollTop = 0;
+                        // التمرير للأسفل لرؤية أحدث الرسائل
+                        setTimeout(function() {
+                            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                        }, 100);
                     });
 
                 })
@@ -3293,7 +3293,7 @@
             lastSender = '';
 
             unsubscribe = db.collection('messages')
-                .orderBy('timestamp', 'desc')
+                .orderBy('timestamp', 'asc')
                 .onSnapshot(function(s) {
                     s.docChanges().forEach(function(c) {
                         var d = c.doc.data();
@@ -3995,16 +3995,15 @@
         }
 
         // ============================================================
-        // 🖱️ SCROLL TO TOP BUTTON
+        // 🖱️ SCROLL TO BOTTOM BUTTON
         // ============================================================
         messagesDiv.addEventListener('scroll', function() {
-            var atTop = messagesDiv.scrollTop < 50;
-            scrollTopBtn.classList.toggle('show', !atTop);
-            isAtTop = atTop;
+            var atBottom = messagesDiv.scrollTop + messagesDiv.clientHeight >= messagesDiv.scrollHeight - 50;
+            scrollBottomBtn.classList.toggle('show', !atBottom);
         });
 
-        scrollTopBtn.addEventListener('click', function() {
-            messagesDiv.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollBottomBtn.addEventListener('click', function() {
+            messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' });
         });
 
         // ============================================================
@@ -4049,7 +4048,7 @@
         // ============================================================
         userIP = getHashedIP();
 
-        console.log('🚀 نيزك ' + VERSION + ' - عرض الرسائل من الأحدث للأقدم');
+        console.log('🚀 نيزك ' + VERSION + ' - أقدم فوق، أحدث تحت (مثل الدردشة الطبيعية)');
         console.log('👑 المسؤول: ' + ADMIN_NAME);
         console.log('🔒 كلمة المرور: ' + ADMIN_PASSWORD);
         console.log('🔒 IP مشوش: ' + userIP);
@@ -4058,8 +4057,7 @@
         console.log('📱 تسجيل الدخول المتعدد من نفس الاسم مفعل');
         console.log('🌓 نظام الثيمات مفعل');
         console.log('📸 الصور الشخصية مخزنة في Firestore (Base64)');
-        console.log('📋 عرض الرسائل من الأحدث للأقدم');
-        console.log('📋 أنيميشن سلس للرسائل');
+        console.log('📋 عرض الرسائل من الأقدم للأحدث (طبيعي)');
 
         autoLogin();
     </script>
