@@ -1,15 +1,17 @@
 /* ============================================================
-   نيزك v5.0.0 - تصميم واتساب كامل
+   نيزك v5.0 - تصميم واتساب
    ============================================================ */
 
-/* ============================================================
-   🎨 المتغيرات الأساسية
-   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
 :root {
-    /* الألوان الأساسية - مثل واتساب */
     --whatsapp-green: #25D366;
-    --whatsapp-green-dark: #1FAE5A;
-    --whatsapp-green-light: #DCF8C6;
     --whatsapp-teal: #00A884;
     --whatsapp-bg: #0B141A;
     --whatsapp-chat-bg: #0D1A20;
@@ -21,29 +23,13 @@
     --whatsapp-text-secondary: #8696A0;
     --whatsapp-text-muted: #4A5A65;
     --whatsapp-border: #2A3942;
-    --whatsapp-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-    --whatsapp-avatar-border: #2A3942;
-    
-    /* ألوان إضافية */
-    --green: #25D366;
+    --whatsapp-shadow: 0 2px 12px rgba(0,0,0,0.6);
     --red: #EA4335;
     --orange: #FBBF24;
-    --gold: #FBBF24;
-    --purple: #8B5CF6;
-    --pink: #EC4899;
-    
-    /* أحجام */
     --avatar-size: 40px;
-    --radius-bubble: 8px;
-    --radius: 12px;
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-    --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
-    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.2s ease;
 }
 
-/* ============================================================
-   🎯 الثيمات - مثل واتساب
-   ============================================================ */
 [data-theme="light"] {
     --whatsapp-bg: #ECE5DD;
     --whatsapp-chat-bg: #E5DDD5;
@@ -55,22 +41,30 @@
     --whatsapp-text-secondary: #667781;
     --whatsapp-text-muted: #A0A0A0;
     --whatsapp-border: #E0E0E0;
-    --whatsapp-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-    --whatsapp-avatar-border: #E0E0E0;
-    --whatsapp-teal: #00A884;
-    --whatsapp-green: #25D366;
-    --whatsapp-green-dark: #1FAE5A;
 }
 
-/* ============================================================
-   🔄 إعادة ضبط
-   ============================================================ */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
-    -webkit-tap-highlight-color: transparent;
+[data-theme="admin-dark"] {
+    --whatsapp-bg: #0A0A12;
+    --whatsapp-chat-bg: #0E0E18;
+    --whatsapp-bubble-self: #6C3CE0;
+    --whatsapp-bubble-other: #1A1A2A;
+    --whatsapp-header: #1A1A2A;
+    --whatsapp-text-primary: #F0ECFF;
+    --whatsapp-text-secondary: #A8A0C8;
+    --whatsapp-teal: #8B5CF6;
+    --whatsapp-green: #8B5CF6;
+}
+
+[data-theme="admin-forest"] {
+    --whatsapp-bg: #080E0A;
+    --whatsapp-chat-bg: #0A140E;
+    --whatsapp-bubble-self: #2D8F5E;
+    --whatsapp-bubble-other: #162218;
+    --whatsapp-header: #162218;
+    --whatsapp-text-primary: #E0F0E8;
+    --whatsapp-text-secondary: #90B0A0;
+    --whatsapp-teal: #34D399;
+    --whatsapp-green: #34D399;
 }
 
 html, body {
@@ -78,24 +72,10 @@ html, body {
     overflow: hidden;
     background: var(--whatsapp-bg);
     color: var(--whatsapp-text-primary);
-    font-size: 16px;
-    line-height: 1.5;
-}
-
-* {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-input, textarea {
-    -webkit-user-select: text;
-    user-select: text;
 }
 
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
 }
 ::-webkit-scrollbar-track {
     background: transparent;
@@ -103,9 +83,6 @@ input, textarea {
 ::-webkit-scrollbar-thumb {
     background: var(--whatsapp-text-muted);
     border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--whatsapp-text-secondary);
 }
 
 #app {
@@ -117,12 +94,10 @@ input, textarea {
     background: var(--whatsapp-bg);
 }
 
-/* ============================================================
-   📱 حاوية الدردشة - مثل واتساب
-   ============================================================ */
+/* ===== حاوية الدردشة ===== */
 .chat-container {
     width: 100%;
-    max-width: 500px;
+    max-width: 480px;
     height: 100%;
     max-height: 100vh;
     background: var(--whatsapp-chat-bg);
@@ -130,21 +105,19 @@ input, textarea {
     flex-direction: column;
     position: relative;
     overflow: hidden;
-    box-shadow: var(--shadow);
+    box-shadow: var(--whatsapp-shadow);
 }
 
-@media (min-width: 501px) {
+@media (min-width: 481px) {
     .chat-container {
         border-radius: 20px;
         height: 90vh;
         max-height: 900px;
-        box-shadow: var(--shadow);
     }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 480px) {
     .chat-container {
-        max-height: 100vh;
         border-radius: 0;
         height: 100%;
         border: none;
@@ -152,20 +125,17 @@ input, textarea {
     }
 }
 
-/* ============================================================
-   🏷️ الهيدر - مثل واتساب
-   ============================================================ */
+/* ===== الهيدر ===== */
 .chat-header {
     background: var(--whatsapp-header);
     padding: 8px 14px;
-    padding-top: env(safe-area-inset-top, 40px);
     padding-top: max(40px, env(safe-area-inset-top));
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--whatsapp-border);
     flex-shrink: 0;
-    min-height: 60px;
+    min-height: 56px;
     position: relative;
     z-index: 10;
 }
@@ -177,16 +147,15 @@ input, textarea {
     transform: translateX(-50%);
     color: var(--whatsapp-text-muted);
     font-size: 10px;
-    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 8px;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .status-bar .version {
     font-size: 8px;
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .status-bar .online-count {
@@ -197,7 +166,7 @@ input, textarea {
 .header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
     min-width: 0;
 }
@@ -216,7 +185,7 @@ input, textarea {
     flex-shrink: 0;
     cursor: pointer;
     overflow: hidden;
-    border: 2px solid var(--whatsapp-avatar-border);
+    border: 2px solid var(--whatsapp-border);
     transition: var(--transition);
 }
 
@@ -231,16 +200,9 @@ input, textarea {
 }
 
 .brand {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     font-weight: 600;
     font-size: 17px;
     color: var(--whatsapp-text-primary);
-    min-width: 0;
-}
-
-.brand-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -254,7 +216,6 @@ input, textarea {
     border-radius: 12px;
     font-weight: 600;
     display: none;
-    flex-shrink: 0;
 }
 
 .admin-badge.show {
@@ -281,7 +242,6 @@ input, textarea {
     justify-content: center;
     width: 36px;
     height: 36px;
-    position: relative;
 }
 
 .header-actions button .material-symbols-outlined {
@@ -289,137 +249,20 @@ input, textarea {
 }
 
 .header-actions button:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255,255,255,0.06);
     color: var(--whatsapp-text-primary);
 }
 
 .header-actions .logout-btn:hover {
-    background: rgba(234, 67, 53, 0.15);
+    background: rgba(234,67,53,0.15);
     color: var(--red);
-}
-
-.header-actions .admin-btn:hover {
-    color: var(--whatsapp-teal);
 }
 
 .header-actions .admin-btn.hidden {
     display: none;
 }
 
-.header-actions .search-btn:hover {
-    color: var(--whatsapp-teal);
-}
-
-/* ============================================================
-   🔍 شريط البحث
-   ============================================================ */
-.search-bar {
-    background: var(--whatsapp-header);
-    border-bottom: 1px solid var(--whatsapp-border);
-    padding: 8px 12px;
-    flex-shrink: 0;
-    animation: slideDown 0.25s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.search-input-wrapper {
-    display: flex;
-    align-items: center;
-    background: var(--whatsapp-input-bg);
-    border-radius: 8px;
-    padding: 6px 12px;
-    gap: 8px;
-}
-
-.search-input-wrapper .material-symbols-outlined {
-    color: var(--whatsapp-text-muted);
-    font-size: 18px;
-}
-
-.search-input-wrapper input {
-    flex: 1;
-    background: none;
-    border: none;
-    color: var(--whatsapp-text-primary);
-    font-size: 14px;
-    outline: none;
-    padding: 4px 0;
-}
-
-.search-input-wrapper input::placeholder {
-    color: var(--whatsapp-text-muted);
-    opacity: 0.6;
-}
-
-.search-close {
-    background: none;
-    border: none;
-    color: var(--whatsapp-text-muted);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 4px;
-    transition: var(--transition);
-}
-
-.search-close:hover {
-    color: var(--red);
-}
-
-.search-results {
-    max-height: 200px;
-    overflow-y: auto;
-    margin-top: 8px;
-    display: none;
-}
-
-.search-results.active {
-    display: block;
-}
-
-.search-result-item {
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: var(--transition);
-    border-bottom: 1px solid var(--whatsapp-border);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.search-result-item:hover {
-    background: rgba(255, 255, 255, 0.04);
-}
-
-.search-result-item .result-sender {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--whatsapp-teal);
-}
-
-.search-result-item .result-text {
-    font-size: 13px;
-    color: var(--whatsapp-text-secondary);
-}
-
-.search-result-item .result-time {
-    font-size: 10px;
-    color: var(--whatsapp-text-muted);
-}
-
-/* ============================================================
-   💬 منطقة الرسائل - مثل واتساب
-   ============================================================ */
+/* ===== الرسائل ===== */
 .chat-messages {
     flex: 1;
     padding: 8px 12px 4px;
@@ -432,49 +275,38 @@ input, textarea {
     scroll-behavior: smooth;
     min-height: 0;
     -webkit-overflow-scrolling: touch;
-    background-image: 
-        radial-gradient(ellipse at 20% 50%, rgba(37, 211, 102, 0.03) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 50%, rgba(0, 168, 132, 0.03) 0%, transparent 60%);
 }
 
-/* ============================================================
-   📨 الرسائل - مثل واتساب
-   ============================================================ */
+/* ===== مجموعات الرسائل ===== */
 .msg-group {
     display: flex;
     align-items: flex-end;
-    gap: 8px;
+    gap: 6px;
     max-width: 100%;
-    animation: messageSlideUp 0.25s ease;
+    animation: slideUp 0.25s ease;
     margin-bottom: 2px;
-    padding: 0 4px;
-    position: relative;
+    padding: 0 2px;
 }
 
-@keyframes messageSlideUp {
+@keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateY(12px) scale(0.98);
+        transform: translateY(12px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
     }
 }
 
 .msg-group.self {
     flex-direction: row-reverse;
-    justify-content: flex-start;
 }
 
 .msg-group.other {
     flex-direction: row;
-    justify-content: flex-start;
 }
 
-/* ============================================================
-   👤 الصورة الرمزية - مثل واتساب
-   ============================================================ */
 .msg-avatar {
     width: 32px;
     height: 32px;
@@ -490,21 +322,17 @@ input, textarea {
     color: #fff;
     margin-bottom: 16px;
     align-self: flex-end;
-    transition: var(--transition);
     border: 2px solid var(--whatsapp-chat-bg);
-    cursor: pointer;
 }
 
 .msg-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 50%;
 }
 
 .msg-group.grouped .msg-avatar {
     opacity: 0;
-    transform: scale(0.8);
     pointer-events: none;
 }
 
@@ -516,15 +344,11 @@ input, textarea {
     order: 0;
 }
 
-/* ============================================================
-   📝 محتوى الرسالة
-   ============================================================ */
 .msg-content {
     display: flex;
     flex-direction: column;
     max-width: 82%;
     position: relative;
-    transition: var(--transition);
 }
 
 .msg-group.self .msg-content {
@@ -535,16 +359,12 @@ input, textarea {
     align-items: flex-start;
 }
 
-/* ============================================================
-   👤 اسم المرسل
-   ============================================================ */
 .msg-sender {
     font-size: 11px;
     font-weight: 600;
     color: var(--whatsapp-text-secondary);
     padding: 0 2px 3px 0;
     display: none;
-    transition: var(--transition);
 }
 
 .msg-group.other .msg-sender {
@@ -554,45 +374,35 @@ input, textarea {
 .msg-sender .admin-tag {
     color: var(--whatsapp-teal);
     font-size: 9px;
-    background: rgba(0, 168, 132, 0.15);
+    background: rgba(0,168,132,0.15);
     padding: 0 6px;
     border-radius: 8px;
-    margin-left: 4px;
 }
 
-/* ============================================================
-   🗨️ فقاعة الرسالة - مثل واتساب بالضبط
-   ============================================================ */
 .msg-bubble {
     padding: 8px 12px 7px;
-    border-radius: var(--radius-bubble);
+    border-radius: 8px;
     word-wrap: break-word;
     font-size: 14.5px;
     line-height: 1.45;
     max-width: 100%;
     position: relative;
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     cursor: default;
 }
 
-/* رسالة خاصة (أنا) */
 .msg-group.self .msg-bubble {
     background: var(--whatsapp-bubble-self);
     color: var(--whatsapp-text-primary);
     border-bottom-right-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
-/* رسالة الآخرين */
 .msg-group.other .msg-bubble {
     background: var(--whatsapp-bubble-other);
     color: var(--whatsapp-text-primary);
     border-bottom-left-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
-/* رسائل متتالية (مجموعة) */
 .msg-group.grouped .msg-bubble {
     border-radius: 8px;
 }
@@ -605,11 +415,8 @@ input, textarea {
     border-radius: 8px 8px 8px 4px;
 }
 
-/* ============================================================
-   🔄 الرد - مثل واتساب
-   ============================================================ */
 .reply-box {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255,255,255,0.05);
     border-right: 3px solid var(--whatsapp-teal);
     padding: 3px 10px;
     margin-bottom: 4px;
@@ -623,9 +430,6 @@ input, textarea {
     font-weight: 600;
 }
 
-/* ============================================================
-   📝 النص
-   ============================================================ */
 .msg-text {
     font-size: 14.5px;
     line-height: 1.45;
@@ -642,7 +446,6 @@ input, textarea {
     font-size: 10px;
     color: var(--whatsapp-text-muted);
     margin-left: 4px;
-    font-weight: 400;
 }
 
 .msg-text .deleted-badge {
@@ -651,9 +454,6 @@ input, textarea {
     font-style: italic;
 }
 
-/* ============================================================
-   ⏰ الوقت - مثل واتساب
-   ============================================================ */
 .msg-time {
     font-size: 10px;
     color: var(--whatsapp-text-muted);
@@ -662,12 +462,11 @@ input, textarea {
     display: flex;
     align-items: center;
     gap: 4px;
-    opacity: 0.7;
-    transition: var(--transition);
+    opacity: 0.6;
 }
 
 .msg-group.self .msg-time {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255,255,255,0.35);
 }
 
 .read-status {
@@ -675,9 +474,6 @@ input, textarea {
     color: var(--whatsapp-teal);
 }
 
-/* ============================================================
-   ❤️ التفاعلات
-   ============================================================ */
 .msg-reactions {
     display: flex;
     gap: 3px;
@@ -710,28 +506,23 @@ input, textarea {
 
 .msg-reaction.reacted {
     border-color: var(--whatsapp-teal);
-    background: rgba(0, 168, 132, 0.15);
+    background: rgba(0,168,132,0.15);
 }
 
-/* ============================================================
-   🎯 قائمة الإجراءات - مثل واتساب
-   ============================================================ */
+/* ===== قائمة الخيارات ===== */
 .msg-actions {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
     background: var(--whatsapp-bubble-other);
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
     border-radius: 16px;
     padding: 12px 16px;
     display: none;
     gap: 4px;
-    box-shadow: 0 16px 64px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 16px 64px rgba(0,0,0,0.6);
     z-index: 10000;
     border: 1px solid var(--whatsapp-border);
-    animation: actionsPopIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     min-width: 260px;
     max-width: 90vw;
     flex-wrap: wrap;
@@ -741,16 +532,17 @@ input, textarea {
 .msg-actions.active {
     display: flex !important;
     transform: translate(-50%, -50%) scale(1);
+    animation: popIn 0.2s ease;
 }
 
-@keyframes actionsPopIn {
+@keyframes popIn {
     from {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(0.85) translateY(10px);
+        transform: translate(-50%, -50%) scale(0.85);
     }
     to {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1) translateY(0);
+        transform: translate(-50%, -50%) scale(1);
     }
 }
 
@@ -765,7 +557,6 @@ input, textarea {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 2px;
     font-size: 11px;
     font-weight: 500;
@@ -783,69 +574,50 @@ input, textarea {
 }
 
 .msg-actions button:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255,255,255,0.06);
     color: var(--whatsapp-text-primary);
     transform: scale(1.05);
 }
 
 .msg-actions button.reply:hover {
     color: var(--whatsapp-teal);
-    background: rgba(0, 168, 132, 0.1);
+    background: rgba(0,168,132,0.1);
 }
 .msg-actions button.edit:hover {
     color: var(--orange);
-    background: rgba(251, 191, 36, 0.1);
+    background: rgba(251,191,36,0.1);
 }
 .msg-actions button.delete:hover {
     color: var(--red);
-    background: rgba(234, 67, 53, 0.1);
-}
-.msg-actions button.report:hover {
-    color: var(--orange);
-    background: rgba(251, 191, 36, 0.1);
+    background: rgba(234,67,53,0.1);
 }
 .msg-actions button.react:hover {
-    color: var(--gold);
-    background: rgba(251, 191, 36, 0.1);
+    color: var(--orange);
+    background: rgba(251,191,36,0.1);
 }
 .msg-actions button.copy:hover {
-    color: var(--purple);
-    background: rgba(139, 92, 246, 0.1);
+    color: #8B5CF6;
+    background: rgba(139,92,246,0.1);
 }
 
-/* ============================================================
-   🌑 خلفية مظللة للخيارات - مثل واتساب
-   ============================================================ */
+/* خلفية مظللة */
 .msg-actions-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
     z-index: 9999;
     display: none;
-    animation: fadeIn 0.2s ease;
 }
 
 .msg-actions-overlay.active {
     display: block;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-/* ============================================================
-   📌 شريط الرجعة - مثل واتساب بالضبط
-   ============================================================ */
+/* ===== شريط الرجعة ===== */
 .reply-bar {
     background: var(--whatsapp-input-bg);
     border-top: 1px solid var(--whatsapp-border);
@@ -854,7 +626,6 @@ input, textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    animation: slideDown 0.2s ease;
     flex-shrink: 0;
 }
 
@@ -902,54 +673,32 @@ input, textarea {
     padding: 4px 8px;
     border-radius: 50%;
     transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .reply-bar-close:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255,255,255,0.06);
     color: var(--red);
 }
 
-.reply-bar-close .material-symbols-outlined {
-    font-size: 18px;
-}
-
-/* ============================================================
-   📝 رسائل النظام
-   ============================================================ */
+/* ===== رسائل النظام ===== */
 .system-msg {
     text-align: center;
     font-size: 11px;
     color: var(--whatsapp-text-muted);
     padding: 6px 14px;
     margin: 4px auto;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255,255,255,0.03);
     border-radius: 8px;
     max-width: 85%;
     border: 1px solid var(--whatsapp-border);
     opacity: 0.7;
-    animation: systemSlideUp 0.3s ease;
-}
-
-@keyframes systemSlideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .system-msg.rules {
     color: var(--whatsapp-teal);
-    border-color: rgba(0, 168, 132, 0.2);
-    background: rgba(0, 168, 132, 0.05);
+    border-color: rgba(0,168,132,0.2);
+    background: rgba(0,168,132,0.05);
     padding: 12px 16px;
-    text-align: right;
     max-width: 95%;
     opacity: 1;
 }
@@ -968,25 +717,17 @@ input, textarea {
 
 .system-msg.warning {
     color: var(--orange);
-    border-color: rgba(251, 191, 36, 0.2);
-    background: rgba(251, 191, 36, 0.05);
+    border-color: rgba(251,191,36,0.2);
+    background: rgba(251,191,36,0.05);
 }
 
 .system-msg.success {
     color: var(--whatsapp-green);
-    border-color: rgba(37, 211, 102, 0.2);
-    background: rgba(37, 211, 102, 0.05);
+    border-color: rgba(37,211,102,0.2);
+    background: rgba(37,211,102,0.05);
 }
 
-.system-msg.info {
-    color: var(--whatsapp-teal);
-    border-color: rgba(0, 168, 132, 0.15);
-    background: rgba(0, 168, 132, 0.05);
-}
-
-/* ============================================================
-   📭 الحالة الفارغة
-   ============================================================ */
+/* ===== الحالة الفارغة ===== */
 .empty-state {
     flex: 1;
     display: flex;
@@ -995,7 +736,6 @@ input, textarea {
     justify-content: center;
     color: var(--whatsapp-text-muted);
     gap: 8px;
-    animation: fadeIn 0.5s ease;
 }
 
 .empty-state .empty-icon .material-symbols-outlined {
@@ -1014,9 +754,7 @@ input, textarea {
     opacity: 0.2;
 }
 
-/* ============================================================
-   ⌨️ مؤشر الكتابة
-   ============================================================ */
+/* ===== مؤشر الكتابة ===== */
 .typing-indicator {
     display: none;
     align-self: flex-start;
@@ -1026,19 +764,7 @@ input, textarea {
     border-bottom-left-radius: 4px;
     margin: 4px 0 8px;
     gap: 4px;
-    animation: typingFade 0.3s ease;
     align-items: center;
-}
-
-@keyframes typingFade {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }
 
 .typing-indicator.active {
@@ -1050,53 +776,32 @@ input, textarea {
     height: 7px;
     background: var(--whatsapp-text-muted);
     border-radius: 50%;
-    animation: typingBounce 1.4s infinite;
+    animation: bounce 1.4s infinite;
 }
 
-.typing-indicator span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-.typing-indicator span:nth-child(3) {
-    animation-delay: 0.4s;
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+    30% { transform: translateY(-6px); opacity: 1; }
 }
 
-.typing-indicator .typing-text {
-    font-size: 12px;
-    color: var(--whatsapp-text-muted);
-    margin-right: 6px;
-}
-
-@keyframes typingBounce {
-    0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.3;
-    }
-    30% {
-        transform: translateY(-6px);
-        opacity: 1;
-    }
-}
-
-/* ============================================================
-   😊 لوحة الإيموجي
-   ============================================================ */
+/* ===== لوحة الإيموجي ===== */
 .emoji-rail {
     position: absolute;
     bottom: 76px;
     left: 12px;
     right: 12px;
     background: var(--whatsapp-bubble-other);
-    backdrop-filter: blur(28px) saturate(1.2);
-    -webkit-backdrop-filter: blur(28px) saturate(1.2);
     border-radius: 16px;
     padding: 8px 10px;
     display: none;
     gap: 4px;
     justify-content: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     border: 1px solid var(--whatsapp-border);
     z-index: 30;
-    animation: railUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     flex-wrap: wrap;
     max-height: 200px;
     overflow-y: auto;
@@ -1104,17 +809,6 @@ input, textarea {
 
 .emoji-rail.active {
     display: flex;
-}
-
-@keyframes railUp {
-    from {
-        transform: translateY(20px) scale(0.92);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
 }
 
 .emoji-rail .emoji-item {
@@ -1125,75 +819,16 @@ input, textarea {
     transition: var(--transition);
     background: none;
     border: none;
-    line-height: 1;
-    color: var(--whatsapp-text-primary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     min-width: 34px;
     min-height: 34px;
-    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
 }
 
 .emoji-rail .emoji-item:hover {
-    background: rgba(255, 255, 255, 0.06);
-    transform: scale(1.12);
+    background: rgba(255,255,255,0.06);
+    transform: scale(1.1);
 }
 
-.emoji-rail .emoji-item:active {
-    transform: scale(1.2);
-}
-
-/* ============================================================
-   ❤️ لوحة التفاعلات
-   ============================================================ */
-.reaction-picker {
-    position: absolute;
-    bottom: 76px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--whatsapp-bubble-other);
-    backdrop-filter: blur(28px) saturate(1.2);
-    -webkit-backdrop-filter: blur(28px) saturate(1.2);
-    border-radius: 20px;
-    padding: 8px 10px;
-    display: none;
-    gap: 2px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--whatsapp-border);
-    z-index: 35;
-    animation: railUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.reaction-picker.active {
-    display: flex;
-}
-
-.reaction-picker .reaction-option {
-    font-size: 28px;
-    padding: 4px 8px;
-    cursor: pointer;
-    border-radius: 10px;
-    transition: var(--transition);
-    background: none;
-    border: none;
-    line-height: 1;
-    min-width: 36px;
-    min-height: 36px;
-    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
-}
-
-.reaction-picker .reaction-option:hover {
-    background: rgba(255, 255, 255, 0.06);
-    transform: scale(1.2);
-}
-
-.reaction-picker .reaction-option:active {
-    transform: scale(1.3);
-}
-
-/* ============================================================
-   ⌨️ منطقة الإدخال - مثل واتساب   ============================================================ */
+/* ===== منطقة الإدخال ===== */
 .chat-input {
     padding: 6px 12px 12px;
     padding-bottom: max(12px, env(safe-area-inset-bottom));
@@ -1203,7 +838,6 @@ input, textarea {
     flex-direction: column;
     gap: 4px;
     flex-shrink: 0;
-    position: relative;
 }
 
 .input-row {
@@ -1233,15 +867,14 @@ input, textarea {
     padding: 4px 6px;
     cursor: pointer;
     transition: var(--transition);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background: none;
     border: none;
     border-radius: 50%;
     width: 34px;
     height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .emoji-toggle .material-symbols-outlined {
@@ -1249,13 +882,13 @@ input, textarea {
 }
 
 .emoji-toggle:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255,255,255,0.06);
     color: var(--whatsapp-text-secondary);
 }
 
 .emoji-toggle.active {
     color: var(--whatsapp-teal);
-    background: rgba(0, 168, 132, 0.1);
+    background: rgba(0,168,132,0.1);
 }
 
 .input-wrapper input {
@@ -1267,16 +900,11 @@ input, textarea {
     font-size: 15px;
     outline: none;
     min-width: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
 }
 
 .input-wrapper input::placeholder {
     color: var(--whatsapp-text-muted);
     opacity: 0.5;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .input-wrapper input:disabled {
@@ -1296,7 +924,6 @@ input, textarea {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 168, 132, 0.3);
 }
 
 .send-btn .material-symbols-outlined {
@@ -1304,44 +931,32 @@ input, textarea {
 }
 
 .send-btn:hover {
-    background: var(--whatsapp-green-dark);
     transform: scale(1.05);
-}
-
-.send-btn:active {
-    transform: scale(0.95);
+    opacity: 0.9;
 }
 
 .send-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
 }
 
-/* ============================================================
-   ⚠️ تنبيه المنع
-   ============================================================ */
 .muted-notice {
     text-align: center;
     padding: 6px 12px;
-    background: rgba(251, 191, 36, 0.08);
+    background: rgba(251,191,36,0.08);
     border-radius: 8px;
     color: var(--orange);
     font-size: 12px;
     display: none;
-    margin-top: 4px;
-    animation: fadeIn 0.3s ease;
-    border: 1px solid rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251,191,36,0.1);
 }
 
 .muted-notice.active {
     display: block;
 }
 
-/* ============================================================
-   ⬇️ زر التمرير للأسفل
-   ============================================================ */
+/* ===== زر التمرير ===== */
 .scroll-bottom-btn {
     position: absolute;
     bottom: 84px;
@@ -1352,7 +967,7 @@ input, textarea {
     background: var(--whatsapp-teal);
     color: #fff;
     border: none;
-    box-shadow: var(--shadow);
+    box-shadow: var(--whatsapp-shadow);
     cursor: pointer;
     display: none;
     align-items: center;
@@ -1360,13 +975,11 @@ input, textarea {
     z-index: 15;
     transition: var(--transition);
     font-size: 20px;
-    animation: fadeIn 0.3s ease;
     position: relative;
 }
 
 .scroll-bottom-btn:hover {
     transform: scale(1.08);
-    background: var(--whatsapp-green-dark);
 }
 
 .scroll-bottom-btn.show {
@@ -1394,9 +1007,7 @@ input, textarea {
     display: flex;
 }
 
-/* ============================================================
-   🔐 شاشة تسجيل الدخول - مثل واتساب
-   ============================================================ */
+/* ===== شاشة تسجيل الدخول ===== */
 .login-overlay {
     position: fixed;
     top: 0;
@@ -1409,7 +1020,6 @@ input, textarea {
     align-items: center;
     z-index: 1000;
     padding: 20px;
-    animation: fadeIn 0.4s ease;
 }
 
 .login-overlay.hidden {
@@ -1424,41 +1034,24 @@ input, textarea {
     max-width: 380px;
     width: 100%;
     border: 1px solid var(--whatsapp-border);
-    box-shadow: var(--shadow);
-    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: var(--whatsapp-shadow);
+    animation: scaleIn 0.3s ease;
 }
 
 @keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .login-logo {
     font-size: 52px;
     margin-bottom: 4px;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-8px);
-    }
 }
 
 .login-box h1 {
     color: var(--whatsapp-text-primary);
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 2px;
 }
 
 .login-box h1 .hl {
@@ -1486,12 +1079,7 @@ input, textarea {
 
 .login-box input:focus {
     border-color: var(--whatsapp-teal);
-    box-shadow: 0 0 0 3px rgba(0, 168, 132, 0.15);
-}
-
-.login-box input::placeholder {
-    color: var(--whatsapp-text-muted);
-    opacity: 0.5;
+    box-shadow: 0 0 0 3px rgba(0,168,132,0.15);
 }
 
 .color-options {
@@ -1511,14 +1099,10 @@ input, textarea {
     transition: var(--transition);
 }
 
-.color-circle:active {
-    transform: scale(0.9);
-}
-
 .color-circle.selected {
     border-color: var(--whatsapp-teal);
     transform: scale(1.1);
-    box-shadow: 0 0 16px rgba(0, 168, 132, 0.3);
+    box-shadow: 0 0 16px rgba(0,168,132,0.3);
 }
 
 .login-btn {
@@ -1539,20 +1123,14 @@ input, textarea {
 }
 
 .login-btn:hover {
-    background: var(--whatsapp-green-dark);
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 168, 132, 0.3);
-}
-
-.login-btn:active {
-    transform: translateY(0);
+    box-shadow: 0 4px 16px rgba(0,168,132,0.3);
 }
 
 .login-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
 }
 
 .login-box .error {
@@ -1565,7 +1143,6 @@ input, textarea {
 .login-box .info-msg {
     color: var(--whatsapp-text-secondary);
     font-size: 12px;
-    margin-top: 6px;
     display: none;
 }
 
@@ -1592,124 +1169,15 @@ input, textarea {
     display: block;
 }
 
-/* ============================================================
-   👤 الملف الشخصي
-   ============================================================ */
-.profile-modal .modal-box {
-    max-width: 380px;
-}
-
-.profile-avatar-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0 18px;
-}
-
-.profile-avatar-preview {
-    width: 88px;
-    height: 88px;
-    border-radius: 50%;
-    background: var(--whatsapp-teal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    font-weight: 700;
-    color: #fff;
-    overflow: hidden;
-    border: 3px solid var(--whatsapp-border);
-    box-shadow: 0 0 24px rgba(0, 168, 132, 0.2);
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.profile-avatar-preview:hover {
-    transform: scale(1.05);
-    border-color: var(--whatsapp-teal);
-}
-
-.profile-avatar-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.profile-avatar-btn {
-    padding: 6px 18px;
-    border: 1px solid var(--whatsapp-border);
-    border-radius: 16px;
-    background: var(--whatsapp-input-bg);
-    color: var(--whatsapp-text-secondary);
-    font-size: 12px;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.profile-avatar-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--whatsapp-text-primary);
-}
-
-.profile-name-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--whatsapp-border);
-    border-radius: 12px;
-    background: var(--whatsapp-input-bg);
-    color: var(--whatsapp-text-primary);
-    font-size: 16px;
-    text-align: center;
-    outline: none;
-    transition: var(--transition);
-    margin: 4px 0 10px;
-}
-
-.profile-name-input:focus {
-    border-color: var(--whatsapp-teal);
-    box-shadow: 0 0 0 3px rgba(0, 168, 132, 0.15);
-}
-
-.profile-save-btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--whatsapp-teal);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.profile-save-btn:hover {
-    background: var(--whatsapp-green-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 168, 132, 0.3);
-}
-
-/* ============================================================
-   🪟 النوافذ المنبثقة
-   ============================================================ */
+/* ===== النوافذ المنبثقة ===== */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0,0,0,0.6);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     display: none;
     justify-content: center;
     align-items: center;
@@ -1719,7 +1187,6 @@ input, textarea {
 
 .modal-overlay.active {
     display: flex;
-    animation: fadeIn 0.3s ease;
 }
 
 .modal-box {
@@ -1729,47 +1196,22 @@ input, textarea {
     max-width: 420px;
     width: 100%;
     border: 1px solid var(--whatsapp-border);
-    box-shadow: var(--shadow);
-    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: var(--whatsapp-shadow);
     max-height: 85vh;
     overflow-y: auto;
-}
-
-@keyframes modalIn {
-    from {
-        opacity: 0;
-        transform: scale(0.92) translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
 }
 
 .modal-title {
     font-size: 20px;
     font-weight: 700;
     margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
     color: var(--whatsapp-text-primary);
-}
-
-.modal-title .material-symbols-outlined {
-    color: var(--whatsapp-teal);
-    font-size: 24px;
 }
 
 .modal-desc {
     color: var(--whatsapp-text-secondary);
     font-size: 13px;
     margin-bottom: 16px;
-}
-
-.modal-rules {
-    margin: 10px 0 16px;
-    padding: 0;
 }
 
 .modal-rules .rule-item {
@@ -1792,7 +1234,7 @@ input, textarea {
     width: 100%;
     padding: 12px;
     margin-top: 16px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255,255,255,0.04);
     color: var(--whatsapp-text-primary);
     border: 1px solid var(--whatsapp-border);
     border-radius: 12px;
@@ -1800,90 +1242,13 @@ input, textarea {
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
 }
 
 .close-modal:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255,255,255,0.08);
 }
 
-/* ============================================================
-   📎 عارض الملفات
-   ============================================================ */
-.file-viewer .modal-box {
-    max-width: 500px;
-}
-
-.file-viewer-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.file-viewer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.file-viewer-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--whatsapp-text-primary);
-}
-
-.file-viewer-close {
-    background: none;
-    border: none;
-    color: var(--whatsapp-text-muted);
-    cursor: pointer;
-    font-size: 20px;
-    transition: var(--transition);
-}
-
-.file-viewer-close:hover {
-    color: var(--red);
-}
-
-.file-viewer-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-}
-
-.file-viewer-file {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 20px;
-}
-
-.file-download-btn {
-    padding: 8px 20px;
-    background: var(--whatsapp-teal);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    transition: var(--transition);
-}
-
-.file-download-btn:hover {
-    background: var(--whatsapp-green-dark);
-}
-
-/* ============================================================
-   🛡️ لوحة المسؤول
-   ============================================================ */
+/* ===== لوحة المسؤول ===== */
 .admin-password-box input {
     width: 100%;
     padding: 14px 16px;
@@ -1900,7 +1265,6 @@ input, textarea {
 
 .admin-password-box input:focus {
     border-color: var(--whatsapp-teal);
-    box-shadow: 0 0 0 3px rgba(0, 168, 132, 0.15);
 }
 
 .admin-password-box .error-msg {
@@ -1935,7 +1299,6 @@ input, textarea {
 .admin-panel .admin-users {
     max-height: 150px;
     overflow-y: auto;
-    margin-bottom: 10px;
 }
 
 .admin-panel .user-item {
@@ -1951,14 +1314,13 @@ input, textarea {
 }
 
 .admin-panel .user-item:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255,255,255,0.04);
 }
 
 .admin-panel .user-item .user-info {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
 }
 
 .admin-panel .user-item .user-info .user-avatar-small {
@@ -1973,7 +1335,6 @@ input, textarea {
     font-size: 10px;
     font-weight: 600;
     color: #fff;
-    flex-shrink: 0;
 }
 
 .admin-panel .user-item .user-info .user-avatar-small img {
@@ -2005,178 +1366,29 @@ input, textarea {
 }
 
 .admin-panel .user-item .user-actions button:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255,255,255,0.06);
 }
 
 .admin-panel .user-item .user-actions .delete-user:hover {
     color: var(--red);
-    background: rgba(234, 67, 53, 0.1);
+    background: rgba(234,67,53,0.1);
 }
 
 .admin-panel .user-item .user-actions .block-user:hover {
     color: var(--orange);
-    background: rgba(251, 191, 36, 0.1);
+    background: rgba(251,191,36,0.1);
 }
 
 .admin-panel .user-item .user-actions .unblock-user:hover {
     color: var(--whatsapp-green);
-    background: rgba(37, 211, 102, 0.1);
+    background: rgba(37,211,102,0.1);
 }
 
-/* ============================================================
-   🎨 إعدادات الثيم
-   ============================================================ */
-.theme-settings {
-    margin-top: 10px;
-    border-top: 1px solid var(--whatsapp-border);
-    padding-top: 10px;
-}
-
-.theme-settings .theme-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--whatsapp-text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.theme-settings .theme-options {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.theme-settings .theme-options .theme-btn {
-    padding: 6px 14px;
-    border-radius: 16px;
-    border: 1px solid var(--whatsapp-border);
-    background: var(--whatsapp-input-bg);
-    color: var(--whatsapp-text-secondary);
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 500;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.theme-settings .theme-options .theme-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--whatsapp-text-primary);
-}
-
-.theme-settings .theme-options .theme-btn.active {
-    border-color: var(--whatsapp-teal);
-    color: var(--whatsapp-teal);
-    background: rgba(0, 168, 132, 0.1);
-}
-
-/* ============================================================
-   🚫 الكلمات المحظورة
-   ============================================================ */
-.badwords-section {
-    margin-top: 10px;
-    border-top: 1px solid var(--whatsapp-border);
-    padding-top: 10px;
-}
-
-.badwords-section .badwords-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--orange);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.badwords-section .badwords-input-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.badwords-section .badwords-input-row input {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid var(--whatsapp-border);
-    border-radius: 8px;
-    background: var(--whatsapp-input-bg);
-    color: var(--whatsapp-text-primary);
-    font-size: 13px;
-    outline: none;
-    transition: var(--transition);
-}
-
-.badwords-section .badwords-input-row input:focus {
-    border-color: var(--orange);
-}
-
-.badwords-section .badwords-input-row button {
-    padding: 8px 14px;
-    background: var(--orange);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-}
-
-.badwords-section .badwords-input-row button:hover {
-    background: #D97706;
-}
-
-.badwords-section .badwords-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    max-height: 80px;
-    overflow-y: auto;
-    padding: 4px 0;
-}
-
-.badwords-section .badwords-list .badword-tag {
-    background: rgba(251, 191, 36, 0.1);
-    color: var(--orange);
-    padding: 4px 10px;
-    border-radius: 16px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid rgba(251, 191, 36, 0.1);
-}
-
-.badwords-section .badwords-list .badword-tag .remove-badword {
-    cursor: pointer;
-    font-size: 14px;
-    color: var(--whatsapp-text-muted);
-    transition: var(--transition);
-    background: none;
-    border: none;
-}
-
-.badwords-section .badwords-list .badword-tag .remove-badword:hover {
-    color: var(--red);
-}
-
-/* ============================================================
-   🚀 أزرار المسؤول
-   ============================================================ */
 .force-logout-btn,
 .clear-chat-btn {
-    background: rgba(234, 67, 53, 0.1);
+    background: rgba(234,67,53,0.1);
     color: var(--red);
-    border: 1px solid rgba(234, 67, 53, 0.1);
+    border: 1px solid rgba(234,67,53,0.1);
     padding: 4px 10px;
     border-radius: 8px;
     cursor: pointer;
@@ -2190,21 +1402,18 @@ input, textarea {
 
 .force-logout-btn:hover,
 .clear-chat-btn:hover {
-    background: rgba(234, 67, 53, 0.2);
+    background: rgba(234,67,53,0.2);
 }
 
-/* ============================================================
-   ⏳ شاشة التحميل
-   ============================================================ */
+/* ===== شاشة التحميل ===== */
 .loading-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
     align-items: center;
@@ -2213,7 +1422,6 @@ input, textarea {
 
 .loading-overlay.active {
     display: flex;
-    animation: fadeIn 0.3s ease;
 }
 
 .loading-spinner {
@@ -2222,7 +1430,6 @@ input, textarea {
     border-radius: 20px;
     text-align: center;
     border: 1px solid var(--whatsapp-border);
-    box-shadow: var(--shadow);
 }
 
 .loading-spinner .spinner {
@@ -2236,9 +1443,7 @@ input, textarea {
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
 .loading-spinner .loading-text {
@@ -2246,60 +1451,9 @@ input, textarea {
     font-size: 14px;
 }
 
-/* ============================================================
-   📋 عدد الرسائل
-   ============================================================ */
-.msg-count {
-    text-align: center;
-    font-size: 11px;
-    color: var(--whatsapp-text-muted);
-    padding: 4px 0 8px;
-    opacity: 0.4;
-    border-bottom: 1px solid var(--whatsapp-border);
-    animation: fadeIn 0.3s ease;
-}
-
-.msg-count span {
-    font-weight: 600;
-    color: var(--whatsapp-text-secondary);
-}
-
-/* ============================================================
-   🛠️ أدوات
-   ============================================================ */
+/* ===== أدوات ===== */
 .hidden {
     display: none !important;
-}
-
-.file-input-hidden {
-    display: none;
-}
-
-.upload-status {
-    text-align: center;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    color: var(--whatsapp-text-secondary);
-    background: var(--whatsapp-input-bg);
-    border: 1px solid var(--whatsapp-border);
-    margin-top: 6px;
-    width: 100%;
-    display: none;
-}
-
-.upload-status.show {
-    display: block;
-}
-
-.upload-status.success {
-    color: var(--whatsapp-green);
-    border-color: rgba(37, 211, 102, 0.2);
-}
-
-.upload-status.error {
-    color: var(--red);
-    border-color: rgba(234, 67, 53, 0.2);
 }
 
 .material-symbols-outlined {
@@ -2307,9 +1461,6 @@ input, textarea {
     user-select: none;
 }
 
-/* ============================================================
-   📱 التذييل
-   ============================================================ */
 .app-footer {
     display: none;
     text-align: center;
@@ -2326,35 +1477,44 @@ input, textarea {
     display: block;
 }
 
-/* ============================================================
-   📱 استجابة - مثل واتساب
-   ============================================================ */
-
-/* شاشات صغيرة جداً */
-@media (max-width: 360px) {
+/* ===== استجابة ===== */
+@media (max-width: 400px) {
     .msg-bubble {
         font-size: 13px;
         padding: 6px 10px 5px;
     }
-    .msg-sender {
+    .msg-avatar {
+        width: 28px;
+        height: 28px;
         font-size: 10px;
+        margin-bottom: 14px;
+    }
+    .chat-header {
+        padding-top: 32px;
+        padding-left: 10px;
+        padding-right: 10px;
+        min-height: 50px;
+    }
+    .brand {
+        font-size: 15px;
+    }
+    .header-avatar {
+        width: 32px;
+        height: 32px;
     }
     .header-actions button {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
     }
     .header-actions button .material-symbols-outlined {
         font-size: 18px;
     }
-    .chat-input {
-        padding: 4px 8px 8px;
+    .login-box {
+        padding: 24px 16px 20px;
     }
     .send-btn {
         width: 38px;
         height: 38px;
-    }
-    .send-btn .material-symbols-outlined {
-        font-size: 18px;
     }
     .msg-actions {
         min-width: 200px;
@@ -2367,75 +1527,8 @@ input, textarea {
     .msg-actions button .material-symbols-outlined {
         font-size: 18px;
     }
-    .msg-actions button .action-label {
-        font-size: 8px;
-    }
 }
 
-/* شاشات هواتف */
-@media (max-width: 400px) {
-    .msg-group {
-        gap: 6px;
-    }
-    .msg-bubble {
-        font-size: 14px;
-        padding: 7px 12px 6px;
-    }
-    .msg-avatar {
-        width: 28px;
-        height: 28px;
-        font-size: 10px;
-        margin-bottom: 16px;
-    }
-    .chat-header {
-        padding-top: 36px;
-        padding-left: 10px;
-        padding-right: 10px;
-        min-height: 56px;
-    }
-    .brand {
-        font-size: 15px;
-    }
-    .header-avatar {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-    }
-    .login-box {
-        padding: 24px 16px 20px;
-    }
-    .emoji-rail .emoji-item {
-        font-size: 24px;
-        min-width: 30px;
-        min-height: 30px;
-    }
-    .modal-box {
-        padding: 20px 16px 18px;
-    }
-    .header-actions button {
-        width: 32px;
-        height: 32px;
-    }
-    .header-actions button .material-symbols-outlined {
-        font-size: 18px;
-    }
-    .status-bar {
-        font-size: 9px;
-        top: 6px;
-    }
-    .scroll-bottom-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-        bottom: 76px;
-    }
-    .msg-actions {
-        min-width: 220px;
-        padding: 8px 12px;
-    }
-}
-
-/* شاشات كبيرة */
 @media (min-width: 601px) {
     .msg-content {
         max-width: 75%;
@@ -2443,215 +1536,26 @@ input, textarea {
     .chat-messages {
         padding: 12px 20px 8px;
     }
-    .msg-actions {
-        min-width: 280px;
-        padding: 12px 18px;
-    }
-    .msg-actions button {
-        padding: 10px 14px;
-    }
 }
 
-/* الوضع الأفقي */
-@media (orientation: landscape) and (max-height: 500px) {
-    .chat-header {
-        padding-top: 20px;
-        min-height: 48px;
-    }
-    .chat-header .status-bar {
-        top: 4px;
-        font-size: 8px;
-    }
-    .chat-header .status-bar .version {
-        display: none;
-    }
-    .msg-avatar {
-        width: 26px;
-        height: 26px;
-        font-size: 9px;
-        margin-bottom: 14px;
-    }
-    .msg-bubble {
-        font-size: 13px;
-        padding: 6px 10px 5px;
-    }
-    .msg-sender {
-        font-size: 10px;
-    }
-    .msg-time {
-        font-size: 9px;
-    }
-    .chat-input {
-        padding: 4px 10px 8px;
-    }
-    .input-wrapper input {
-        padding: 6px 4px;
-        font-size: 13px;
-    }
-    .send-btn {
-        width: 36px;
-        height: 36px;
-    }
-    .send-btn .material-symbols-outlined {
-        font-size: 18px;
-    }
-    .emoji-toggle {
-        width: 30px;
-        height: 30px;
-    }
-    .emoji-toggle .material-symbols-outlined {
-        font-size: 18px;
-    }
-    .scroll-bottom-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
-        bottom: 64px;
-        right: 12px;
-    }
-    .msg-actions {
-        min-width: 180px;
-        padding: 6px 8px;
-    }
-    .msg-actions button {
-        padding: 4px 6px;
-        font-size: 9px;
-    }
-    .msg-actions button .material-symbols-outlined {
-        font-size: 16px;
-    }
-    .msg-actions button .action-label {
-        font-size: 7px;
-    }
-    .emoji-rail {
-        bottom: 60px;
-        padding: 4px 6px;
-    }
-    .emoji-rail .emoji-item {
-        font-size: 20px;
-        min-width: 28px;
-        min-height: 28px;
-    }
-    .reaction-picker {
-        bottom: 60px;
-        padding: 4px 6px;
-    }
-    .reaction-picker .reaction-option {
-        font-size: 22px;
-        min-width: 30px;
-        min-height: 30px;
-    }
-    .reply-bar {
-        padding: 4px 10px;
-    }
-    .reply-bar-line {
-        height: 20px;
-    }
-    .reply-bar-sender {
-        font-size: 10px;
-    }
-    .reply-bar-text {
-        font-size: 10px;
-    }
-}
-
-/* ============================================================
-   🎨 تحسينات إضافية
-   ============================================================ */
-
-/* تأثير hover على الفقاعات */
-.msg-bubble:hover {
-    filter: brightness(1.02);
-}
-
-/* تنسيق الروابط داخل الرسائل */
+/* ===== تنسيق الروابط ===== */
 .msg-text a {
     color: var(--whatsapp-teal);
     text-decoration: underline;
-    word-break: break-all;
 }
 
-/* تنسيق الكود داخل الرسائل */
 .msg-text code {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255,255,255,0.06);
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: 'Courier New', monospace;
+    font-family: monospace;
     font-size: 13px;
 }
 
-/* تنسيق الاقتباسات */
 .msg-text blockquote {
     border-right: 3px solid var(--whatsapp-teal);
     padding: 4px 10px;
     margin: 4px 0;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255,255,255,0.03);
     border-radius: 4px;
-}
-
-/* تحسين ظهور الإيموجي */
-.msg-text .emoji {
-    font-size: 20px;
-    vertical-align: middle;
-}
-
-/* تحسين شكل الأفاتار */
-.msg-avatar {
-    transition: all 0.3s ease;
-}
-
-.msg-avatar:hover {
-    transform: scale(1.08);
-}
-
-/* ============================================================
-   🎯 إصلاحات الخيارات - منع الاختفاء
-   ============================================================ */
-.msg-actions {
-    pointer-events: auto !important;
-    z-index: 10000 !important;
-}
-
-.msg-actions button {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
-
-.msg-actions:hover {
-    display: flex !important;
-}
-
-.msg-actions.active {
-    display: flex !important;
-}
-
-.msg-actions-overlay {
-    pointer-events: auto !important;
-    z-index: 9999 !important;
-}
-
-.msg-actions-overlay.active {
-    display: block !important;
-}
-
-/* تحسين التمرير */
-.chat-messages {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-}
-
-/* تحسين اللمس على الأجهزة المحمولة */
-@media (hover: none) {
-    .msg-bubble:hover {
-        filter: none;
-    }
-    .header-avatar:hover {
-        transform: none;
-    }
-    .send-btn:not(:disabled):hover {
-        transform: none;
-    }
-    .msg-actions button:hover {
-        transform: none;
-    }
-}
+   }
