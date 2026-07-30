@@ -64,7 +64,7 @@
         <!-- ===== واجهة الدردشة ===== -->
         <div class="chat-container" id="chatContainer" style="display:none;">
             
-            <!-- الهيدر -->
+            <!-- الهيدر - تصميم واتساب -->
             <div class="chat-header">
                 <div class="status-bar">
                     <span id="statusTime">12:00</span>
@@ -165,13 +165,20 @@
                 <button class="reaction-option" data-reaction="😎">😎</button>
             </div>
 
-            <!-- معاينة الرد -->
-            <div class="reply-preview" id="replyPreview" style="display:none;">
-                <div class="reply-preview-content">
-                    <span class="reply-preview-sender" id="replyPreviewSender">@user</span>
-                    <span class="reply-preview-text" id="replyPreviewText">رسالة...</span>
+            <!-- ============================================================
+            شريط الرجعة - مثل واتساب
+            ============================================================ -->
+            <div class="reply-bar" id="replyBar" style="display:none;">
+                <div class="reply-bar-content">
+                    <div class="reply-bar-line"></div>
+                    <div class="reply-bar-info">
+                        <span class="reply-bar-sender" id="replyBarSender">@user</span>
+                        <span class="reply-bar-text" id="replyBarText">رسالة...</span>
+                    </div>
                 </div>
-                <button class="reply-preview-cancel" id="replyPreviewCancel">✖</button>
+                <button class="reply-bar-close" id="replyBarClose" title="إلغاء الرد">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
 
             <!-- منطقة الإدخال -->
