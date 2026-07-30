@@ -1,8 +1,7 @@
 /* ============================================================
-   نيزك v3.5.0 - التصميم الكامل
+   نيزك v4.0.0 - تصميم تفاعلي عصري
    ============================================================ */
 
-/* ===== إعادة ضبط ===== */
 * {
     margin: 0;
     padding: 0;
@@ -11,7 +10,6 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== المتغيرات ===== */
 :root {
     --bg-app: #0a0a0c;
     --bg-header: rgba(14, 14, 18, 0.92);
@@ -40,6 +38,7 @@
     --radius-sm: 10px;
     --radius-bubble: 18px;
     --avatar-size: 36px;
+    --transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ===== الثيمات ===== */
@@ -124,7 +123,6 @@
     --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* ===== الأساسيات ===== */
 html, body {
     height: 100%;
     overflow: hidden;
@@ -132,7 +130,6 @@ html, body {
     color: var(--text-primary);
     font-size: 16px;
     line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -147,8 +144,8 @@ input, textarea {
 }
 
 ::-webkit-scrollbar {
-    width: 3px;
-    height: 3px;
+    width: 4px;
+    height: 4px;
 }
 ::-webkit-scrollbar-track {
     background: transparent;
@@ -156,14 +153,6 @@ input, textarea {
 ::-webkit-scrollbar-thumb {
     background: var(--text-muted);
     border-radius: 10px;
-}
-
-.chat-messages {
-    -webkit-overflow-scrolling: touch;
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-    scroll-behavior: smooth;
 }
 
 #app {
@@ -192,7 +181,7 @@ input, textarea {
 
 @media (min-width: 441px) {
     .chat-container {
-        border-radius: 20px;
+        border-radius: 24px;
         height: 90vh;
         box-shadow: var(--shadow);
     }
@@ -211,8 +200,8 @@ input, textarea {
 /* ===== الهيدر ===== */
 .chat-header {
     background: var(--bg-header);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     padding: 8px 14px 8px;
     padding-top: 40px;
     display: flex;
@@ -231,24 +220,28 @@ input, textarea {
     left: 50%;
     transform: translateX(-50%);
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.2px;
     display: flex;
     align-items: center;
     gap: 8px;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .status-bar .version {
-    font-size: 9px;
+    font-size: 8px;
     opacity: 0.4;
+}
+
+.status-bar .online-count {
+    font-size: 10px;
+    color: var(--green);
 }
 
 .header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex: 1;
     min-width: 0;
 }
@@ -268,8 +261,8 @@ input, textarea {
     cursor: pointer;
     overflow: hidden;
     border: 2px solid var(--accent-glow);
-    box-shadow: 0 0 12px var(--accent-glow);
-    transition: 0.2s;
+    box-shadow: 0 0 20px var(--accent-glow);
+    transition: var(--transition);
 }
 
 .header-avatar:hover {
@@ -283,19 +276,6 @@ input, textarea {
     object-fit: cover;
 }
 
-.header-avatar .avatar-placeholder {
-    font-size: 16px;
-    font-weight: 600;
-    color: #fff;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-}
-
 .brand {
     display: flex;
     align-items: center;
@@ -303,7 +283,6 @@ input, textarea {
     font-weight: 700;
     font-size: 17px;
     color: var(--text-primary);
-    letter-spacing: -0.3px;
     min-width: 0;
 }
 
@@ -317,13 +296,12 @@ input, textarea {
 }
 
 .admin-badge {
-    font-size: 10px;
+    font-size: 9px;
     background: var(--gold);
     color: #000;
     padding: 1px 8px;
     border-radius: 12px;
     font-weight: 700;
-    margin-left: 4px;
     display: none;
     flex-shrink: 0;
 }
@@ -335,7 +313,7 @@ input, textarea {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 0px;
+    gap: 2px;
     flex-shrink: 0;
 }
 
@@ -344,14 +322,15 @@ input, textarea {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 8px;
-    transition: 0.2s;
+    padding: 6px;
+    border-radius: 10px;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
+    position: relative;
 }
 
 .header-actions button .material-symbols-outlined {
@@ -361,6 +340,7 @@ input, textarea {
 .header-actions button:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
+    transform: scale(1.05);
 }
 
 .header-actions .logout-btn:hover {
@@ -376,15 +356,10 @@ input, textarea {
     display: none;
 }
 
-.header-actions .theme-toggle:hover {
-    background: var(--bg-hover);
-    color: var(--accent);
-}
-
 /* ===== الرسائل ===== */
 .chat-messages {
     flex: 1;
-    padding: 6px 12px 2px;
+    padding: 8px 12px 4px;
     overflow-y: auto;
     overflow-x: hidden;
     background: var(--bg-messages);
@@ -400,17 +375,18 @@ input, textarea {
 .msg-group {
     display: flex;
     align-items: flex-end;
-    gap: 6px;
+    gap: 8px;
     max-width: 100%;
-    animation: messageSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    margin-bottom: 2px;
-    padding: 0 2px;
+    animation: messageSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-bottom: 4px;
+    padding: 0 4px;
+    transition: var(--transition);
 }
 
 @keyframes messageSlideUp {
     from {
         opacity: 0;
-        transform: translateY(20px) scale(0.95);
+        transform: translateY(30px) scale(0.95);
     }
     to {
         opacity: 1;
@@ -429,8 +405,8 @@ input, textarea {
 }
 
 .msg-avatar {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: var(--text-muted);
     flex-shrink: 0;
@@ -438,12 +414,13 @@ input, textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
     align-self: flex-end;
-    transition: 0.2s;
+    transition: var(--transition);
+    border: 2px solid var(--bg-messages);
 }
 
 .msg-avatar img {
@@ -455,6 +432,7 @@ input, textarea {
 
 .msg-group.grouped .msg-avatar {
     opacity: 0;
+    transform: scale(0.8);
     pointer-events: none;
 }
 
@@ -471,6 +449,7 @@ input, textarea {
     flex-direction: column;
     max-width: 78%;
     position: relative;
+    transition: var(--transition);
 }
 
 .msg-group.self .msg-content {
@@ -485,9 +464,9 @@ input, textarea {
     font-size: 11px;
     font-weight: 600;
     color: var(--text-secondary);
-    padding: 0 2px 2px 0;
+    padding: 0 2px 4px 0;
     display: none;
-    transition: 0.2s;
+    transition: var(--transition);
 }
 
 .msg-group.other .msg-sender {
@@ -504,21 +483,23 @@ input, textarea {
 }
 
 .msg-bubble {
-    padding: 8px 14px 7px;
+    padding: 10px 16px 8px;
     border-radius: var(--radius-bubble);
     word-wrap: break-word;
     font-size: 15px;
-    line-height: 1.45;
+    line-height: 1.5;
     max-width: 100%;
     position: relative;
     box-shadow: var(--shadow-sm);
-    transition: 0.2s;
+    transition: var(--transition);
+    cursor: default;
 }
 
 .msg-group.self .msg-bubble {
     background: var(--bg-bubble-self);
     color: var(--text-bubble-self);
     border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px var(--accent-glow);
 }
 
 .msg-group.other .msg-bubble {
@@ -542,10 +523,10 @@ input, textarea {
 /* ===== الرد ===== */
 .reply-box {
     background: rgba(255, 255, 255, 0.04);
-    border-right: 2px solid var(--accent);
-    padding: 2px 10px;
-    margin-bottom: 4px;
-    border-radius: 4px;
+    border-right: 3px solid var(--accent);
+    padding: 4px 10px;
+    margin-bottom: 6px;
+    border-radius: 6px;
     font-size: 12px;
     color: var(--text-secondary);
 }
@@ -558,14 +539,14 @@ input, textarea {
 /* ===== النص ===== */
 .msg-text {
     font-size: 15px;
-    line-height: 1.45;
+    line-height: 1.5;
     word-break: break-word;
 }
 
 .msg-text.emoji-big {
-    font-size: 36px;
+    font-size: 40px;
     line-height: 1.2;
-    padding: 2px 0;
+    padding: 4px 0;
 }
 
 .msg-text .edited-badge {
@@ -581,31 +562,21 @@ input, textarea {
     font-style: italic;
 }
 
-.msg-text .warning-badge {
-    font-size: 10px;
-    color: var(--orange);
-    font-weight: 500;
-    background: rgba(250, 168, 26, 0.08);
-    padding: 0 6px;
-    border-radius: 4px;
-    margin-left: 4px;
-}
-
 /* ===== الوقت ===== */
 .msg-time {
     font-size: 10px;
     color: var(--text-muted);
-    padding: 0 2px;
-    margin-top: 1px;
+    padding: 0 4px;
+    margin-top: 4px;
     display: flex;
     align-items: center;
-    gap: 4px;
-    opacity: 0.7;
-    transition: 0.2s;
+    gap: 6px;
+    opacity: 0.6;
+    transition: var(--transition);
 }
 
 .msg-group.self .msg-time {
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .read-status {
@@ -613,21 +584,57 @@ input, textarea {
     color: var(--accent);
 }
 
+/* ===== التفاعلات ===== */
+.msg-reactions {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.msg-reaction {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.msg-reaction:hover {
+    transform: scale(1.1);
+    background: var(--bg-hover);
+}
+
+.msg-reaction .reaction-count {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.msg-reaction.reacted {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+
 /* ===== قائمة الإجراءات ===== */
 .msg-actions {
     position: absolute;
-    top: -34px;
+    top: -42px;
     background: var(--bg-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 10px;
-    padding: 2px 4px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 4px 6px;
     display: none;
-    gap: 0px;
+    gap: 2px;
     box-shadow: var(--shadow);
     z-index: 20;
     border: 0.5px solid rgba(255, 255, 255, 0.04);
-    animation: popIn 0.12s ease;
+    animation: popIn 0.15s ease;
 }
 
 .msg-group.self .msg-actions {
@@ -643,7 +650,7 @@ input, textarea {
 
 @keyframes popIn {
     from {
-        transform: scale(0.85) translateY(4px);
+        transform: scale(0.85) translateY(8px);
         opacity: 0;
     }
     to {
@@ -657,25 +664,30 @@ input, textarea {
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 6px;
-    transition: 0.15s;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 12px;
 }
 
 .msg-actions button .material-symbols-outlined {
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .msg-actions button:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
+    transform: scale(1.1);
 }
 
 .msg-actions button.reply:hover {
     color: var(--accent);
+}
+.msg-actions button.edit:hover {
+    color: var(--orange);
 }
 .msg-actions button.delete:hover {
     color: var(--red);
@@ -683,8 +695,8 @@ input, textarea {
 .msg-actions button.report:hover {
     color: var(--orange);
 }
-.msg-actions button.block:hover {
-    color: var(--red);
+.msg-actions button.react:hover {
+    color: var(--gold);
 }
 
 /* ===== رسائل النظام ===== */
@@ -692,24 +704,24 @@ input, textarea {
     text-align: center;
     font-size: 11px;
     color: var(--text-muted);
-    padding: 4px 12px;
-    margin: 2px auto;
+    padding: 6px 14px;
+    margin: 4px auto;
     background: rgba(255, 255, 255, 0.02);
-    border-radius: 8px;
+    border-radius: 12px;
     max-width: 85%;
     border: 0.5px solid rgba(255, 255, 255, 0.03);
-    opacity: 0.8;
-    animation: systemSlideUp 0.3s ease;
+    opacity: 0.7;
+    animation: systemSlideUp 0.4s ease;
 }
 
 @keyframes systemSlideUp {
     from {
         opacity: 0;
-        transform: translateY(20px) scale(0.95);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
     }
 }
 
@@ -717,7 +729,7 @@ input, textarea {
     color: var(--gold);
     border-color: rgba(250, 204, 21, 0.08);
     background: rgba(250, 204, 21, 0.02);
-    padding: 10px 14px;
+    padding: 12px 16px;
     text-align: right;
     max-width: 95%;
     opacity: 1;
@@ -726,12 +738,12 @@ input, textarea {
 .system-msg.rules .rule-title {
     font-weight: 700;
     font-size: 13px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     text-align: center;
 }
 
 .system-msg.rules .rule-item {
-    padding: 2px 0;
+    padding: 3px 0;
     font-size: 12px;
 }
 
@@ -755,8 +767,8 @@ input, textarea {
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
-    gap: 4px;
-    animation: fadeIn 0.5s ease;
+    gap: 8px;
+    animation: fadeIn 0.6s ease;
 }
 
 @keyframes fadeIn {
@@ -771,32 +783,32 @@ input, textarea {
 }
 
 .empty-state .empty-icon .material-symbols-outlined {
-    font-size: 44px;
-    opacity: 0.1;
+    font-size: 56px;
+    opacity: 0.08;
 }
 
 .empty-state .empty-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
-    opacity: 0.25;
+    opacity: 0.3;
 }
 
 .empty-state .empty-sub {
-    font-size: 12px;
-    opacity: 0.12;
+    font-size: 13px;
+    opacity: 0.15;
 }
 
 /* ===== مؤشر الكتابة ===== */
 .typing-indicator {
     display: none;
     align-self: flex-start;
-    padding: 5px 14px;
+    padding: 8px 16px;
     background: var(--bg-bubble-other);
-    border-radius: 14px;
+    border-radius: 16px;
     border-bottom-left-radius: 4px;
-    margin: 2px 0 4px;
+    margin: 4px 0 8px;
     gap: 4px;
-    animation: typingFade 0.3s ease;
+    animation: typingFade 0.4s ease;
 }
 
 @keyframes typingFade {
@@ -815,8 +827,8 @@ input, textarea {
 }
 
 .typing-indicator span {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     background: var(--text-muted);
     border-radius: 50%;
     animation: typingBounce 1.4s infinite;
@@ -832,10 +844,10 @@ input, textarea {
 @keyframes typingBounce {
     0%, 60%, 100% {
         transform: translateY(0);
-        opacity: 0.25;
+        opacity: 0.3;
     }
     30% {
-        transform: translateY(-4px);
+        transform: translateY(-6px);
         opacity: 1;
     }
 }
@@ -843,21 +855,21 @@ input, textarea {
 /* ===== لوحة الإيموجي ===== */
 .emoji-rail {
     position: absolute;
-    bottom: 68px;
-    left: 10px;
-    right: 10px;
+    bottom: 76px;
+    left: 12px;
+    right: 12px;
     background: var(--bg-card);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-radius: 16px;
-    padding: 6px 8px;
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border-radius: 20px;
+    padding: 8px 10px;
     display: none;
-    gap: 3px;
+    gap: 4px;
     justify-content: center;
     box-shadow: var(--shadow);
     border: 0.5px solid rgba(255, 255, 255, 0.04);
     z-index: 30;
-    animation: railUp 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: railUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     flex-wrap: wrap;
 }
 
@@ -867,7 +879,7 @@ input, textarea {
 
 @keyframes railUp {
     from {
-        transform: translateY(16px) scale(0.92);
+        transform: translateY(20px) scale(0.92);
         opacity: 0;
     }
     to {
@@ -877,11 +889,11 @@ input, textarea {
 }
 
 .emoji-rail .emoji-item {
-    font-size: 26px;
-    padding: 3px 5px;
+    font-size: 28px;
+    padding: 4px 6px;
     cursor: pointer;
-    border-radius: 8px;
-    transition: 0.12s;
+    border-radius: 10px;
+    transition: var(--transition);
     background: none;
     border: none;
     line-height: 1;
@@ -889,24 +901,128 @@ input, textarea {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 36px;
+    min-height: 36px;
     font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
 }
 
 .emoji-rail .emoji-item:hover {
     background: var(--bg-hover);
-    transform: scale(1.08);
+    transform: scale(1.15);
 }
 
 .emoji-rail .emoji-item:active {
-    transform: scale(1.2);
+    transform: scale(1.3);
+}
+
+/* ===== لوحة التفاعلات ===== */
+.reaction-picker {
+    position: absolute;
+    bottom: 76px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border-radius: 20px;
+    padding: 6px 8px;
+    display: none;
+    gap: 2px;
+    box-shadow: var(--shadow);
+    border: 0.5px solid rgba(255, 255, 255, 0.04);
+    z-index: 35;
+    animation: railUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.reaction-picker.active {
+    display: flex;
+}
+
+.reaction-picker .reaction-option {
+    font-size: 28px;
+    padding: 4px 6px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: var(--transition);
+    background: none;
+    border: none;
+    line-height: 1;
+    min-width: 36px;
+    min-height: 36px;
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+}
+
+.reaction-picker .reaction-option:hover {
     background: var(--bg-hover);
+    transform: scale(1.2);
+}
+
+.reaction-picker .reaction-option:active {
+    transform: scale(1.3);
+}
+
+/* ===== معاينة الرد ===== */
+.reply-preview {
+    background: var(--bg-input);
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-right: 3px solid var(--accent);
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reply-preview-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.reply-preview-sender {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.reply-preview-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reply-preview-cancel {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 16px;
+    transition: var(--transition);
+}
+
+.reply-preview-cancel:hover {
+    color: var(--red);
+    transform: scale(1.1);
 }
 
 /* ===== منطقة الإدخال ===== */
 .chat-input {
-    padding: 6px 12px 10px;
+    padding: 6px 12px 12px;
     background: var(--bg-messages);
     border-top: 0.5px solid rgba(255, 255, 255, 0.03);
     display: flex;
@@ -914,7 +1030,6 @@ input, textarea {
     gap: 4px;
     flex-shrink: 0;
     position: relative;
-    padding-bottom: 14px;
 }
 
 .input-row {
@@ -923,41 +1038,66 @@ input, textarea {
     align-items: center;
 }
 
+.attach-btn {
+    color: var(--text-muted);
+    padding: 6px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.attach-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    transform: scale(1.05);
+}
+
+.attach-btn .material-symbols-outlined {
+    font-size: 22px;
+}
+
 .input-wrapper {
     flex: 1;
     background: var(--bg-input);
-    border-radius: 22px;
+    border-radius: 24px;
     padding: 2px 4px;
     display: flex;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    transition: 0.2s;
+    border: 1.5px solid rgba(255, 255, 255, 0.04);
+    transition: var(--transition);
     min-width: 0;
 }
 
 .input-wrapper:focus-within {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+    box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
 .emoji-toggle {
     color: var(--text-muted);
-    padding: 3px 5px;
+    padding: 4px 6px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
     border: none;
-    border-radius: 6px;
-    width: 32px;
-    height: 32px;
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
 }
 
 .emoji-toggle .material-symbols-outlined {
-    font-size: 20px;
+    font-size: 22px;
 }
 
 .emoji-toggle:hover {
@@ -972,7 +1112,7 @@ input, textarea {
 
 .input-wrapper input {
     flex: 1;
-    padding: 8px 4px;
+    padding: 10px 4px;
     border: none;
     background: transparent;
     color: var(--text-primary);
@@ -983,36 +1123,64 @@ input, textarea {
 
 .input-wrapper input::placeholder {
     color: var(--text-muted);
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
 .input-wrapper input:disabled {
     opacity: 0.3;
 }
 
+.voice-btn {
+    color: var(--text-muted);
+    padding: 4px 6px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+}
+
+.voice-btn .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.voice-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
 .send-btn {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background: var(--accent);
     color: #fff;
     border: none;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 10px var(--accent-glow);
+    box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 .send-btn .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 20px;
 }
 
 .send-btn:hover {
     background: var(--accent-hover);
-    transform: scale(1.04);
+    transform: scale(1.05) rotate(-10deg);
+}
+
+.send-btn:active {
+    transform: scale(0.95);
 }
 
 .send-btn:disabled {
@@ -1024,18 +1192,67 @@ input, textarea {
 
 .muted-notice {
     text-align: center;
-    padding: 4px 10px;
+    padding: 6px 12px;
     background: rgba(250, 168, 26, 0.06);
-    border-radius: 6px;
+    border-radius: 10px;
     color: var(--orange);
     font-size: 12px;
     display: none;
-    margin-top: 2px;
+    margin-top: 4px;
     animation: fadeIn 0.3s ease;
 }
 
 .muted-notice.active {
     display: block;
+}
+
+/* ===== زر التمرير للأسفل ===== */
+.scroll-bottom-btn {
+    position: absolute;
+    bottom: 84px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+    transition: var(--transition);
+    font-size: 22px;
+    animation: fadeIn 0.3s ease;
+    position: relative;
+}
+
+.scroll-bottom-btn:hover {
+    transform: scale(1.08);
+    background: var(--accent-hover);
+}
+
+.scroll-bottom-btn.show {
+    display: flex;
+}
+
+.scroll-bottom-btn .new-msg-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-messages);
 }
 
 /* ===== شاشة تسجيل الدخول ===== */
@@ -1051,7 +1268,7 @@ input, textarea {
     align-items: center;
     z-index: 1000;
     padding: 20px;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.4s ease;
 }
 
 .login-overlay.hidden {
@@ -1060,20 +1277,20 @@ input, textarea {
 
 .login-box {
     background: var(--bg-card);
-    padding: 32px 24px 28px;
-    border-radius: 20px;
+    padding: 36px 28px 32px;
+    border-radius: 24px;
     text-align: center;
-    max-width: 360px;
+    max-width: 380px;
     width: 100%;
     border: 0.5px solid rgba(255, 255, 255, 0.03);
     box-shadow: var(--shadow);
-    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes scaleIn {
     from {
         opacity: 0;
-        transform: scale(0.92);
+        transform: scale(0.9);
     }
     to {
         opacity: 1;
@@ -1082,8 +1299,8 @@ input, textarea {
 }
 
 .login-logo {
-    font-size: 48px;
-    margin-bottom: 2px;
+    font-size: 56px;
+    margin-bottom: 4px;
     animation: float 3s ease-in-out infinite;
 }
 
@@ -1092,16 +1309,15 @@ input, textarea {
         transform: translateY(0);
     }
     50% {
-        transform: translateY(-6px);
+        transform: translateY(-8px);
     }
 }
 
 .login-box h1 {
     color: var(--text-primary);
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     margin-bottom: 2px;
-    letter-spacing: -0.5px;
 }
 
 .login-box h1 .hl {
@@ -1113,47 +1329,47 @@ input, textarea {
 .login-sub {
     color: var(--text-secondary);
     font-size: 13px;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
 
 .login-box input {
     width: 100%;
-    padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
     background: var(--bg-input);
     color: var(--text-primary);
     font-size: 16px;
     text-align: center;
     outline: none;
-    transition: 0.2s;
+    transition: var(--transition);
 }
 
 .login-box input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+    box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
 .login-box input::placeholder {
     color: var(--text-muted);
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .color-options {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     justify-content: center;
-    margin: 6px 0 14px;
+    margin: 8px 0 16px;
     flex-wrap: wrap;
 }
 
 .color-circle {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 2.5px solid transparent;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
 }
 
 .color-circle:active {
@@ -1163,30 +1379,34 @@ input, textarea {
 .color-circle.selected {
     border-color: var(--text-primary);
     transform: scale(1.1);
-    box-shadow: 0 0 16px var(--accent-glow);
+    box-shadow: 0 0 20px var(--accent-glow);
 }
 
 .login-btn {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     background: var(--accent);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 14px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .login-btn:hover {
     background: var(--accent-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 20px var(--accent-glow);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.login-btn:active {
+    transform: translateY(0);
 }
 
 .login-btn:disabled {
@@ -1220,27 +1440,7 @@ input, textarea {
 }
 
 .login-admin-password-box input {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-    background: var(--bg-input);
-    color: var(--text-primary);
-    font-size: 16px;
-    text-align: center;
-    outline: none;
-    transition: 0.2s;
     margin-bottom: 8px;
-}
-
-.login-admin-password-box input:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
-}
-
-.login-admin-password-box input::placeholder {
-    color: var(--text-muted);
-    opacity: 0.5;
 }
 
 .login-admin-password-box .error-msg {
@@ -1255,34 +1455,33 @@ input, textarea {
 
 /* ===== الملف الشخصي ===== */
 .profile-modal .modal-box {
-    max-width: 360px;
+    max-width: 380px;
 }
 
 .profile-avatar-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin: 6px 0 16px;
+    gap: 12px;
+    margin: 8px 0 18px;
 }
 
 .profile-avatar-preview {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
     background: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
+    font-size: 34px;
     font-weight: 700;
     color: #fff;
     overflow: hidden;
-    border: 2px solid var(--accent-glow);
-    box-shadow: 0 0 24px var(--accent-glow);
+    border: 3px solid var(--accent-glow);
+    box-shadow: 0 0 32px var(--accent-glow);
     cursor: pointer;
-    transition: 0.2s;
-    position: relative;
+    transition: var(--transition);
 }
 
 .profile-avatar-preview:hover {
@@ -1297,78 +1496,66 @@ input, textarea {
     border-radius: 50%;
 }
 
-.profile-avatar-preview .avatar-placeholder {
-    font-size: 32px;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-}
-
 .profile-avatar-btn {
-    padding: 4px 16px;
+    padding: 6px 18px;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
+    border-radius: 20px;
     background: var(--bg-input);
     color: var(--text-secondary);
     font-size: 12px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .profile-avatar-btn:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
+    transform: scale(1.02);
 }
 
 .profile-name-input {
     width: 100%;
-    padding: 10px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    padding: 12px 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
     background: var(--bg-input);
     color: var(--text-primary);
     font-size: 16px;
     text-align: center;
     outline: none;
-    transition: 0.2s;
-    margin: 4px 0 8px;
+    transition: var(--transition);
+    margin: 4px 0 10px;
 }
 
 .profile-name-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+    box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
 .profile-save-btn {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background: var(--accent);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 14px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .profile-save-btn:hover {
     background: var(--accent-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 20px var(--accent-glow);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--accent-glow);
 }
 
 /* ===== النوافذ المنبثقة ===== */
@@ -1379,8 +1566,8 @@ input, textarea {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: none;
     justify-content: center;
     align-items: center;
@@ -1390,18 +1577,18 @@ input, textarea {
 
 .modal-overlay.active {
     display: flex;
-    animation: fadeIn 0.2s ease;
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-box {
     background: var(--bg-card);
-    padding: 24px 20px 20px;
-    border-radius: 20px;
-    max-width: 400px;
+    padding: 28px 24px 24px;
+    border-radius: 24px;
+    max-width: 420px;
     width: 100%;
     border: 0.5px solid rgba(255, 255, 255, 0.03);
     box-shadow: var(--shadow);
-    animation: modalIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     max-height: 85vh;
     overflow-y: auto;
 }
@@ -1409,7 +1596,7 @@ input, textarea {
 @keyframes modalIn {
     from {
         opacity: 0;
-        transform: scale(0.92) translateY(16px);
+        transform: scale(0.92) translateY(20px);
     }
     to {
         opacity: 1;
@@ -1418,35 +1605,35 @@ input, textarea {
 }
 
 .modal-title {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 700;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .modal-title .material-symbols-outlined {
     color: var(--gold);
-    font-size: 22px;
+    font-size: 24px;
 }
 
 .modal-desc {
     color: var(--text-secondary);
     font-size: 13px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .modal-rules {
-    margin: 8px 0 14px;
+    margin: 10px 0 16px;
     padding: 0;
 }
 
 .modal-rules .rule-item {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    padding: 5px 0;
+    gap: 10px;
+    padding: 6px 0;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.03);
     font-size: 13px;
     color: var(--text-secondary);
@@ -1455,54 +1642,50 @@ input, textarea {
 .modal-rules .rule-item .num {
     color: var(--gold);
     font-weight: 700;
-    min-width: 22px;
+    min-width: 24px;
 }
 
 .close-modal {
     width: 100%;
-    padding: 10px;
-    margin-top: 14px;
+    padding: 12px;
+    margin-top: 16px;
     background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
     border: none;
-    border-radius: 10px;
+    border-radius: 14px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .close-modal:hover {
     background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.02);
 }
 
 /* ===== لوحة المسؤول ===== */
 .admin-password-box input {
     width: 100%;
-    padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
     background: var(--bg-input);
     color: var(--text-primary);
     font-size: 16px;
     text-align: center;
     outline: none;
-    transition: 0.2s;
-    margin-bottom: 10px;
+    transition: var(--transition);
+    margin-bottom: 12px;
 }
 
 .admin-password-box input:focus {
     border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
-}
-
-.admin-password-box input::placeholder {
-    color: var(--text-muted);
-    opacity: 0.5;
+    box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.1);
 }
 
 .admin-password-box .error-msg {
@@ -1517,9 +1700,9 @@ input, textarea {
 }
 
 .admin-panel {
-    margin-top: 10px;
+    margin-top: 12px;
     border-top: 0.5px solid rgba(255, 255, 255, 0.04);
-    padding-top: 10px;
+    padding-top: 12px;
 }
 
 .admin-panel .admin-title {
@@ -1530,30 +1713,26 @@ input, textarea {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
-}
-
-.admin-panel .admin-title .title-left {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 .admin-panel .admin-users {
-    max-height: 140px;
+    max-height: 150px;
     overflow-y: auto;
-    margin-top: 6px;
+    margin-bottom: 10px;
 }
 
 .admin-panel .user-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 8px;
-    border-radius: 6px;
+    padding: 6px 10px;
+    border-radius: 10px;
     font-size: 12px;
     color: var(--text-secondary);
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.02);
+    transition: var(--transition);
 }
 
 .admin-panel .user-item:hover {
@@ -1563,13 +1742,13 @@ input, textarea {
 .admin-panel .user-item .user-info {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
 .admin-panel .user-item .user-info .user-avatar-small {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: var(--text-muted);
     overflow: hidden;
@@ -1586,21 +1765,11 @@ input, textarea {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 50%;
-}
-
-.admin-panel .user-item .user-info .muted-badge {
-    font-size: 9px;
-    color: var(--orange);
-    background: rgba(250, 168, 26, 0.08);
-    padding: 0 5px;
-    border-radius: 4px;
 }
 
 .admin-panel .user-item .user-actions {
     display: flex;
-    gap: 2px;
-    flex-wrap: wrap;
+    gap: 4px;
 }
 
 .admin-panel .user-item .user-actions button {
@@ -1608,9 +1777,9 @@ input, textarea {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 4px;
-    transition: 0.15s;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1622,6 +1791,7 @@ input, textarea {
 
 .admin-panel .user-item .user-actions button:hover {
     background: var(--bg-hover);
+    transform: scale(1.1);
 }
 
 .admin-panel .user-item .user-actions .delete-user:hover {
@@ -1652,8 +1822,8 @@ input, textarea {
     color: var(--purple);
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-bottom: 6px;
+    gap: 6px;
+    margin-bottom: 8px;
 }
 
 .theme-settings .theme-options {
@@ -1663,33 +1833,30 @@ input, textarea {
 }
 
 .theme-settings .theme-options .theme-btn {
-    padding: 4px 12px;
-    border-radius: 16px;
+    padding: 6px 14px;
+    border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     background: var(--bg-input);
     color: var(--text-secondary);
     cursor: pointer;
     font-size: 11px;
     font-weight: 500;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .theme-settings .theme-options .theme-btn:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
+    transform: scale(1.02);
 }
 
 .theme-settings .theme-options .theme-btn.active {
     border-color: var(--accent);
     color: var(--accent);
     background: var(--accent-glow);
-}
-
-.theme-settings .theme-options .theme-btn .material-symbols-outlined {
-    font-size: 14px;
 }
 
 /* ===== الكلمات المحظورة ===== */
@@ -1705,43 +1872,43 @@ input, textarea {
     color: var(--orange);
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-bottom: 6px;
+    gap: 6px;
+    margin-bottom: 8px;
 }
 
 .badwords-section .badwords-input-row {
     display: flex;
     gap: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .badwords-section .badwords-input-row input {
     flex: 1;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--bg-input);
     color: var(--text-primary);
     font-size: 13px;
     outline: none;
-    transition: 0.2s;
+    transition: var(--transition);
 }
 
 .badwords-section .badwords-input-row input:focus {
     border-color: var(--orange);
-    box-shadow: 0 0 0 3px rgba(250, 168, 26, 0.08);
+    box-shadow: 0 0 0 4px rgba(250, 168, 26, 0.08);
 }
 
 .badwords-section .badwords-input-row button {
-    padding: 6px 12px;
+    padding: 8px 14px;
     background: var(--orange);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -1756,28 +1923,28 @@ input, textarea {
 .badwords-section .badwords-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
     max-height: 80px;
     overflow-y: auto;
-    padding: 2px 0;
+    padding: 4px 0;
 }
 
 .badwords-section .badwords-list .badword-tag {
     background: rgba(250, 168, 26, 0.08);
     color: var(--orange);
-    padding: 2px 8px;
-    border-radius: 16px;
+    padding: 4px 10px;
+    border-radius: 20px;
     font-size: 11px;
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
 }
 
 .badwords-section .badwords-list .badword-tag .remove-badword {
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-muted);
-    transition: 0.15s;
+    transition: var(--transition);
     background: none;
     border: none;
     display: flex;
@@ -1787,6 +1954,7 @@ input, textarea {
 
 .badwords-section .badwords-list .badword-tag .remove-badword:hover {
     color: var(--red);
+    transform: scale(1.1);
 }
 
 /* ===== أزرار المسؤول ===== */
@@ -1795,25 +1963,21 @@ input, textarea {
     background: rgba(237, 66, 69, 0.1);
     color: var(--red);
     border: none;
-    padding: 3px 8px;
-    border-radius: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 11px;
     font-weight: 500;
-    transition: 0.2s;
+    transition: var(--transition);
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
 }
 
 .force-logout-btn:hover,
 .clear-chat-btn:hover {
     background: rgba(237, 66, 69, 0.18);
-}
-
-.force-logout-btn .material-symbols-outlined,
-.clear-chat-btn .material-symbols-outlined {
-    font-size: 14px;
+    transform: scale(1.02);
 }
 
 /* ===== شاشة التحميل ===== */
@@ -1823,9 +1987,9 @@ input, textarea {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: none;
     justify-content: center;
     align-items: center;
@@ -1834,26 +1998,26 @@ input, textarea {
 
 .loading-overlay.active {
     display: flex;
-    animation: fadeIn 0.2s ease;
+    animation: fadeIn 0.3s ease;
 }
 
 .loading-spinner {
     background: var(--bg-card);
-    padding: 24px 32px;
-    border-radius: 14px;
+    padding: 32px 40px;
+    border-radius: 20px;
     text-align: center;
     border: 0.5px solid rgba(255, 255, 255, 0.03);
     box-shadow: var(--shadow);
 }
 
 .loading-spinner .spinner {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border: 3px solid rgba(255, 255, 255, 0.05);
     border-top: 3px solid var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
-    margin: 0 auto 10px;
+    margin: 0 auto 12px;
 }
 
 @keyframes spin {
@@ -1864,17 +2028,17 @@ input, textarea {
 
 .loading-spinner .loading-text {
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* ===== التذييل ===== */
 .app-footer {
     display: none;
     text-align: center;
-    padding: 3px 0 5px;
+    padding: 4px 0 6px;
     font-size: 9px;
     color: var(--text-muted);
-    opacity: 0.25;
+    opacity: 0.2;
     border-top: 0.5px solid rgba(255, 255, 255, 0.02);
     background: var(--bg-messages);
     flex-shrink: 0;
@@ -1884,44 +2048,13 @@ input, textarea {
     display: block;
 }
 
-/* ===== زر التمرير للأسفل ===== */
-.scroll-bottom-btn {
-    position: absolute;
-    bottom: 80px;
-    right: 16px;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 15;
-    transition: 0.2s;
-    font-size: 20px;
-    animation: fadeIn 0.3s ease;
-}
-
-.scroll-bottom-btn:hover {
-    transform: scale(1.08);
-    background: var(--accent-hover);
-}
-
-.scroll-bottom-btn.show {
-    display: flex;
-}
-
 /* ===== عدد الرسائل ===== */
 .msg-count {
     text-align: center;
     font-size: 11px;
     color: var(--text-muted);
-    padding: 2px 0 6px;
-    opacity: 0.4;
+    padding: 4px 0 8px;
+    opacity: 0.3;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.02);
     animation: fadeIn 0.3s ease;
 }
@@ -1931,32 +2064,30 @@ input, textarea {
     color: var(--text-secondary);
 }
 
-/* ===== مخفي ===== */
+/* ===== أدوات ===== */
+.hidden {
+    display: none !important;
+}
+
 .file-input-hidden {
     display: none;
 }
 
-/* ===== حالة الرفع ===== */
 .upload-status {
     text-align: center;
-    padding: 6px 12px;
-    border-radius: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
     font-size: 13px;
     color: var(--text-secondary);
     background: var(--bg-input);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    margin-top: 4px;
+    margin-top: 6px;
     width: 100%;
     display: none;
 }
 
 .upload-status.show {
     display: block;
-}
-
-.upload-status.loading {
-    color: var(--accent);
-    border-color: var(--accent-glow);
 }
 
 .upload-status.success {
@@ -1969,76 +2100,67 @@ input, textarea {
     border-color: rgba(237, 66, 69, 0.2);
 }
 
-/* ===== أدوات ===== */
-.hidden {
-    display: none !important;
-}
-
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     user-select: none;
 }
 
-.emoji-item {
-    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
-}
-
 /* ===== استجابة ===== */
 @media (max-width: 400px) {
     .msg-group {
-        gap: 4px;
+        gap: 6px;
     }
     .msg-bubble {
         font-size: 14px;
-        padding: 7px 12px 6px;
+        padding: 8px 12px 6px;
     }
     .msg-avatar {
-        width: 24px;
-        height: 24px;
-        font-size: 9px;
-        margin-bottom: 14px;
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+        margin-bottom: 16px;
     }
     .chat-header {
         padding-top: 36px;
         padding-left: 10px;
         padding-right: 10px;
-        min-height: 48px;
+        min-height: 50px;
     }
     .brand {
         font-size: 15px;
     }
     .header-avatar {
-        width: 30px;
-        height: 30px;
-        font-size: 13px;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
     }
     .login-box {
-        padding: 24px 16px 20px;
+        padding: 28px 18px 24px;
     }
     .emoji-rail .emoji-item {
-        font-size: 22px;
-        min-width: 28px;
-        min-height: 28px;
+        font-size: 24px;
+        min-width: 30px;
+        min-height: 30px;
     }
     .modal-box {
-        padding: 18px 14px 16px;
+        padding: 20px 16px 18px;
     }
     .header-actions button {
-        width: 30px;
-        height: 30px;
-        padding: 3px 4px;
+        width: 32px;
+        height: 32px;
     }
     .header-actions button .material-symbols-outlined {
         font-size: 18px;
     }
     .status-bar {
-        font-size: 10px;
+        font-size: 9px;
         top: 8px;
     }
-    .profile-avatar-preview {
-        width: 68px;
-        height: 68px;
-        font-size: 26px;
+    .scroll-bottom-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        bottom: 76px;
     }
 }
 
@@ -2051,14 +2173,21 @@ input, textarea {
         font-size: 10px;
     }
     .header-actions button {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
     }
     .header-actions button .material-symbols-outlined {
         font-size: 16px;
     }
     .chat-input {
         padding: 4px 8px 8px;
+    }
+    .send-btn {
+        width: 38px;
+        height: 38px;
+    }
+    .send-btn .material-symbols-outlined {
+        font-size: 18px;
     }
 }
 
@@ -2067,6 +2196,6 @@ input, textarea {
         max-width: 72%;
     }
     .chat-messages {
-        padding: 10px 20px 6px;
+        padding: 12px 20px 8px;
     }
    }
