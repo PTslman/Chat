@@ -42,9 +42,9 @@ const DEFAULT_BAD_WORDS = [
 ];
 
 // ============================================================
-// 📦 حالة التطبيق
+// 📦 حالة التطبيق (State)
 // ============================================================
-let state = {
+const state = {
     currentUser: '',
     userColor: '#2b6ef0',
     isLoggedIn: false,
@@ -67,7 +67,8 @@ let state = {
     messageIds: new Set(),
     unreadCount: 0,
     onlineUsers: new Set(),
-    activeMessageId: null
+    activeMessageId: null,
+    hideTimeout: null
 };
 
 // ============================================================
@@ -75,9 +76,6 @@ let state = {
 // ============================================================
 const $ = id => document.getElementById(id);
 
-// ============================================================
-// 📄 تعريف جميع العناصر
-// ============================================================
 const elements = {};
 
 function initElements() {
@@ -115,7 +113,6 @@ function initElements() {
     });
 }
 
-// تهيئة العناصر
 initElements();
 
 // ============================================================
@@ -914,7 +911,7 @@ if (elements.searchInput) {
 }
 
 // ============================================================
-// 💬 إنشاء الرسائل - مع دعم الضغط المطول وشريط الرجعة
+// 💬 إنشاء الرسائل
 // ============================================================
 let lastSender = '';
 
@@ -1075,7 +1072,7 @@ function createMessage(id, data, self) {
     }
 
     // ============================================================
-    // 🎯 قائمة الإجراءات - تصميم تلجرام
+    // 🎯 قائمة الإجراءات
     // ============================================================
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
@@ -1132,46 +1129,73 @@ function createMessage(id, data, self) {
     
     actions.innerHTML = actionsHTML;
 
-    // ربط أحداث الأزرار
+    // ============================================================
+    // 🔧 ربط أحداث الأزرار
+    // ============================================================
     actions.querySelector('.reply')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        setReply(id, data.sender, data.text || 'ملف');
-        hideAllMessageActions();
+        e.preventDefault();
+        hideAllMessageActions(200);
+        setTimeout(() => {
+            setReply(id, data.sender, data.text || 'ملف');
+        }, 250);
     });
+    
     actions.querySelector('.react')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        showReactionPicker(id);
-        hideAllMessageActions();
+        e.preventDefault();
+        hideAllMessageActions(200);
+        setTimeout(() => {
+            showReactionPicker(id);
+        }, 250);
     });
+    
     actions.querySelector('.copy')?.addEventListener('click', function(e) {
         e.stopPropagation();
+        e.preventDefault();
         const textToCopy = data.text || data.file?.name || 'رسالة';
         navigator.clipboard.writeText(textToCopy).then(() => {
             addSystemMessage('📋 تم نسخ النص', 'info');
         }).catch(() => {});
-        hideAllMessageActions();
+        hideAllMessageActions(200);
     });
+    
     actions.querySelector('.edit')?.addEventListener('click', function(e) {
         e.stopPropagation();
+        e.preventDefault();
         if (data.text && !data.file && !data.audio) {
-            startEdit(id, data.text);
+            hideAllMessageActions(300);
+            setTimeout(() => {
+                startEdit(id, data.text);
+            }, 350);
         }
-        hideAllMessageActions();
     });
+    
     actions.querySelector('.report')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        reportMsg(id, data.sender);
-        hideAllMessageActions();
+        e.preventDefault();
+        hideAllMessageActions(200);
+        setTimeout(() => {
+            reportMsg(id, data.sender);
+        }, 250);
     });
+    
     actions.querySelector('.delete')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        deleteMsg(id);
-        hideAllMessageActions();
+        e.preventDefault();
+        hideAllMessageActions(0);
+        setTimeout(() => {
+            deleteMsg(id);
+        }, 200);
     });
+    
     actions.querySelector('.block')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        blockUser(data.sender);
-        hideAllMessageActions();
+        e.preventDefault();
+        hideAllMessageActions(200);
+        setTimeout(() => {
+            blockUser(data.sender);
+        }, 250);
     });
 
     // إضافة العناصر
@@ -1192,7 +1216,7 @@ function createMessage(id, data, self) {
     }
 
     // ============================================================
-    // 🖱️ الضغط المطول على الرسالة - مثل تليجرام
+    // 🖱️ الضغط المطول
     // ============================================================
     let longPressTimer = null;
     let isLongPress = false;
@@ -1238,33 +1262,69 @@ function showMessageActions(actionsElement, messageElement) {
     actionsElement.addEventListener('click', function(e) {
         e.stopPropagation();
     });
+    
+    if (messageElement) {
+        state.activeMessageId = messageElement.dataset.id;
+    }
 }
 
-function hideAllMessageActions() {
-    document.querySelectorAll('.msg-actions.active').forEach(el => {
-        el.classList.remove('active');
-    });
-    if (actionsOverlay) {
-        actionsOverlay.classList.remove('active');
+function hideAllMessageActions(delay = 0) {
+    if (state.hideTimeout) {
+        clearTimeout(state.hideTimeout);
+        state.hideTimeout = null;
     }
-    state.activeMessageId = null;
+    
+    if (delay > 0) {
+        state.hideTimeout = setTimeout(() => {
+            document.querySelectorAll('.msg-actions.active').forEach(el => {
+                el.classList.remove('active');
+            });
+            if (actionsOverlay) {
+                actionsOverlay.classList.remove('active');
+            }
+            state.activeMessageId = null;
+            state.hideTimeout = null;
+        }, delay);
+    } else {
+        document.querySelectorAll('.msg-actions.active').forEach(el => {
+            el.classList.remove('active');
+        });
+        if (actionsOverlay) {
+            actionsOverlay.classList.remove('active');
+        }
+        state.activeMessageId = null;
+    }
 }
 
 if (actionsOverlay) {
     actionsOverlay.addEventListener('click', function() {
-        hideAllMessageActions();
+        hideAllMessageActions(100);
     });
 }
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        hideAllMessageActions();
+        hideAllMessageActions(100);
     }
 });
 
+// منع الإغلاق عند النقر على الخيارات
+document.addEventListener('mousedown', function(e) {
+    if (e.target.closest('.msg-actions')) {
+        e.stopPropagation();
+    }
+});
+
+document.addEventListener('touchstart', function(e) {
+    if (e.target.closest('.msg-actions')) {
+        e.stopPropagation();
+    }
+}, { passive: true });
+
+// إغلاق الخيارات عند التمرير
 if (elements.messages) {
     elements.messages.addEventListener('scroll', function() {
-        hideAllMessageActions();
+        hideAllMessageActions(100);
     }, { passive: true });
 }
 
@@ -1818,13 +1878,11 @@ function reportMsg(id, sender) {
 }
 
 // ============================================================
-// ============================================================
-// 📌 شريط الرجعة - مثل واتساب
+// 📌 شريط الرجعة
 // ============================================================
 function setReply(id, sender, text) {
     state.replyTo = { id, sender, text };
     
-    // تحديث شريط الرجعة
     if (elements.replyBarSender) {
         elements.replyBarSender.textContent = `@${sender}`;
     }
@@ -1852,7 +1910,6 @@ function clearReply() {
     }
 }
 
-// إغلاق شريط الرجعة
 if (elements.replyBarClose) {
     elements.replyBarClose.addEventListener('click', clearReply);
 }
@@ -2319,7 +2376,7 @@ if (elements.loginAdminPasswordInput) {
 }
 
 // ============================================================
-// ⌨️ أحداث الإدخال - زر المسافة للشطر الجديد
+// ⌨️ أحداث الإدخال
 // ============================================================
 if (elements.msgInput) {
     elements.msgInput.addEventListener('keydown', function(e) {
@@ -2334,7 +2391,7 @@ if (elements.msgInput) {
             return;
         }
         
-        // Enter فقط = إرسال (بدون Shift)
+        // Enter فقط = إرسال
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (elements.sendBtn && !elements.sendBtn.disabled) {
@@ -2343,7 +2400,7 @@ if (elements.msgInput) {
             return;
         }
         
-        // Escape = إلغاء التعديل أو الرد
+        // Escape = إلغاء
         if (e.key === 'Escape') {
             if (state.editingMessage) {
                 state.editingMessage = null;
@@ -2354,7 +2411,7 @@ if (elements.msgInput) {
                 if (elements.msgInput) elements.msgInput.value = '';
             }
             clearReply();
-            hideAllMessageActions();
+            hideAllMessageActions(100);
         }
     });
 }
