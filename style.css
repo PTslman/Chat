@@ -1,5 +1,5 @@
 /* ============================================================
-   نيزك v5.0.0 - تصميم متطور مع تحسينات
+   نيزك v5.0.0 - تصميم فخم ومتطور
    ============================================================ */
 
 * {
@@ -167,6 +167,9 @@ input, textarea {
 ::-webkit-scrollbar-thumb {
     background: var(--text-muted);
     border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 #app {
@@ -495,6 +498,7 @@ input, textarea {
     padding: 0 4px;
     transition: var(--transition);
     cursor: default;
+    position: relative;
 }
 
 @keyframes messageSlideUp {
@@ -817,42 +821,41 @@ input, textarea {
     background: var(--accent-glow);
 }
 
-/* ===== قائمة الإجراءات ===== */
+/* ============================================================
+   🎯 قائمة الإجراءات - تم إصلاح مشكلة الاختفاء
+   ============================================================ */
 .msg-actions {
     position: absolute;
-    top: -42px;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
     background: var(--bg-card);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-radius: 12px;
-    padding: 4px 6px;
+    border-radius: 14px;
+    padding: 6px 10px;
     display: none;
-    gap: 2px;
-    box-shadow: var(--shadow);
-    z-index: 20;
-    border: 0.5px solid rgba(255, 255, 255, 0.04);
-    animation: popIn 0.15s ease;
-}
-
-.msg-group.self .msg-actions {
-    right: 0;
-}
-.msg-group.other .msg-actions {
-    left: 0;
+    gap: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    animation: popIn 0.2s ease;
+    min-width: 200px;
+    justify-content: center;
 }
 
 .msg-actions.active {
-    display: flex;
+    display: flex !important;
 }
 
 @keyframes popIn {
     from {
-        transform: scale(0.85) translateY(8px);
         opacity: 0;
+        transform: translateX(-50%) scale(0.85) translateY(10px);
     }
     to {
-        transform: scale(1) translateY(0);
         opacity: 1;
+        transform: translateX(-50%) scale(1) translateY(0);
     }
 }
 
@@ -861,45 +864,56 @@ input, textarea {
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 6px 8px;
+    padding: 6px 10px;
     border-radius: 8px;
     transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     font-size: 12px;
+    font-weight: 500;
+    flex-direction: column;
 }
 
 .msg-actions button .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 20px;
 }
 
 .msg-actions button:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .msg-actions button.reply:hover {
     color: var(--accent);
+    background: var(--accent-glow);
 }
 .msg-actions button.edit:hover {
     color: var(--orange);
+    background: rgba(250, 168, 26, 0.1);
 }
 .msg-actions button.delete:hover {
     color: var(--red);
+    background: rgba(237, 66, 69, 0.1);
 }
 .msg-actions button.report:hover {
     color: var(--orange);
+    background: rgba(250, 168, 26, 0.1);
 }
 .msg-actions button.react:hover {
     color: var(--gold);
+    background: rgba(250, 204, 21, 0.1);
 }
 .msg-actions button.copy:hover {
     color: var(--purple);
+    background: rgba(167, 139, 250, 0.1);
 }
-.msg-actions button.pin:hover {
-    color: var(--gold);
+
+.msg-actions button .action-label {
+    font-size: 9px;
+    opacity: 0.6;
 }
 
 /* ===== رسائل النظام ===== */
@@ -1236,7 +1250,7 @@ input, textarea {
     transform: scale(1.1);
 }
 
-/* ===== منطقة الإدخال - بدون أزرار الإدراج والصوت ===== */
+/* ===== منطقة الإدخال ===== */
 .chat-input {
     padding: 6px 12px 12px;
     background: var(--bg-messages);
@@ -2347,7 +2361,7 @@ input, textarea {
     user-select: none;
 }
 
-/* ===== تحسينات إضافية - زر المسافة للشطر الجديد ===== */
+/* ===== تحسينات إضافية ===== */
 .input-wrapper input {
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -2359,7 +2373,53 @@ input, textarea {
     text-overflow: ellipsis;
 }
 
-/* ===== استجابة ===== */
+/* ============================================================
+   🌐 استجابة متقدمة للشاشات
+   ============================================================ */
+
+/* شاشات صغيرة جداً (هواتف صغيرة) */
+@media (max-width: 360px) {
+    .msg-bubble {
+        font-size: 13px;
+        padding: 6px 10px 5px;
+    }
+    .msg-sender {
+        font-size: 10px;
+    }
+    .header-actions button {
+        width: 28px;
+        height: 28px;
+    }
+    .header-actions button .material-symbols-outlined {
+        font-size: 16px;
+    }
+    .chat-input {
+        padding: 4px 8px 8px;
+    }
+    .send-btn {
+        width: 38px;
+        height: 38px;
+    }
+    .send-btn .material-symbols-outlined {
+        font-size: 18px;
+    }
+    .msg-actions {
+        min-width: 160px;
+        padding: 4px 6px;
+    }
+    .msg-actions button {
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+    .msg-actions button .material-symbols-outlined {
+        font-size: 16px;
+    }
+    .msg-actions button .action-label {
+        font-size: 7px;
+    }
+}
+
+/* شاشات متوسطة (هواتف) */
 @media (max-width: 400px) {
     .msg-group {
         gap: 6px;
@@ -2420,35 +2480,13 @@ input, textarea {
         max-width: 150px;
         max-height: 150px;
     }
-}
-
-@media (max-width: 360px) {
-    .msg-bubble {
-        font-size: 13px;
-        padding: 6px 10px 5px;
-    }
-    .msg-sender {
-        font-size: 10px;
-    }
-    .header-actions button {
-        width: 28px;
-        height: 28px;
-    }
-    .header-actions button .material-symbols-outlined {
-        font-size: 16px;
-    }
-    .chat-input {
-        padding: 4px 8px 8px;
-    }
-    .send-btn {
-        width: 38px;
-        height: 38px;
-    }
-    .send-btn .material-symbols-outlined {
-        font-size: 18px;
+    .msg-actions {
+        min-width: 180px;
+        padding: 4px 8px;
     }
 }
 
+/* شاشات كبيرة (أجهزة لوحية وحواسيب) */
 @media (min-width: 600px) {
     .msg-content {
         max-width: 72%;
@@ -2456,18 +2494,55 @@ input, textarea {
     .chat-messages {
         padding: 12px 20px 8px;
     }
+    .msg-actions {
+        min-width: 220px;
+        padding: 8px 12px;
+    }
+    .msg-actions button {
+        padding: 8px 12px;
+    }
 }
 
 /* ============================================================
-   تحسينات إضافية للستايل
+   🎨 تحسينات فخمة للستايل
    ============================================================ */
 
-/* تأثير hover على الرسائل */
-.msg-group:hover {
-    filter: brightness(1.02);
+/* تأثير زجاجي للهيدر */
+.chat-header {
+    background: var(--bg-header);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
 }
 
-/* تأثير شفاف للرسائل القديمة */
+/* تأثير متوهج للرسائل الخاصة */
+.msg-group.self .msg-bubble {
+    box-shadow: 0 2px 12px var(--accent-glow);
+}
+
+/* تأثير hover على الفقاعات */
+.msg-bubble:hover {
+    transform: translateY(-1px);
+}
+
+/* تأثير متدرج للعلامة التجارية */
+.brand-text {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* تأثير للصورة الشخصية */
+.header-avatar {
+    box-shadow: 0 0 24px var(--accent-glow);
+}
+
+/* تأثير للزر عند التمرير */
+.send-btn:not(:disabled):hover {
+    box-shadow: 0 4px 24px var(--accent-glow);
+    transform: scale(1.05) rotate(-10deg);
+}
+
+/* تأثير للرسائل القديمة */
 .msg-group.old {
     opacity: 0.7;
 }
@@ -2509,33 +2584,9 @@ input, textarea {
     vertical-align: middle;
 }
 
-/* تأثير عند تمرير الماوس على الزر */
-.send-btn:not(:disabled):hover {
-    box-shadow: 0 4px 20px var(--accent-glow);
-}
-
 /* تأثير عند التركيز على حقل الإدخال */
 .input-wrapper input:focus {
     caret-color: var(--accent);
-}
-
-/* تنسيق شريط التمرير للمتصفحات */
-::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--text-muted);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
 }
 
 /* تنسيق زر الإيموجي عند التفعيل */
@@ -2675,4 +2726,109 @@ input, textarea {
 .app-footer {
     font-weight: 300;
     letter-spacing: 0.5px;
-                             }
+}
+
+/* ============================================================
+   🎯 إصلاح مشكلة ظهور الخيارات خلف الشاشة
+   ============================================================ */
+.msg-actions {
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+.msg-actions.active {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* منع تداخل الخيارات مع العناصر الأخرى */
+.msg-content {
+    z-index: 1;
+}
+
+.msg-actions {
+    z-index: 9999;
+}
+
+/* ضمان ظهور الخيارات فوق كل شيء */
+.chat-container {
+    z-index: 1;
+}
+
+.msg-actions {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 280px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: var(--bg-card);
+    box-shadow: 0 16px 64px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+}
+
+.msg-actions.active {
+    display: flex !important;
+    animation: modalPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPopIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.85) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) translateY(0);
+    }
+}
+
+.msg-actions button {
+    flex: 1;
+    min-width: 50px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.2s ease;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.msg-actions button:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: scale(1.05);
+}
+
+.msg-actions button .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.msg-actions button .action-label {
+    font-size: 9px;
+    opacity: 0.6;
+}
+
+/* خلفية مظللة عند ظهور الخيارات */
+.msg-actions-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    display: none;
+}
+
+.msg-actions-overlay.active {
+    display: block;
+    animation: fadeIn 0.2s ease;
+   }
