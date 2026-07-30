@@ -1,0 +1,1231 @@
+/* ============================================================
+   نيزك v3.5.0 - التصميم الأساسي
+   ============================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --bg-app: #0a0a0c;
+    --bg-header: rgba(14, 14, 18, 0.92);
+    --bg-messages: #0e0e10;
+    --bg-bubble-other: #1c1c22;
+    --bg-bubble-self: #2b6ef0;
+    --bg-input: #18181c;
+    --bg-card: #121216;
+    --text-primary: #efeff1;
+    --text-secondary: #9e9ea8;
+    --text-muted: #5f5f6b;
+    --text-bubble-other: #efeff1;
+    --text-bubble-self: #ffffff;
+    --accent: #2b6ef0;
+    --accent-hover: #1a5bd4;
+    --accent-glow: rgba(43, 110, 240, 0.18);
+    --green: #23a55a;
+    --red: #ed4245;
+    --orange: #faa81a;
+    --gold: #facc15;
+    --purple: #a78bfa;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --radius: 16px;
+    --avatar-size: 36px;
+}
+
+/* الثيمات */
+[data-theme="light"] {
+    --bg-app: #eef0f3;
+    --bg-header: rgba(255, 255, 255, 0.92);
+    --bg-messages: #e4e6eb;
+    --bg-bubble-other: #ffffff;
+    --bg-input: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #1c1c1e;
+    --text-secondary: #65676b;
+    --text-muted: #a0a0a8;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="admin-dark"] {
+    --bg-app: #0a0a12;
+    --bg-header: rgba(16, 16, 26, 0.92);
+    --bg-messages: #0e0e18;
+    --bg-bubble-other: #1a1a2a;
+    --bg-bubble-self: #6c3ce0;
+    --bg-input: #161622;
+    --bg-card: #12121e;
+    --text-primary: #f0ecff;
+    --text-secondary: #a8a0c8;
+    --accent: #8b5cf6;
+    --accent-hover: #7c3aed;
+}
+
+[data-theme="admin-forest"] {
+    --bg-app: #080e0a;
+    --bg-header: rgba(12, 24, 18, 0.92);
+    --bg-messages: #0a140e;
+    --bg-bubble-other: #162218;
+    --bg-bubble-self: #2d8f5e;
+    --bg-input: #121e16;
+    --bg-card: #0e1812;
+    --text-primary: #e0f0e8;
+    --text-secondary: #90b0a0;
+    --accent: #34d399;
+    --accent-hover: #2bbf8a;
+}
+
+[data-theme="admin-rose"] {
+    --bg-app: #12080a;
+    --bg-header: rgba(24, 12, 18, 0.92);
+    --bg-messages: #160a0e;
+    --bg-bubble-other: #26161e;
+    --bg-bubble-self: #e06c8a;
+    --bg-input: #1e1218;
+    --bg-card: #180e12;
+    --text-primary: #f0e0e8;
+    --text-secondary: #c090a8;
+    --accent: #f472b6;
+    --accent-hover: #ec4899;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-app);
+    color: var(--text-primary);
+}
+
+#app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background: var(--bg-app);
+}
+
+/* ===== حاوية الدردشة ===== */
+.chat-container {
+    width: 100%;
+    max-width: 440px;
+    height: 100%;
+    max-height: 900px;
+    background: var(--bg-messages);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+@media (min-width: 441px) {
+    .chat-container {
+        border-radius: 20px;
+        height: 90vh;
+    }
+}
+
+@media (max-width: 440px) {
+    .chat-container {
+        max-height: 100vh;
+        border-radius: 0;
+        height: 100%;
+    }
+}
+
+/* ===== الهيدر ===== */
+.chat-header {
+    background: var(--bg-header);
+    backdrop-filter: blur(20px);
+    padding: 8px 14px;
+    padding-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
+    flex-shrink: 0;
+    min-height: 56px;
+}
+
+.status-bar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+    font-size: 11px;
+    display: flex;
+    gap: 8px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.header-avatar {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid var(--accent-glow);
+}
+
+.header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.brand {
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--text-primary);
+}
+
+.admin-badge {
+    font-size: 10px;
+    background: var(--gold);
+    color: #000;
+    padding: 1px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    display: none;
+}
+
+.admin-badge.show {
+    display: inline-block;
+}
+
+.header-actions {
+    display: flex;
+    gap: 2px;
+}
+
+.header-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 8px;
+    transition: 0.2s;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-actions button:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+}
+
+.header-actions .logout-btn:hover {
+    background: rgba(237, 66, 69, 0.12);
+    color: var(--red);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ===== الرسائل ===== */
+.chat-messages {
+    flex: 1;
+    padding: 6px 12px 2px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--bg-messages);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* ===== مجموعات الرسائل ===== */
+.msg-group {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 100%;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.msg-group.self {
+    flex-direction: row-reverse;
+}
+
+.msg-group.other {
+    flex-direction: row;
+}
+
+.msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.msg-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.msg-group.grouped .msg-avatar {
+    opacity: 0;
+}
+
+.msg-content {
+    display: flex;
+    flex-direction: column;
+    max-width: 78%;
+}
+
+.msg-sender {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0 2px 2px 0;
+    display: none;
+}
+
+.msg-group.other .msg-sender {
+    display: block;
+}
+
+.msg-sender .admin-tag {
+    color: var(--gold);
+    font-size: 9px;
+    background: rgba(250, 204, 21, 0.12);
+    padding: 0 6px;
+    border-radius: 8px;
+    margin-right: 4px;
+}
+
+.msg-bubble {
+    padding: 8px 14px 7px;
+    border-radius: 18px;
+    word-wrap: break-word;
+    font-size: 15px;
+    line-height: 1.45;
+    max-width: 100%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.msg-group.self .msg-bubble {
+    background: var(--bg-bubble-self);
+    color: var(--text-bubble-self);
+    border-bottom-right-radius: 4px;
+}
+
+.msg-group.other .msg-bubble {
+    background: var(--bg-bubble-other);
+    color: var(--text-bubble-other);
+    border-bottom-left-radius: 4px;
+}
+
+.msg-text {
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+.msg-text.emoji-big {
+    font-size: 36px;
+    line-height: 1.2;
+}
+
+.msg-text .edited-badge {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-right: 4px;
+}
+
+.msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    padding: 0 2px;
+    margin-top: 1px;
+    opacity: 0.7;
+}
+
+/* ===== رسائل النظام ===== */
+.system-msg {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 4px 12px;
+    margin: 2px auto;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    max-width: 85%;
+}
+
+.system-msg.rules {
+    color: var(--gold);
+    border: 0.5px solid rgba(250, 204, 21, 0.08);
+    background: rgba(250, 204, 21, 0.02);
+    padding: 10px 14px;
+    max-width: 95%;
+}
+
+.system-msg.rules .rule-title {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.system-msg.warning {
+    color: var(--orange);
+    border-color: rgba(250, 168, 26, 0.08);
+}
+
+.system-msg.success {
+    color: var(--green);
+    border-color: rgba(35, 165, 90, 0.08);
+}
+
+/* ===== الحالة الفارغة ===== */
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.empty-state .empty-icon .material-symbols-outlined {
+    font-size: 44px;
+    opacity: 0.1;
+}
+
+.empty-state .empty-title {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.25;
+}
+
+/* ===== مؤشر الكتابة ===== */
+.typing-indicator {
+    display: none;
+    align-self: flex-start;
+    padding: 5px 14px;
+    background: var(--bg-bubble-other);
+    border-radius: 14px;
+    margin: 2px 0 4px;
+    gap: 4px;
+}
+
+.typing-indicator.active {
+    display: flex;
+}
+
+.typing-indicator span {
+    width: 6px;
+    height: 6px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.25; }
+    30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ===== منطقة الإدخال ===== */
+.chat-input {
+    padding: 6px 12px 10px;
+    background: var(--bg-messages);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.input-wrapper {
+    flex: 1;
+    background: var(--bg-input);
+    border-radius: 22px;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.emoji-toggle {
+    color: var(--text-muted);
+    padding: 3px 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji-toggle:hover {
+    color: var(--text-secondary);
+}
+
+.input-wrapper input {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 15px;
+    outline: none;
+}
+
+.input-wrapper input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+.send-btn:hover {
+    background: var(--accent-hover);
+}
+
+.send-btn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+}
+
+.muted-notice {
+    text-align: center;
+    padding: 4px 10px;
+    background: rgba(250, 168, 26, 0.06);
+    border-radius: 6px;
+    color: var(--orange);
+    font-size: 12px;
+    display: none;
+}
+
+.muted-notice.active {
+    display: block;
+}
+
+/* ===== لوحة الإيموجي ===== */
+.emoji-rail {
+    position: absolute;
+    bottom: 68px;
+    left: 10px;
+    right: 10px;
+    background: var(--bg-card);
+    backdrop-filter: blur(24px);
+    border-radius: 16px;
+    padding: 6px 8px;
+    display: none;
+    gap: 3px;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    border: 0.5px solid rgba(255, 255, 255, 0.04);
+    z-index: 30;
+    flex-wrap: wrap;
+}
+
+.emoji-rail.active {
+    display: flex;
+}
+
+.emoji-rail .emoji-item {
+    font-size: 26px;
+    padding: 3px 5px;
+    cursor: pointer;
+    border-radius: 8px;
+    background: none;
+    border: none;
+    transition: 0.12s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+.emoji-rail .emoji-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: scale(1.08);
+}
+
+/* ===== شاشة تسجيل الدخول ===== */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-app);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.login-overlay.hidden {
+    display: none;
+}
+
+.login-box {
+    background: var(--bg-card);
+    padding: 32px 24px 28px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: var(--shadow);
+}
+
+.login-logo {
+    font-size: 48px;
+    margin-bottom: 2px;
+}
+
+.login-box h1 {
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.login-box h1 .hl {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-sub {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+}
+
+.login-box input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.color-options {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 6px 0 14px;
+    flex-wrap: wrap;
+}
+
+.color-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.color-circle.selected {
+    border-color: var(--text-primary);
+    transform: scale(1.1);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.login-btn:hover {
+    background: var(--accent-hover);
+}
+
+.login-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.login-box .error {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 8px;
+    display: none;
+}
+
+.login-admin-password-box {
+    display: none;
+    margin-top: 10px;
+}
+
+.login-admin-password-box input {
+    margin-bottom: 8px;
+}
+
+.login-admin-password-box .error-msg {
+    color: var(--red);
+    font-size: 12px;
+    display: none;
+}
+
+.login-admin-password-box .error-msg.show {
+    display: block;
+}
+
+/* ===== النوافذ المنبثقة ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-box {
+    background: var(--bg-card);
+    padding: 24px 20px 20px;
+    border-radius: 20px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-title {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-desc {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+
+.modal-rules .rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.03);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.modal-rules .rule-item .num {
+    color: var(--gold);
+    font-weight: 700;
+    min-width: 22px;
+}
+
+.close-modal {
+    width: 100%;
+    padding: 10px;
+    margin-top: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ===== الملف الشخصي ===== */
+.profile-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0 16px;
+}
+
+.profile-avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    overflow: hidden;
+    border: 2px solid var(--accent-glow);
+    cursor: pointer;
+}
+
+.profile-avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-btn {
+    padding: 4px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.profile-name-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+    margin: 4px 0 8px;
+}
+
+.profile-name-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.profile-save-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-save-btn:hover {
+    background: var(--accent-hover);
+}
+
+/* ===== لوحة المسؤول ===== */
+.admin-password-box input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+    margin-bottom: 10px;
+}
+
+.admin-panel .admin-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 6px;
+}
+
+.admin-panel .admin-users {
+    max-height: 140px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.admin-panel .user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.02);
+}
+
+.admin-panel .user-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-panel .user-actions {
+    display: flex;
+    gap: 2px;
+}
+
+.admin-panel .user-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.admin-panel .user-actions button:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-panel .user-actions .delete-user:hover {
+    color: var(--red);
+}
+
+.admin-panel .user-actions .block-user:hover {
+    color: var(--orange);
+}
+
+.admin-panel .user-actions .unblock-user:hover {
+    color: var(--green);
+}
+
+/* ===== إعدادات الثيم ===== */
+.theme-settings {
+    border-top: 0.5px solid rgba(255, 255, 255, 0.04);
+    padding-top: 10px;
+    margin-bottom: 10px;
+}
+
+.theme-settings .theme-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--purple);
+    margin-bottom: 6px;
+}
+
+.theme-settings .theme-options {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.theme-settings .theme-options .theme-btn {
+    padding: 4px 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.theme-settings .theme-options .theme-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+}
+
+/* ===== الكلمات المحظورة ===== */
+.badwords-section {
+    border-top: 0.5px solid rgba(255, 255, 255, 0.04);
+    padding-top: 10px;
+}
+
+.badwords-section .badwords-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 6px;
+}
+
+.badwords-input-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.badwords-input-row input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+}
+
+.badwords-input-row button {
+    padding: 6px 12px;
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.badwords-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+.badwords-list .badword-tag {
+    background: rgba(250, 168, 26, 0.08);
+    color: var(--orange);
+    padding: 2px 8px;
+    border-radius: 16px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.badwords-list .badword-tag .remove-badword {
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+}
+
+.badwords-list .badword-tag .remove-badword:hover {
+    color: var(--red);
+}
+
+/* ===== أزرار المسؤول ===== */
+.clear-chat-btn, .force-logout-btn {
+    background: rgba(237, 66, 69, 0.1);
+    color: var(--red);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.clear-chat-btn:hover, .force-logout-btn:hover {
+    background: rgba(237, 66, 69, 0.18);
+}
+
+/* ===== زر التمرير ===== */
+.scroll-bottom-btn {
+    position: absolute;
+    bottom: 80px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: none;
+    z-index: 15;
+}
+
+.scroll-bottom-btn.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== شاشة التحميل ===== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.loading-spinner {
+    background: var(--bg-card);
+    padding: 24px 32px;
+    border-radius: 14px;
+    text-align: center;
+}
+
+.loading-spinner .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255, 255, 255, 0.05);
+    border-top: 3px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== أدوات متنوعة ===== */
+.file-input-hidden {
+    display: none;
+}
+
+.upload-status {
+    text-align: center;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--bg-input);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 4px;
+    width: 100%;
+    display: none;
+}
+
+.upload-status.show {
+    display: block;
+}
+
+.upload-status.success {
+    color: var(--green);
+    border-color: rgba(35, 165, 90, 0.2);
+}
+
+.upload-status.error {
+    color: var(--red);
+    border-color: rgba(237, 66, 69, 0.2);
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ===== استجابة ===== */
+@media (max-width: 400px) {
+    .msg-bubble {
+        font-size: 14px;
+        padding: 7px 12px 6px;
+    }
+    .chat-header {
+        padding-top: 36px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .brand {
+        font-size: 15px;
+    }
+    .header-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+    .login-box {
+        padding: 24px 16px 20px;
+    }
+}
