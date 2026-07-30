@@ -1,5 +1,5 @@
 /* ============================================================
-   نيزك v5.0.0 - تصميم تليجرام كامل
+   نيزك v5.0.0 - تصميم واتساب + تلجرام
    ============================================================ */
 
 * {
@@ -216,7 +216,7 @@ input, textarea {
     }
 }
 
-/* ===== الهيدر - تصميم تليجرام ===== */
+/* ===== الهيدر - تصميم واتساب ===== */
 .chat-header {
     background: var(--bg-header);
     backdrop-filter: blur(24px) saturate(1.2);
@@ -486,7 +486,7 @@ input, textarea {
     color: var(--text-muted);
 }
 
-/* ===== الرسائل - تصميم تليجرام ===== */
+/* ===== الرسائل - تصميم واتساب ===== */
 .chat-messages {
     flex: 1;
     padding: 8px 12px 4px;
@@ -616,7 +616,7 @@ input, textarea {
     margin-left: 4px;
 }
 
-/* ===== فقاعة الرسالة - تصميم تليجرام ===== */
+/* ===== فقاعة الرسالة - تصميم واتساب ===== */
 .msg-bubble {
     padding: 8px 14px 7px;
     border-radius: var(--radius-bubble);
@@ -756,7 +756,7 @@ input, textarea {
 }
 
 /* ============================================================
-   🎯 قائمة الإجراءات - تصميم تليجرام
+   🎯 قائمة الإجراءات - تصميم تلجرام
    ============================================================ */
 .msg-actions {
     position: fixed;
@@ -872,6 +872,80 @@ input, textarea {
 
 .msg-actions-overlay.active {
     display: block;
+}
+
+/* ============================================================
+   📌 شريط الرجعة - مثل واتساب
+   ============================================================ */
+.reply-bar {
+    background: var(--bg-input);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideDown 0.2s ease;
+    flex-shrink: 0;
+}
+
+.reply-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.reply-bar-line {
+    width: 3px;
+    height: 30px;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.reply-bar-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.reply-bar-sender {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.reply-bar-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reply-bar-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reply-bar-close:hover {
+    background: var(--bg-hover);
+    color: var(--red);
+    transform: scale(1.1);
+}
+
+.reply-bar-close .material-symbols-outlined {
+    font-size: 20px;
 }
 
 /* ===== رسائل النظام ===== */
@@ -1149,54 +1223,6 @@ input, textarea {
 
 .reaction-picker .reaction-option:active {
     transform: scale(1.3);
-}
-
-/* ===== معاينة الرد ===== */
-.reply-preview {
-    background: var(--bg-input);
-    border-radius: 12px;
-    padding: 8px 12px;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-right: 3px solid var(--accent);
-    animation: slideDown 0.2s ease;
-}
-
-.reply-preview-content {
-    flex: 1;
-    overflow: hidden;
-}
-
-.reply-preview-sender {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-}
-
-.reply-preview-text {
-    font-size: 12px;
-    color: var(--text-muted);
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.reply-preview-cancel {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px 8px;
-    font-size: 16px;
-    transition: var(--transition);
-}
-
-.reply-preview-cancel:hover {
-    color: var(--red);
-    transform: scale(1.1);
 }
 
 /* ===== منطقة الإدخال ===== */
@@ -2360,18 +2386,14 @@ input, textarea {
     .msg-actions button .action-label {
         font-size: 8px;
     }
-    .login-box {
-        padding: 24px 16px 20px;
+    .reply-bar {
+        padding: 4px 8px;
     }
-    .login-logo {
-        font-size: 44px;
+    .reply-bar-sender {
+        font-size: 10px;
     }
-    .login-box h1 {
-        font-size: 22px;
-    }
-    .color-circle {
-        width: 28px;
-        height: 28px;
+    .reply-bar-text {
+        font-size: 10px;
     }
 }
 
@@ -2584,10 +2606,22 @@ input, textarea {
         min-width: 30px;
         min-height: 30px;
     }
+    .reply-bar {
+        padding: 3px 8px;
+    }
+    .reply-bar-line {
+        height: 20px;
+    }
+    .reply-bar-sender {
+        font-size: 10px;
+    }
+    .reply-bar-text {
+        font-size: 10px;
+    }
 }
 
 /* ============================================================
-   🎨 تحسينات فخمة - تصميم تليجرام
+   🎨 تحسينات فخمة
    ============================================================ */
 
 /* تأثير زجاجي للهيدر */
@@ -2641,12 +2675,6 @@ input, textarea {
     margin: 4px 0;
     background: rgba(255, 255, 255, 0.02);
     border-radius: 4px;
-}
-
-/* تنسيق القوائم */
-.msg-text ul, .msg-text ol {
-    padding-right: 20px;
-    margin: 4px 0;
 }
 
 /* تحسين ظهور الإيموجي */
