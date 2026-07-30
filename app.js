@@ -11,6 +11,9 @@ const firebaseConfig = {
     measurementId: "G-VEL3PGTKY1"
 };
 
+// ============================================================
+// 🚀 تهيئة Firebase
+// ============================================================
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
@@ -28,7 +31,8 @@ const VERSION = "v3.5.0";
 const DEFAULT_BAD_WORDS = [
     'كس', 'قحب', 'عاهر', 'زاني', 'زنا', 'خنا', 'لوط',
     'منيوك', 'شرموط', 'قحبة', 'عاهرة', 'زانية', 'خنيث',
-    'مخنث', 'لاطي', 'لوطي', 'شاذ', 'منيوكة', 'شرموطة'
+    'مخنث', 'لاطي', 'لوطي', 'شاذ', 'منيوكة', 'شرموطة',
+    'مومس', 'داعر', 'داعرة', 'فاجر', 'فاجرة'
 ];
 
 // ============================================================
@@ -39,18 +43,20 @@ let userColor = '#2b6ef0';
 let isLoggedIn = false;
 let isAdmin = false;
 let isAdminVerified = false;
+let replyTo = null;
+let editingMessage = null;
+let unsubscribe = null;
 let blockedUsers = [];
 let badWords = [];
 let userIP = '';
+let lastSender = '';
 let isMuted = false;
 let muteTimeout = null;
 let muteCount = 0;
 let currentTheme = 'dark';
 let userAvatarBase64 = '';
 let tempAvatarBase64 = '';
-let replyTo = null;
-let editingMessage = null;
-let unsubscribe = null;
+let isAdminLoginAttempt = false;
 let messageIds = new Set();
 
 // ============================================================
@@ -126,7 +132,7 @@ function getInitials(name) {
 }
 
 function getAvatarColor(name) {
-    const colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6'];
+    const colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6', '#60a5fa', '#34d399'];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
         hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -137,53 +143,118 @@ function getAvatarColor(name) {
 function updateAvatarUI(element, placeholder, avatarBase64, name) {
     if (!element) return;
     if (avatarBase64 && avatarBase64.startsWith('data:image')) {
-        element.innerHTML = `<img src="${avatarBase64}" alt="صورة شخصية">`;
+        element.innerHTML = `<img src="${avatarBase64}" alt="صورة شخصية" loading="lazy">`;
+        if (placeholder) placeholder.textContent = '';
     } else {
         const initials = getInitials(name);
         const color = getAvatarColor(name);
-        element.innerHTML = `<span style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${element === profileAvatarPreview ? '32px' : '16px'};font-weight:700;color:#fff;">${initials}</span>`;
+        const fontSize = element === profileAvatarPreview ? '32px' : '16px';
+        element.innerHTML = `
+            <span class="avatar-placeholder" style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${fontSize};font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                ${initials}
+            </span>
+        `;
+        if (placeholder) placeholder.textContent = '';
     }
 }
 
 function updateAllAvatars(avatarBase64, name) {
     updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarBase64, name);
     updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarBase64, name);
-    headerUsername.textContent = name;
+    if (headerUsername) headerUsername.textContent = name;
 }
 
 // ============================================================
-// 🖼️ ضغط الصورة
+// 🖼️ ضغط الصورة إلى Base64
 // ============================================================
-function compressImageToBase64(file, maxWidth, maxHeight, quality) {
+function compressImageToBase64(file, maxWidth, maxHeight, quality, statusElement) {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                let width = img.width;
-                let height = img.height;
-                
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
+        try {
+            if (statusElement) {
+                statusElement.textContent = '⏳ جاري ضغط الصورة...';
+                statusElement.className = 'upload-status show loading';
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const img = new Image();
+                    img.onload = function() {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > maxWidth) {
+                                height = (height * maxWidth) / width;
+                                width = maxWidth;
+                            }
+                            if (height > maxHeight) {
+                                width = (width * maxHeight) / height;
+                                height = maxHeight;
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            const base64 = canvas.toDataURL('image/jpeg', quality);
+
+                            if (statusElement) {
+                                statusElement.textContent = '✅ تم ضغط الصورة بنجاح';
+                                statusElement.className = 'upload-status show success';
+                                setTimeout(() => {
+                                    statusElement.className = 'upload-status';
+                                }, 1500);
+                            }
+
+                            resolve(base64);
+                        } catch (err) {
+                            console.warn('⚠️ خطأ في معالجة الصورة:', err);
+                            if (statusElement) {
+                                statusElement.textContent = '❌ فشل معالجة الصورة';
+                                statusElement.className = 'upload-status show error';
+                            }
+                            reject(err);
+                        }
+                    };
+                    img.onerror = function() {
+                        console.warn('⚠️ فشل تحميل الصورة');
+                        if (statusElement) {
+                            statusElement.textContent = '❌ فشل تحميل الصورة';
+                            statusElement.className = 'upload-status show error';
+                        }
+                        reject(new Error('فشل تحميل الصورة'));
+                    };
+                    img.src = e.target.result;
+                } catch (err) {
+                    console.warn('⚠️ خطأ في قراءة الصورة:', err);
+                    if (statusElement) {
+                        statusElement.textContent = '❌ فشل قراءة الصورة';
+                        statusElement.className = 'upload-status show error';
+                    }
+                    reject(err);
                 }
-                if (height > maxHeight) {
-                    width = (width * maxHeight) / height;
-                    height = maxHeight;
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', quality));
             };
-            img.onerror = reject;
-            img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+            reader.onerror = function() {
+                console.warn('⚠️ فشل قراءة الملف');
+                if (statusElement) {
+                    statusElement.textContent = '❌ فشل قراءة الملف';
+                    statusElement.className = 'upload-status show error';
+                }
+                reject(new Error('فشل قراءة الملف'));
+            };
+            reader.readAsDataURL(file);
+        } catch (err) {
+            console.warn('⚠️ خطأ في الضغط:', err);
+            if (statusElement) {
+                statusElement.textContent = '❌ فشل الضغط: ' + err.message;
+                statusElement.className = 'upload-status show error';
+            }
+            reject(err);
+        }
     });
 }
 
@@ -195,6 +266,8 @@ function openProfileModal() {
     profileNameInput.value = currentUser;
     profileModal.classList.add('active');
     updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, userAvatarBase64, currentUser);
+    profileUploadStatus.className = 'upload-status';
+    profileUploadStatus.textContent = '';
 }
 
 async function saveProfile() {
@@ -203,26 +276,29 @@ async function saveProfile() {
         alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
         return;
     }
-    
+
     showLoading(true);
+
     try {
         let newAvatarBase64 = userAvatarBase64;
+
         if (tempAvatarBase64) {
             newAvatarBase64 = tempAvatarBase64;
             tempAvatarBase64 = '';
         }
-        
+
         const oldName = currentUser;
+
         await db.collection('users').doc(oldName).update({
             username: newName,
             avatar: newAvatarBase64,
             color: userColor
         });
-        
+
         currentUser = newName;
         userAvatarBase64 = newAvatarBase64;
         updateAllAvatars(newAvatarBase64, newName);
-        
+
         if (oldName !== newName) {
             const messagesSnap = await db.collection('messages')
                 .where('sender', '==', oldName)
@@ -233,13 +309,15 @@ async function saveProfile() {
             });
             await batch.commit();
         }
-        
+
         addSystemMessage(`✅ تم تحديث الملف الشخصي لـ ${newName}`, 'success');
         profileModal.classList.remove('active');
+
     } catch (error) {
-        console.error('❌ خطأ:', error);
+        console.error('❌ خطأ في حفظ الملف الشخصي:', error);
         alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي');
     }
+
     showLoading(false);
 }
 
@@ -249,16 +327,21 @@ async function saveProfile() {
 function applyTheme(theme) {
     currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
-    themeIcon.textContent = theme === 'light' ? 'light_mode' : 'dark_mode';
-    
+
+    if (theme === 'light') {
+        themeIcon.textContent = 'light_mode';
+    } else {
+        themeIcon.textContent = 'dark_mode';
+    }
+
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === theme);
     });
-    
+
     try {
         localStorage.setItem('chat_theme', theme);
     } catch (e) {}
-    
+
     if (isAdmin && isAdminVerified) {
         db.collection('settings').doc('theme').set({ theme }).catch(() => {});
     }
@@ -274,16 +357,30 @@ function toggleTheme() {
 function loadSavedTheme() {
     try {
         const saved = localStorage.getItem('chat_theme');
-        if (saved) { applyTheme(saved); return; }
+        if (saved) {
+            applyTheme(saved);
+            return;
+        }
     } catch (e) {}
-    applyTheme('dark');
+
+    db.collection('settings').doc('theme').get()
+        .then(doc => {
+            if (doc.exists && doc.data().theme) {
+                applyTheme(doc.data().theme);
+            } else {
+                applyTheme('dark');
+            }
+        })
+        .catch(() => {
+            applyTheme('dark');
+        });
 }
 
 // ============================================================
 // 🔒 تشفير IP
 // ============================================================
 function getHashedIP() {
-    const h = Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+    const h = Date.now().toString(36) + Math.random().toString(36).substr(2, 8) + navigator.userAgent.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '');
     try { return btoa(h).substring(0, 20); } catch (e) { return h.substring(0, 20); }
 }
 
@@ -299,7 +396,11 @@ function isEmojiOnly(text) {
 }
 
 function showLoading(show) {
-    loadingOverlay.classList.toggle('active', show);
+    if (show) {
+        loadingOverlay.classList.add('active');
+    } else {
+        loadingOverlay.classList.remove('active');
+    }
 }
 
 function updateClock() {
@@ -326,11 +427,13 @@ document.querySelectorAll('.color-circle').forEach(el => {
 emojiToggle.addEventListener('click', function(e) {
     e.stopPropagation();
     emojiRail.classList.toggle('active');
+    emojiToggle.classList.toggle('active');
 });
 
 document.addEventListener('click', function(e) {
-    if (!emojiRail.contains(e.target) && e.target !== emojiToggle) {
+    if (!emojiRail.contains(e.target) && e.target !== emojiToggle && !emojiToggle.contains(e.target)) {
         emojiRail.classList.remove('active');
+        emojiToggle.classList.remove('active');
     }
 });
 
@@ -339,6 +442,7 @@ document.querySelectorAll('.emoji-item').forEach(el => {
         msgInput.value += this.textContent;
         msgInput.focus();
         emojiRail.classList.remove('active');
+        emojiToggle.classList.remove('active');
     });
 });
 
@@ -358,12 +462,15 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
 // 👑 كشف المسؤول
 // ============================================================
 usernameInput.addEventListener('input', function() {
-    if (this.value.trim() === ADMIN_NAME) {
+    const val = this.value.trim();
+    if (val === ADMIN_NAME) {
         loginAdminPasswordBox.style.display = 'block';
         loginAdminPasswordInput.value = '';
         loginAdminPasswordError.classList.remove('show');
+        isAdminLoginAttempt = true;
     } else {
         loginAdminPasswordBox.style.display = 'none';
+        isAdminLoginAttempt = false;
     }
 });
 
@@ -373,7 +480,7 @@ usernameInput.addEventListener('input', function() {
 profileAvatarBtn.addEventListener('click', () => profileAvatarInput.click());
 profileAvatarPreview.addEventListener('click', () => profileAvatarInput.click());
 
-profileAvatarInput.addEventListener('change', async function() {
+profileAvatarInput.addEventListener('change', function() {
     if (this.files && this.files[0]) {
         const file = this.files[0];
         if (file.size > 5 * 1024 * 1024) {
@@ -381,16 +488,19 @@ profileAvatarInput.addEventListener('change', async function() {
             this.value = '';
             return;
         }
-        
-        try {
-            const base64 = await compressImageToBase64(file, 300, 300, 0.6);
-            profileAvatarPreview.innerHTML = `<img src="${base64}" alt="صورة شخصية">`;
-            tempAvatarBase64 = base64;
-            profileUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط حفظ للتحديث';
-            profileUploadStatus.className = 'upload-status show success';
-        } catch (error) {
-            alert('⚠️ فشل معالجة الصورة');
-        }
+
+        compressImageToBase64(file, 300, 300, 0.6, profileUploadStatus)
+            .then(base64 => {
+                profileAvatarPreview.innerHTML = `<img src="${base64}" alt="صورة شخصية">`;
+                profileAvatarPlaceholder.textContent = '';
+                tempAvatarBase64 = base64;
+                profileUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط حفظ للتحديث';
+                profileUploadStatus.className = 'upload-status show success';
+            })
+            .catch(err => {
+                console.error('❌ فشل ضغط الصورة:', err);
+                alert('⚠️ فشل معالجة الصورة: ' + err.message);
+            });
     }
 });
 
@@ -398,20 +508,28 @@ profileAvatarInput.addEventListener('change', async function() {
 // 👤 أحداث الملف الشخصي
 // ============================================================
 headerAvatar.addEventListener('click', () => isLoggedIn && openProfileModal());
+
 closeProfileModal.addEventListener('click', () => {
     profileModal.classList.remove('active');
     tempAvatarBase64 = '';
     profileUploadStatus.className = 'upload-status';
+    profileUploadStatus.textContent = '';
 });
+
 profileModal.addEventListener('click', function(e) {
     if (e.target === this) {
         profileModal.classList.remove('active');
         tempAvatarBase64 = '';
         profileUploadStatus.className = 'upload-status';
+        profileUploadStatus.textContent = '';
     }
 });
+
 profileSaveBtn.addEventListener('click', saveProfile);
-profileNameInput.addEventListener('keypress', e => e.key === 'Enter' && saveProfile());
+
+profileNameInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') saveProfile();
+});
 
 // ============================================================
 // 📋 النوافذ المنبثقة
@@ -446,17 +564,27 @@ adminPasswordBtn.addEventListener('click', function() {
     }
 });
 
-adminPasswordInput.addEventListener('keypress', e => e.key === 'Enter' && adminPasswordBtn.click());
+adminPasswordInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') adminPasswordBtn.click();
+});
 
-closeAdminModal.addEventListener('click', () => {
+closeAdminModal.addEventListener('click', function() {
     adminModal.classList.remove('active');
     isAdminVerified = false;
+    adminPanel.style.display = 'none';
+    adminPasswordBox.style.display = 'block';
+    adminPasswordInput.value = '';
+    adminPasswordError.classList.remove('show');
 });
 
 adminModal.addEventListener('click', function(e) {
     if (e.target === this) {
         adminModal.classList.remove('active');
         isAdminVerified = false;
+        adminPanel.style.display = 'none';
+        adminPasswordBox.style.display = 'block';
+        adminPasswordInput.value = '';
+        adminPasswordError.classList.remove('show');
     }
 });
 
@@ -464,11 +592,14 @@ adminModal.addEventListener('click', function(e) {
 // 🚫 الكلمات المحظورة
 // ============================================================
 function loadBadWords() {
-    db.collection('settings').doc('badwords').get().then(doc => {
-        badWords = doc.exists && doc.data().words ? doc.data().words : DEFAULT_BAD_WORDS;
-        if (!doc.exists) saveBadWords();
-        renderBadWords();
-    }).catch(() => { badWords = DEFAULT_BAD_WORDS; renderBadWords(); });
+    db.collection('settings').doc('badwords').get()
+        .then(doc => {
+            badWords = (doc.exists && doc.data().words) ? doc.data().words : DEFAULT_BAD_WORDS;
+            if (!doc.exists) saveBadWords();
+            renderBadWords();
+        })
+        .catch(() => { badWords = DEFAULT_BAD_WORDS;
+            renderBadWords(); });
 }
 
 function saveBadWords() {
@@ -483,18 +614,30 @@ function renderBadWords() {
     }
     let html = '';
     badWords.forEach(word => {
-        html += `<span class="badword-tag">${word}<button class="remove-badword" data-word="${word}">✖</button></span>`;
+        html += `
+            <span class="badword-tag">
+                ${word}
+                <button class="remove-badword" data-word="${word}">
+                    <span class="material-symbols-outlined" style="font-size:12px;">close</span>
+                </button>
+            </span>
+        `;
     });
     badwordsList.innerHTML = html;
     document.querySelectorAll('.remove-badword').forEach(btn => {
-        btn.addEventListener('click', function() { removeBadWord(this.dataset.word); });
+        btn.addEventListener('click', function() {
+            removeBadWord(this.dataset.word);
+        });
     });
 }
 
 function addBadWord() {
     const word = badwordInput.value.trim();
     if (!word) return;
-    if (badWords.includes(word)) { alert('⚠️ هذه الكلمة موجودة بالفعل'); return; }
+    if (badWords.includes(word)) {
+        alert('⚠️ هذه الكلمة موجودة بالفعل');
+        return;
+    }
     badWords.push(word);
     saveBadWords();
     renderBadWords();
@@ -504,19 +647,25 @@ function addBadWord() {
 
 function removeBadWord(word) {
     const index = badWords.indexOf(word);
-    if (index > -1) { badWords.splice(index, 1); saveBadWords(); renderBadWords(); }
+    if (index > -1) {
+        badWords.splice(index, 1);
+        saveBadWords();
+        renderBadWords();
+    }
 }
 
 addBadwordBtn.addEventListener('click', addBadWord);
-badwordInput.addEventListener('keypress', e => e.key === 'Enter' && addBadWord());
+badwordInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') addBadWord();
+});
 
 // ============================================================
 // 🔍 كشف الكلمات المحظورة
 // ============================================================
 function containsBadWord(text) {
     const lower = text.toLowerCase();
-    for (const word of badWords) {
-        if (lower.includes(word.toLowerCase())) return word;
+    for (let i = 0; i < badWords.length; i++) {
+        if (lower.includes(badWords[i].toLowerCase())) return badWords[i];
     }
     return null;
 }
@@ -559,53 +708,61 @@ function handleBadWord(text, sender) {
 // ============================================================
 // 💬 إنشاء الرسائل
 // ============================================================
-let lastSender = '';
-
 function createMessage(id, data, self) {
     if (blockedUsers.includes(data.sender) && !self) return null;
-    
+
     const group = document.createElement('div');
-    const grouped = data.sender === lastSender;
+    const grouped = (data.sender === lastSender && lastSender !== '');
     group.className = `msg-group ${self ? 'self' : 'other'}${grouped ? ' grouped' : ''}`;
     group.dataset.id = id;
     group.dataset.sender = data.sender;
     lastSender = data.sender;
-    
+
     // الصورة الرمزية
     const avatar = document.createElement('div');
     avatar.className = 'msg-avatar';
-    if (data.avatar && data.avatar.startsWith('data:image')) {
-        avatar.innerHTML = `<img src="${data.avatar}" alt="${data.sender}">`;
+    const avatarData = data.avatar || '';
+
+    if (avatarData && avatarData.startsWith('data:image')) {
+        avatar.innerHTML = `<img src="${avatarData}" alt="${data.sender}" loading="lazy">`;
     } else {
-        avatar.style.background = getAvatarColor(data.sender);
-        avatar.textContent = getInitials(data.sender);
+        const initials = getInitials(data.sender);
+        const color = getAvatarColor(data.sender);
+        avatar.style.background = color;
+        avatar.textContent = initials;
+        avatar.style.display = 'flex';
+        avatar.style.alignItems = 'center';
+        avatar.style.justifyContent = 'center';
+        avatar.style.fontSize = '11px';
+        avatar.style.fontWeight = '600';
+        avatar.style.color = '#fff';
     }
-    
-    // المحتوى
+
     const content = document.createElement('div');
     content.className = 'msg-content';
-    
+
     // اسم المرسل
     const sender = document.createElement('div');
     sender.className = 'msg-sender';
     sender.textContent = data.sender;
     if (data.sender === ADMIN_NAME) {
-        sender.innerHTML += ' <span class="admin-tag">👑 مسؤول</span>';
+        const tag = document.createElement('span');
+        tag.className = 'admin-tag';
+        tag.textContent = '👑 مسؤول';
+        sender.appendChild(tag);
     }
-    
+
     // الفقاعة
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
-    
-    // الرد
+
     if (data.replyTo) {
         const reply = document.createElement('div');
         reply.className = 'reply-box';
         reply.innerHTML = `<span class="r-sender">@${data.replyTo.sender}</span> ${data.replyTo.text.substring(0, 50)}${data.replyTo.text.length > 50 ? '...' : ''}`;
         bubble.appendChild(reply);
     }
-    
-    // النص
+
     const text = document.createElement('div');
     text.className = 'msg-text';
     if (data.deleted) {
@@ -614,11 +771,20 @@ function createMessage(id, data, self) {
         if (isEmojiOnly(data.text)) text.classList.add('emoji-big');
         text.textContent = data.text;
         if (data.edited) {
-            text.innerHTML += ' <span class="edited-badge">(معدّل)</span>';
+            const ed = document.createElement('span');
+            ed.className = 'edited-badge';
+            ed.textContent = '(معدّل)';
+            text.appendChild(ed);
+        }
+        if (data.warning) {
+            const wb = document.createElement('span');
+            wb.className = 'warning-badge';
+            wb.textContent = '⚠️ كلمة ممنوعة';
+            text.appendChild(wb);
         }
     }
     bubble.appendChild(text);
-    
+
     // الوقت
     const time = document.createElement('div');
     time.className = 'msg-time';
@@ -626,10 +792,10 @@ function createMessage(id, data, self) {
         const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
         time.textContent = date.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
         if (self && !data.deleted) {
-            time.innerHTML += ' <span class="read-status">✓✓</span>';
+            time.innerHTML += ' <span class="read-status"><span class="material-symbols-outlined" style="font-size:10px;">done_all</span></span>';
         }
     }
-    
+
     // قائمة الإجراءات
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
@@ -638,13 +804,13 @@ function createMessage(id, data, self) {
         <button class="report" title="إبلاغ"><span class="material-symbols-outlined">flag</span></button>
     `;
     if (isAdmin && !data.deleted) {
-        actionsHTML += `<button class="delete" title="حذف"><span class="material-symbols-outlined">delete_forever</span></button>`;
+        actionsHTML += `<button class="delete" title="حذف نهائي"><span class="material-symbols-outlined">delete_forever</span></button>`;
     }
     if (isAdmin && data.sender !== ADMIN_NAME) {
         actionsHTML += `<button class="block" title="حظر"><span class="material-symbols-outlined">block</span></button>`;
     }
     actions.innerHTML = actionsHTML;
-    
+
     actions.querySelector('.reply')?.addEventListener('click', function(e) {
         e.stopPropagation();
         setReply(id, data.sender, data.text);
@@ -655,22 +821,24 @@ function createMessage(id, data, self) {
         reportMsg(id, data.sender);
         hideAllActions();
     });
-    actions.querySelector('.delete')?.addEventListener('click', function(e) {
+    const del = actions.querySelector('.delete');
+    if (del) del.addEventListener('click', function(e) {
         e.stopPropagation();
         deleteMsg(id);
         hideAllActions();
     });
-    actions.querySelector('.block')?.addEventListener('click', function(e) {
+    const blk = actions.querySelector('.block');
+    if (blk) blk.addEventListener('click', function(e) {
         e.stopPropagation();
         blockUser(data.sender);
         hideAllActions();
     });
-    
+
     content.appendChild(sender);
     content.appendChild(bubble);
     content.appendChild(time);
     content.appendChild(actions);
-    
+
     if (self) {
         group.appendChild(content);
         group.appendChild(avatar);
@@ -678,19 +846,45 @@ function createMessage(id, data, self) {
         group.appendChild(avatar);
         group.appendChild(content);
     }
-    
-    // الضغط المطول لإظهار الإجراءات
-    let timer = null, pressed = false;
+
+    // الضغط المطول
+    let timer = null,
+        pressed = false;
     group.addEventListener('mousedown', function() {
         pressed = true;
-        timer = setTimeout(() => { if (pressed) { hideAllActions(); actions.classList.add('active'); } }, 500);
+        timer = setTimeout(() => {
+            if (pressed) {
+                hideAllActions();
+                actions.classList.add('active');
+            }
+        }, 500);
     });
-    group.addEventListener('mouseup', function() { pressed = false; clearTimeout(timer); });
-    group.addEventListener('mouseleave', function() { pressed = false; clearTimeout(timer); });
-    group.addEventListener('touchstart', function() { pressed = true; timer = setTimeout(() => { if (pressed) { hideAllActions(); actions.classList.add('active'); } }, 500); }, { passive: true });
-    group.addEventListener('touchend', function() { pressed = false; clearTimeout(timer); });
-    group.addEventListener('touchmove', function() { pressed = false; clearTimeout(timer); });
-    
+    group.addEventListener('mouseup', function() {
+        pressed = false;
+        clearTimeout(timer);
+    });
+    group.addEventListener('mouseleave', function() {
+        pressed = false;
+        clearTimeout(timer);
+    });
+    group.addEventListener('touchstart', function() {
+        pressed = true;
+        timer = setTimeout(() => {
+            if (pressed) {
+                hideAllActions();
+                actions.classList.add('active');
+            }
+        }, 500);
+    }, { passive: true });
+    group.addEventListener('touchend', function() {
+        pressed = false;
+        clearTimeout(timer);
+    });
+    group.addEventListener('touchmove', function() {
+        pressed = false;
+        clearTimeout(timer);
+    });
+
     return group;
 }
 
@@ -705,8 +899,8 @@ document.addEventListener('click', hideAllActions);
 function addMessage(id, data, self) {
     if (messageIds.has(id)) return;
     messageIds.add(id);
-    
-    emptyState.style.display = 'none';
+
+    if (emptyState) emptyState.style.display = 'none';
     const el = createMessage(id, data, self);
     if (el) {
         messagesDiv.appendChild(el);
@@ -715,8 +909,9 @@ function addMessage(id, data, self) {
     }
 }
 
-function addSystemMessage(text, type = '') {
-    emptyState.style.display = 'none';
+function addSystemMessage(text, type) {
+    type = type || '';
+    if (emptyState) emptyState.style.display = 'none';
     const div = document.createElement('div');
     div.className = `system-msg${type ? ' ' + type : ''}`;
     div.textContent = text;
@@ -730,9 +925,11 @@ function showRules() {
         <div class="rule-title">📜 قوانين الغروب</div>
         <div class="rule-item">1. احترام جميع الأعضاء</div>
         <div class="rule-item">2. لا للسب أو الشتم</div>
-        <div class="rule-item">3. لا للمضايقات</div>
+        <div class="rule-item">3. لا للمضايقات أو التحرش</div>
         <div class="rule-item">4. لا للمحتوى غير اللائق</div>
-        <div class="rule-item">5. احترام قرارات المسؤول</div>
+        <div class="rule-item">5. الالتزام بالموضوعية</div>
+        <div class="rule-item">6. لا للإعلانات دون إذن</div>
+        <div class="rule-item">7. احترام قرارات المسؤول</div>
     `;
     const div = document.createElement('div');
     div.className = 'system-msg rules';
@@ -749,7 +946,7 @@ function updateMessageCount() {
     const count = messagesDiv.querySelectorAll('.msg-group, .system-msg').length;
     const existing = messagesDiv.querySelector('.msg-count');
     if (existing) existing.remove();
-    
+
     if (count > 0) {
         const div = document.createElement('div');
         div.className = 'msg-count';
@@ -762,75 +959,89 @@ function updateMessageCount() {
 // 📥 تحميل الرسائل
 // ============================================================
 function loadMessages() {
-    emptyState.style.display = 'flex';
+    if (emptyState) emptyState.style.display = 'flex';
     lastSender = '';
     messageIds.clear();
-    
+
     db.collection('messages')
         .orderBy('timestamp', 'asc')
         .get()
         .then(snapshot => {
-            emptyState.style.display = 'none';
-            
+            if (emptyState) emptyState.style.display = 'none';
+
             const promises = [];
             const tempMessages = [];
-            
+
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (blockedUsers.includes(data.sender)) return;
-                
+
                 if (!data.avatar) {
                     const promise = db.collection('users').doc(data.sender).get()
                         .then(userDoc => {
-                            if (userDoc.exists) data.avatar = userDoc.data().avatar || '';
+                            if (userDoc.exists) {
+                                data.avatar = userDoc.data().avatar || '';
+                            }
                             tempMessages.push({ id: doc.id, data });
                         })
-                        .catch(() => tempMessages.push({ id: doc.id, data }));
+                        .catch(() => {
+                            tempMessages.push({ id: doc.id, data });
+                        });
                     promises.push(promise);
                 } else {
                     tempMessages.push({ id: doc.id, data });
                 }
             });
-            
+
             Promise.all(promises).then(() => {
                 tempMessages.forEach(({ id, data }) => {
                     addMessage(id, data, data.sender === currentUser);
                 });
-                if (snapshot.empty) emptyState.style.display = 'flex';
+
+                if (snapshot.empty && emptyState) emptyState.style.display = 'flex';
                 showRules();
                 updateMessageCount();
-                setTimeout(() => messagesDiv.scrollTop = messagesDiv.scrollHeight, 100);
+
+                setTimeout(() => {
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }, 100);
             });
         })
-        .catch(err => console.error('❌ خطأ في تحميل الرسائل:', err));
+        .catch(err => {
+            console.error('❌ خطأ في تحميل الرسائل:', err);
+        });
 }
 
 function listenMessages() {
     if (unsubscribe) unsubscribe();
     lastSender = '';
-    
+
     unsubscribe = db.collection('messages')
         .orderBy('timestamp', 'asc')
         .onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
                 const data = change.doc.data();
                 if (blockedUsers.includes(data.sender)) return;
-                
+
                 if (change.type === 'added') {
                     if (!messageIds.has(change.doc.id)) {
                         if (!data.avatar) {
                             db.collection('users').doc(data.sender).get()
                                 .then(userDoc => {
-                                    if (userDoc.exists) data.avatar = userDoc.data().avatar || '';
+                                    if (userDoc.exists) {
+                                        data.avatar = userDoc.data().avatar || '';
+                                    }
                                     addMessage(change.doc.id, data, data.sender === currentUser);
                                 })
-                                .catch(() => addMessage(change.doc.id, data, data.sender === currentUser));
+                                .catch(() => {
+                                    addMessage(change.doc.id, data, data.sender === currentUser);
+                                });
                         } else {
                             addMessage(change.doc.id, data, data.sender === currentUser);
                         }
                     }
                 }
-                
+
                 if (change.type === 'modified') {
                     const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
                     if (existing) {
@@ -840,11 +1051,13 @@ function listenMessages() {
                                 text.innerHTML = '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>';
                             } else {
                                 text.innerHTML = data.text + (data.edited ? ' <span class="edited-badge">(معدّل)</span>' : '');
+                                if (isEmojiOnly(data.text)) text.classList.add('emoji-big');
+                                else text.classList.remove('emoji-big');
                             }
                         }
                     }
                 }
-                
+
                 if (change.type === 'removed') {
                     const existing = messagesDiv.querySelector(`[data-id="${change.doc.id}"]`);
                     if (existing) existing.remove();
@@ -852,13 +1065,15 @@ function listenMessages() {
                     updateMessageCount();
                 }
             });
-            
+
             if (snapshot.empty) {
-                emptyState.style.display = 'flex';
+                if (emptyState) emptyState.style.display = 'flex';
             } else {
-                emptyState.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'none';
             }
-        }, error => console.error('❌ خطأ في الاستماع:', error));
+        }, error => {
+            console.error('❌ خطأ في الاستماع للرسائل:', error);
+        });
 }
 
 // ============================================================
@@ -867,16 +1082,24 @@ function listenMessages() {
 function sendMessage() {
     const raw = msgInput.value.trim();
     if (!raw || !isLoggedIn) return;
-    if (isMuted) { alert('⛔ أنت ممنوع من الكتابة حالياً'); return; }
-    
+    if (isMuted) {
+        alert('⛔ أنت ممنوع من الكتابة حالياً');
+        return;
+    }
     const text = sanitizeInput(raw);
     if (!text) return;
-    if (handleBadWord(text, currentUser)) { msgInput.value = ''; return; }
-    if (editingMessage) { updateMsg(editingMessage.id, text); return; }
-    
+    if (handleBadWord(text, currentUser)) {
+        msgInput.value = '';
+        return;
+    }
+    if (editingMessage) {
+        updateMsg(editingMessage.id, text);
+        return;
+    }
+
     sendBtn.disabled = true;
     msgInput.disabled = true;
-    
+
     const data = {
         text: text,
         sender: currentUser,
@@ -885,7 +1108,7 @@ function sendMessage() {
         ip: userIP,
         avatar: userAvatarBase64
     };
-    
+
     if (replyTo) {
         data.replyTo = {
             id: replyTo.id,
@@ -893,14 +1116,16 @@ function sendMessage() {
             text: replyTo.text.substring(0, 60) + (replyTo.text.length > 60 ? '...' : '')
         };
     }
-    
+
     db.collection('messages').add(data)
         .then(() => {
             msgInput.value = '';
             msgInput.focus();
             clearReply();
         })
-        .catch(() => alert('⚠️ فشل الإرسال'))
+        .catch(() => {
+            alert('⚠️ فشل الإرسال');
+        })
         .finally(() => {
             sendBtn.disabled = false;
             msgInput.disabled = false;
@@ -914,7 +1139,7 @@ function startEdit(id, text) {
     editingMessage = { id, text };
     msgInput.value = text;
     msgInput.focus();
-    sendBtn.innerHTML = '✏️';
+    sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
     sendBtn.style.background = '#faa81a';
 }
 
@@ -923,7 +1148,7 @@ function updateMsg(id, newText) {
     db.collection('messages').doc(id).update({ text: newText, edited: true })
         .then(() => {
             editingMessage = null;
-            sendBtn.innerHTML = '📤';
+            sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
             sendBtn.style.background = '';
             msgInput.value = '';
         });
@@ -934,14 +1159,17 @@ function updateMsg(id, newText) {
 // ============================================================
 function deleteMsg(id) {
     if (!isAdmin) return;
-    if (!confirm('🗑️ هل أنت متأكد من حذف هذه الرسالة نهائياً؟')) return;
+    if (!confirm('🗑️ هل أنت متأكد من حذف هذه الرسالة نهائياً؟\nلا يمكن استعادتها بعد الحذف.')) return;
     db.collection('messages').doc(id).delete()
         .then(() => {
             addSystemMessage('🗑️ تم حذف رسالة نهائياً بواسطة المسؤول', 'success');
             messageIds.delete(id);
             updateMessageCount();
         })
-        .catch(err => alert('⚠️ فشل حذف الرسالة'));
+        .catch(err => {
+            console.error('❌ خطأ في الحذف:', err);
+            alert('⚠️ فشل حذف الرسالة');
+        });
 }
 
 // ============================================================
@@ -949,8 +1177,8 @@ function deleteMsg(id) {
 // ============================================================
 function clearChat() {
     if (!isAdmin || !isAdminVerified) return;
-    if (!confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل نهائياً؟')) return;
-    
+    if (!confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل نهائياً؟\nلا يمكن استعادتها بعد الحذف.')) return;
+
     showLoading(true);
     db.collection('messages').get()
         .then(snapshot => {
@@ -959,14 +1187,18 @@ function clearChat() {
             return batch.commit();
         })
         .then(() => {
-            addSystemMessage('🗑️ تم حذف جميع الرسائل نهائياً', 'success');
+            addSystemMessage('🗑️ تم حذف جميع الرسائل نهائياً بواسطة المسؤول', 'success');
             document.querySelectorAll('.msg-group, .system-msg, .msg-count').forEach(el => el.remove());
             emptyState.style.display = 'flex';
             messageIds.clear();
             updateMessageCount();
             showLoading(false);
         })
-        .catch(err => { alert('⚠️ فشل حذف الدردشة'); showLoading(false); });
+        .catch(err => {
+            console.error('❌ خطأ في حذف الدردشة:', err);
+            alert('⚠️ فشل حذف الدردشة');
+            showLoading(false);
+        });
 }
 clearChatBtn.addEventListener('click', clearChat);
 
@@ -988,6 +1220,9 @@ function blockUser(username) {
     }
 }
 
+// ============================================================
+// 🔓 فك الحظر
+// ============================================================
 function unblockUser(username) {
     if (!isAdmin) return;
     if (!confirm(`🔓 هل أنت متأكد من فك الحظر عن @${username}؟`)) return;
@@ -996,7 +1231,7 @@ function unblockUser(username) {
         blockedUsers.splice(index, 1);
         db.collection('blocked').doc('list').set({ users: blockedUsers })
             .then(() => {
-                addSystemMessage(`✅ @${username} تم فك الحظر عنه`, 'success');
+                addSystemMessage(`✅ @${username} تم فك الحظر عنه بواسطة المسؤول`, 'success');
                 loadAdminUsers();
                 loadMessages();
             });
@@ -1008,15 +1243,18 @@ function unblockUser(username) {
 // ============================================================
 function deleteUserAccount(username) {
     if (!isAdmin || username === ADMIN_NAME) return;
-    if (!confirm(`⚠️ هل أنت متأكد من حذف حساب @${username} بالكامل؟`)) return;
-    
+    if (!confirm(`⚠️ هل أنت متأكد من حذف حساب @${username} بالكامل؟\nسيتم حذف جميع رسائله وبياناته نهائياً.`))
+        return;
+
     showLoading(true);
     db.collection('users').doc(username).delete()
-        .then(() => db.collection('messages').where('sender', '==', username).get())
-        .then(snapshot => {
-            const batch = db.batch();
-            snapshot.forEach(doc => batch.delete(doc.ref));
-            return batch.commit();
+        .then(() => {
+            return db.collection('messages').where('sender', '==', username).get()
+                .then(snapshot => {
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.delete(doc.ref));
+                    return batch.commit();
+                });
         })
         .then(() => {
             const index = blockedUsers.indexOf(username);
@@ -1026,13 +1264,16 @@ function deleteUserAccount(username) {
             }
         })
         .then(() => {
-            addSystemMessage(`🗑️ تم حذف حساب @${username} بالكامل`, 'success');
+            addSystemMessage(`🗑️ تم حذف حساب @${username} بالكامل نهائياً بواسطة المسؤول`, 'success');
             document.querySelectorAll(`[data-sender="${username}"]`).forEach(el => el.remove());
             loadAdminUsers();
             showLoading(false);
             updateMessageCount();
         })
-        .catch(() => { alert('⚠️ حدث خطأ'); showLoading(false); });
+        .catch(() => {
+            alert('⚠️ حدث خطأ');
+            showLoading(false);
+        });
 }
 
 // ============================================================
@@ -1041,10 +1282,13 @@ function deleteUserAccount(username) {
 function loadBlockedUsers() {
     return db.collection('blocked').doc('list').get()
         .then(doc => {
-            blockedUsers = doc.exists && doc.data().users ? doc.data().users : [];
+            blockedUsers = (doc.exists && doc.data().users) ? doc.data().users : [];
             return blockedUsers;
         })
-        .catch(() => { blockedUsers = []; return blockedUsers; });
+        .catch(() => {
+            blockedUsers = [];
+            return blockedUsers;
+        });
 }
 
 // ============================================================
@@ -1058,7 +1302,10 @@ function reportMsg(id, sender) {
             reportedBy: currentUser,
             reportedIP: userIP,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => addSystemMessage(`📋 تم الإبلاغ عن @${sender}`));
+        })
+        .then(() => {
+            addSystemMessage(`📋 تم الإبلاغ عن @${sender}`);
+        });
     }
 }
 
@@ -1080,7 +1327,7 @@ msgInput.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         if (editingMessage) {
             editingMessage = null;
-            sendBtn.innerHTML = '📤';
+            sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
             sendBtn.style.background = '';
             msgInput.value = '';
         }
@@ -1093,45 +1340,70 @@ msgInput.addEventListener('keydown', function(e) {
 // ============================================================
 function loadAdminUsers() {
     if (!isAdmin || !isAdminVerified) return;
-    adminUsersList.innerHTML = 'جاري التحميل...';
-    
+    adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">جاري التحميل...</div>';
+
     db.collection('users').get()
         .then(snapshot => {
             if (snapshot.empty) {
-                adminUsersList.innerHTML = 'لا يوجد مستخدمون مسجلون';
+                adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>';
                 return;
             }
-            
-            let html = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const blocked = blockedUsers.includes(data.username);
-                const isOnline = data.online || false;
-                const avatarHtml = data.avatar && data.avatar.startsWith('data:image') 
-                    ? `<img src="${data.avatar}" alt="${data.username}">` 
-                    : getInitials(data.username);
-                
-                html += `
-                    <div class="user-item">
-                        <div class="user-info">
-                            <div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:${getAvatarColor(data.username)};color:#fff;font-weight:600;">${avatarHtml}</div>
-                            <span>${data.username}${data.username === ADMIN_NAME ? ' 👑' : ''}${blocked ? ' 🚫' : ''}${isOnline ? ' 🟢' : ' ⚪'}</span>
-                        </div>
-                        <div class="user-actions">
-                            ${data.username !== ADMIN_NAME ? `
-                                ${blocked ? 
-                                    `<button class="unblock-user" onclick="unblockUser('${data.username}')">🔓</button>` :
-                                    `<button class="block-user" onclick="blockUser('${data.username}')">🚫</button>`
+
+            db.collection('users').where('online', '==', true).get()
+                .then(onlineSnapshot => {
+                    const onlineSet = new Set();
+                    onlineSnapshot.forEach(doc => onlineSet.add(doc.id));
+
+                    db.collection('violations').get()
+                        .then(violationsSnapshot => {
+                            const violationCount = {};
+                            violationsSnapshot.forEach(doc => {
+                                const data = doc.data();
+                                if (data.user) violationCount[data.user] = (violationCount[data.user] || 0) + 1;
+                            });
+
+                            let html = '';
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+                                const blocked = blockedUsers.includes(data.username);
+                                const online = onlineSet.has(data.username);
+                                const vcount = violationCount[data.username] || 0;
+                                let avatarHtml = '';
+
+                                if (data.avatar && data.avatar.startsWith('data:image')) {
+                                    avatarHtml = `<img src="${data.avatar}" alt="${data.username}">`;
+                                } else {
+                                    avatarHtml = getInitials(data.username);
                                 }
-                                <button class="delete-user" onclick="deleteUserAccount('${data.username}')">🗑️</button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            adminUsersList.innerHTML = html;
+
+                                html += `
+                                    <div class="user-item">
+                                        <div class="user-info">
+                                            <div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:${getAvatarColor(data.username)};color:#fff;font-weight:600;">
+                                                ${avatarHtml}
+                                            </div>
+                                            <span>${data.username}${data.username === ADMIN_NAME ? ' 👑' : ''}${blocked ? ' 🚫' : ''}${online ? ' 🟢' : ' ⚪'}</span>
+                                            ${vcount > 0 ? `<span class="muted-badge">⚠️ ${vcount}</span>` : ''}
+                                        </div>
+                                        <div class="user-actions">
+                                            ${data.username !== ADMIN_NAME ? `
+                                                ${blocked ? 
+                                                    `<button class="unblock-user" onclick="unblockUser('${data.username}')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>` :
+                                                    `<button class="block-user" onclick="blockUser('${data.username}')" title="حظر"><span class="material-symbols-outlined">block</span></button>`
+                                                }
+                                                <button class="delete-user" onclick="deleteUserAccount('${data.username}')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            adminUsersList.innerHTML = html;
+                        });
+                });
         })
-        .catch(() => adminUsersList.innerHTML = '❌ خطأ في التحميل');
+        .catch(() => {
+            adminUsersList.innerHTML = '<div style="color:var(--red);font-size:12px;">❌ خطأ في التحميل</div>';
+        });
 }
 
 // ============================================================
@@ -1140,7 +1412,7 @@ function loadAdminUsers() {
 forceLogoutBtn.addEventListener('click', function() {
     if (!isAdmin || !isAdminVerified) return;
     if (!confirm('⚠️ هل أنت متأكد من تسجيل خروج جميع المستخدمين؟')) return;
-    
+
     showLoading(true);
     db.collection('users').where('online', '==', true).get()
         .then(snapshot => {
@@ -1153,45 +1425,66 @@ forceLogoutBtn.addEventListener('click', function() {
             loadAdminUsers();
             showLoading(false);
         })
-        .catch(() => { alert('⚠️ حدث خطأ'); showLoading(false); });
+        .catch(() => {
+            alert('⚠️ حدث خطأ');
+            showLoading(false);
+        });
 });
 
 // ============================================================
 // 🚪 تسجيل الخروج
 // ============================================================
 function logout() {
-    if (!confirm('🚪 تسجيل الخروج؟')) return;
+    if (!confirm('🚪 تسجيل الخروج؟\nسيتم حذف جلسة الدخول من هذا الجهاز.')) return;
     localStorage.removeItem('chat_session');
     performLogout();
 }
 
 function performLogout() {
     if (currentUser) {
-        db.collection('users').doc(currentUser).update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+        db.collection('users').doc(currentUser).update({
+            online: false,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        });
         addSystemMessage(`👋 ${currentUser} غادر الدردشة`);
     }
-    
+
     isLoggedIn = false;
     currentUser = '';
     isAdmin = false;
     isAdminVerified = false;
-    
+
     if (unsubscribe) unsubscribe();
-    
+
     chatContainer.style.display = 'none';
     loginOverlay.classList.remove('hidden');
-    messagesDiv.innerHTML = `<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">chat</span></div><div class="empty-title">لا توجد رسائل</div><div class="empty-sub">كن أول من يكتب ✨</div></div>`;
+
+    messagesDiv.innerHTML = `
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon"><span class="material-symbols-outlined">chat</span></div>
+            <div class="empty-title">لا توجد رسائل</div>
+            <div class="empty-sub">كن أول من يكتب ✨</div>
+        </div>
+    `;
+
     msgInput.disabled = true;
     sendBtn.disabled = true;
-    sendBtn.innerHTML = '📤';
+    sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
     sendBtn.style.background = '';
     clearReply();
     editingMessage = null;
+
+    infoMsg.textContent = '👋 تم تسجيل الخروج';
+    infoMsg.classList.add('show');
+    setTimeout(() => infoMsg.classList.remove('show'), 2000);
+
+    usernameInput.value = '';
+    loginAdminPasswordBox.style.display = 'none';
+    isAdminLoginAttempt = false;
+
     userAvatarBase64 = '';
     tempAvatarBase64 = '';
     messageIds.clear();
-    usernameInput.value = '';
-    loginAdminPasswordBox.style.display = 'none';
 }
 
 logoutBtn.addEventListener('click', logout);
@@ -1206,7 +1499,7 @@ function checkForceLogout() {
                 if (doc.exists && doc.data().forceLogout === true) {
                     db.collection('users').doc(currentUser).update({ forceLogout: false });
                     addSystemMessage('🔒 تم تسجيل خروجك قسراً بواسطة المسؤول');
-                    setTimeout(performLogout, 1000);
+                    setTimeout(() => performLogout(), 1000);
                 }
             })
             .catch(() => {});
@@ -1225,6 +1518,14 @@ function setUserOnline(name) {
         online: true,
         forceLogout: false,
         avatar: userAvatarBase64 || '',
+        firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    });
+}
+
+function setUserOffline(name) {
+    db.collection('users').doc(name).update({
+        online: false,
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     });
 }
@@ -1234,14 +1535,18 @@ function setUserOnline(name) {
 // ============================================================
 function saveSession(username, color, avatar) {
     try {
-        localStorage.setItem('chat_session', JSON.stringify({
-            username,
-            color,
+        const session = {
+            username: username,
+            color: color,
             ip: userIP,
             avatar: avatar || '',
             timestamp: Date.now()
-        }));
-    } catch (e) {}
+        };
+        localStorage.setItem('chat_session', JSON.stringify(session));
+        console.log('✅ تم حفظ الجلسة');
+    } catch (e) {
+        console.log('⚠️ لا يمكن حفظ الجلسة');
+    }
 }
 
 // ============================================================
@@ -1252,12 +1557,15 @@ function checkSession() {
         const sessionData = localStorage.getItem('chat_session');
         if (!sessionData) return null;
         const session = JSON.parse(sessionData);
-        if (Date.now() - session.timestamp > 7 * 24 * 60 * 60 * 1000) {
+        const maxAge = 7 * 24 * 60 * 60 * 1000;
+        if (Date.now() - session.timestamp > maxAge) {
             localStorage.removeItem('chat_session');
             return null;
         }
         return session;
-    } catch (e) { return null; }
+    } catch (e) {
+        return null;
+    }
 }
 
 // ============================================================
@@ -1269,7 +1577,7 @@ async function login() {
         loginError.style.display = 'block';
         return;
     }
-    
+
     if (raw === ADMIN_NAME) {
         const pass = loginAdminPasswordInput.value.trim();
         if (pass !== ADMIN_PASSWORD) {
@@ -1280,42 +1588,42 @@ async function login() {
         }
         loginAdminPasswordError.classList.remove('show');
     }
-    
+
     const name = sanitizeInput(raw);
     if (!name) {
         loginError.textContent = '⚠️ اسم غير صالح';
         loginError.style.display = 'block';
         return;
     }
-    
+
     loginError.style.display = 'none';
     connectionError.style.display = 'none';
-    
+
     showLoading(true);
     loginBtn.disabled = true;
-    loginBtn.textContent = '⏳ جاري...';
-    
+    loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
+
     try {
         userIP = getHashedIP();
-        
-        const check = await db.collection('users').doc(name).get();
+
+        const userDoc = await db.collection('users').doc(name).get();
         let avatarBase64 = '';
-        if (check.exists && check.data().avatar) {
-            avatarBase64 = check.data().avatar;
+        if (userDoc.exists && userDoc.data().avatar) {
+            avatarBase64 = userDoc.data().avatar;
         }
-        
+
         await auth.signInAnonymously();
-        
+
         currentUser = name;
         userAvatarBase64 = avatarBase64;
         isLoggedIn = true;
-        isAdmin = name === ADMIN_NAME;
+        isAdmin = (name === ADMIN_NAME);
         isMuted = false;
         muteCount = 0;
-        
+
         if (muteTimeout) clearTimeout(muteTimeout);
         mutedNotice.classList.remove('active');
-        
+
         if (isAdmin) {
             adminBtn.classList.remove('hidden');
             adminBadge.classList.add('show');
@@ -1323,50 +1631,63 @@ async function login() {
             adminBtn.classList.add('hidden');
             adminBadge.classList.remove('show');
         }
-        
+
         await loadBlockedUsers();
-        
+
         loginOverlay.classList.add('hidden');
         chatContainer.style.display = 'flex';
+
         msgInput.disabled = false;
         sendBtn.disabled = false;
         msgInput.focus();
-        
+
         updateAllAvatars(avatarBase64, name);
-        
+
         if (isAdmin) {
             db.collection('users').doc(name).update({ forceLogout: false }).catch(() => {});
         }
-        
+
         setUserOnline(name);
         saveSession(name, userColor, avatarBase64);
-        
-        if (!check.exists) {
+
+        if (isAdmin) {
+            db.collection('settings').doc('theme').get()
+                .then(doc => {
+                    if (doc.exists && doc.data().theme) {
+                        applyTheme(doc.data().theme);
+                    }
+                })
+                .catch(() => {});
+        }
+
+        if (!userDoc.exists) {
             addSystemMessage(`👋 مرحباً ${name}! هذه أول مرة لك في الغروب`);
         } else if (isAdmin) {
             addSystemMessage(`👑 المسؤول ${name} انضم إلى الدردشة`);
         } else {
             addSystemMessage(`👋 ${name} انضم إلى الدردشة`);
         }
-        
+
         loadMessages();
         listenMessages();
         loadBadWords();
-        
-        window.addEventListener('beforeunload', () => {
+
+        window.addEventListener('beforeunload', function() {
             if (currentUser) {
                 db.collection('users').doc(currentUser).update({ online: false });
             }
         });
-        
+
     } catch (error) {
         connectionError.textContent = `❌ ${error.message}`;
         connectionError.style.display = 'block';
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
     }
-    
+
     showLoading(false);
     loginBtn.disabled = false;
-    loginBtn.textContent = 'دخول';
+    loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
 }
 
 // ============================================================
@@ -1374,7 +1695,10 @@ async function login() {
 // ============================================================
 function init() {
     loadSavedTheme();
-    
+    infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
+    infoMsg.classList.add('show');
+    setTimeout(() => infoMsg.classList.remove('show'), 3000);
+
     const session = checkSession();
     if (session) {
         usernameInput.value = session.username || '';
@@ -1385,10 +1709,6 @@ function init() {
         });
         setTimeout(() => login(), 300);
     }
-    
-    infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
-    infoMsg.classList.add('show');
-    setTimeout(() => infoMsg.classList.remove('show'), 3000);
 }
 
 // ============================================================
@@ -1410,7 +1730,7 @@ loginBtn.addEventListener('click', login);
 
 usernameInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
-        if (this.value.trim() === ADMIN_NAME) {
+        if (isAdminLoginAttempt) {
             loginAdminPasswordInput.focus();
         } else {
             login();
@@ -1419,7 +1739,9 @@ usernameInput.addEventListener('keypress', function(e) {
 });
 
 loginAdminPasswordInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') login();
+    if (e.key === 'Enter') {
+        login();
+    }
 });
 
 sendBtn.addEventListener('click', sendMessage);
@@ -1442,7 +1764,15 @@ auth.onAuthStateChanged(function(user) {
 // 🚀 بدء التطبيق
 // ============================================================
 userIP = getHashedIP();
-console.log(`🚀 نيزك ${VERSION} - أقدم فوق، أحدث تحت`);
+
+console.log(`🚀 نيزك ${VERSION} - أقدم فوق، أحدث تحت (مثل الدردشة الطبيعية)`);
 console.log(`👑 المسؤول: ${ADMIN_NAME}`);
 console.log(`🔒 كلمة المرور: ${ADMIN_PASSWORD}`);
+console.log(`🔒 IP مشوش: ${userIP}`);
+console.log(`🚫 عدد الكلمات المحظورة: ${DEFAULT_BAD_WORDS.length}`);
+console.log('💾 ميزة حفظ الجلسة مفعلة');
+console.log('📱 تسجيل الدخول المتعدد من نفس الاسم مفعل');
+console.log('🌓 نظام الثيمات مفعل');
+console.log('📸 الصور الشخصية مخزنة في Firestore (Base64)');
+
 init();
