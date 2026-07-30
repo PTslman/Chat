@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>نيزك v2.3 - دردشة عصرية</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>نيزك v2.7 - دردشة عصرية</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <style>
+        /* ============================================================
+           نيزك v2.7.0 - تخزين الصور في Firestore
+           ============================================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
 
         :root {
@@ -48,7 +50,7 @@
             --radius: 16px;
             --radius-sm: 10px;
             --radius-bubble: 18px;
-            --version: "v2.3.0";
+            --version: "v2.7.0";
             --avatar-size: 36px;
         }
 
@@ -141,10 +143,25 @@
             color: var(--text-primary);
             font-size: 16px;
             line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        input,
+        textarea {
+            -webkit-user-select: text;
+            user-select: text;
         }
 
         ::-webkit-scrollbar {
             width: 3px;
+            height: 3px;
         }
         ::-webkit-scrollbar-track {
             background: transparent;
@@ -152,6 +169,13 @@
         ::-webkit-scrollbar-thumb {
             background: var(--text-muted);
             border-radius: 10px;
+        }
+
+        .chat-messages {
+            -webkit-overflow-scrolling: touch;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
         }
 
         #app {
@@ -378,9 +402,9 @@
             gap: 2px;
             scroll-behavior: smooth;
             min-height: 0;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* ===== MESSAGE GROUP ===== */
         .msg-group {
             display: flex;
             align-items: flex-end;
@@ -473,7 +497,6 @@
             margin-left: 4px;
         }
 
-        /* ===== BUBBLE ===== */
         .msg-bubble {
             padding: 8px 14px 7px;
             border-radius: var(--radius-bubble);
@@ -495,12 +518,6 @@
             background: var(--bg-bubble-other);
             color: var(--text-bubble-other);
             border-bottom-left-radius: 4px;
-        }
-
-        /* إزالة المثلث المزعج */
-        .msg-group.self .msg-bubble::after,
-        .msg-group.other .msg-bubble::after {
-            display: none;
         }
 
         .msg-group.grouped .msg-bubble {
@@ -585,7 +602,6 @@
             color: var(--accent);
         }
 
-        /* ===== ACTIONS ===== */
         .msg-actions {
             position: absolute;
             top: -34px;
@@ -659,7 +675,6 @@
             color: var(--red);
         }
 
-        /* ===== SYSTEM ===== */
         .system-msg {
             text-align: center;
             font-size: 11px;
@@ -1099,6 +1114,38 @@
             border-radius: 50%;
         }
 
+        .upload-status {
+            text-align: center;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 4px;
+            width: 100%;
+            display: none;
+        }
+
+        .upload-status.show {
+            display: block;
+        }
+
+        .upload-status.loading {
+            color: var(--accent);
+            border-color: var(--accent-glow);
+        }
+
+        .upload-status.success {
+            color: var(--green);
+            border-color: rgba(35, 165, 90, 0.2);
+        }
+
+        .upload-status.error {
+            color: var(--red);
+            border-color: rgba(237, 66, 69, 0.2);
+        }
+
         .login-avatar-btn {
             padding: 4px 14px;
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1193,7 +1240,46 @@
             display: block;
         }
 
-        /* ===== PROFILE MODAL ===== */
+        /* ADMIN PASSWORD IN LOGIN */
+        .login-admin-password-box {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .login-admin-password-box input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            transition: 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .login-admin-password-box input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+        }
+
+        .login-admin-password-box input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .login-admin-password-box .error-msg {
+            color: var(--red);
+            font-size: 12px;
+            display: none;
+        }
+
+        .login-admin-password-box .error-msg.show {
+            display: block;
+        }
+
         .profile-modal .modal-box {
             max-width: 360px;
         }
@@ -1417,7 +1503,6 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
-        /* ===== ADMIN ===== */
         .admin-password-box input {
             width: 100%;
             padding: 12px 14px;
@@ -1926,6 +2011,9 @@
 </head>
 <body>
 
+    <!-- ============================================================
+    LOADING OVERLAY
+    ============================================================ -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
@@ -1933,14 +2021,19 @@
         </div>
     </div>
 
+    <!-- ============================================================
+    APP
+    ============================================================ -->
     <div id="app">
 
-        <!-- LOGIN -->
+        <!-- ============================================================
+        LOGIN SCREEN
+        ============================================================ -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
                 <div class="login-logo">💬</div>
                 <h1>نيزك <span class="hl">دردشة</span></h1>
-                <p class="login-sub">آمنة • سريعة • خاصة • v2.3</p>
+                <p class="login-sub">آمنة • سريعة • خاصة • v2.7</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
 
                 <div class="login-avatar-section">
@@ -1952,6 +2045,7 @@
                         اختر صورة
                     </button>
                     <input type="file" id="loginAvatarInput" class="file-input-hidden" accept="image/*">
+                    <div class="upload-status" id="loginUploadStatus"></div>
                 </div>
 
                 <div class="color-options" id="colorPicker">
@@ -1965,6 +2059,12 @@
                     <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
                 </div>
 
+                <!-- ADMIN PASSWORD - يظهر فقط عند كتابة slx23m -->
+                <div class="login-admin-password-box" id="loginAdminPasswordBox">
+                    <input type="password" id="loginAdminPasswordInput" placeholder="كلمة المرور..." maxlength="20">
+                    <div class="error-msg" id="loginAdminPasswordError">❌ كلمة المرور غير صحيحة</div>
+                </div>
+
                 <button class="login-btn" id="loginBtn"><span class="material-symbols-outlined">login</span> دخول</button>
                 <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
                 <div class="error" id="connectionError" style="display:none;"></div>
@@ -1975,13 +2075,15 @@
             </div>
         </div>
 
-        <!-- CHAT -->
+        <!-- ============================================================
+        CHAT CONTAINER
+        ============================================================ -->
         <div class="chat-container" id="chatContainer" style="display:none;">
 
             <div class="chat-header">
                 <div class="status-bar">
                     <span id="statusTime">12:00</span>
-                    <span class="version">v2.3.0</span>
+                    <span class="version">v2.7.0</span>
                 </div>
                 <div class="header-left">
                     <div class="header-avatar" id="headerAvatar" title="الملف الشخصي">
@@ -2042,11 +2144,13 @@
             </div>
 
             <div class="app-footer show" id="appFooter">
-                نيزك v2.3.0 • جميع الحقوق محفوظة
+                نيزك v2.7.0 • جميع الحقوق محفوظة
             </div>
         </div>
 
-        <!-- PROFILE MODAL -->
+        <!-- ============================================================
+        PROFILE MODAL
+        ============================================================ -->
         <div class="modal-overlay profile-modal" id="profileModal">
             <div class="modal-box">
                 <div class="modal-title">
@@ -2064,6 +2168,7 @@
                         تغيير الصورة
                     </button>
                     <input type="file" id="profileAvatarInput" class="file-input-hidden" accept="image/*">
+                    <div class="upload-status" id="profileUploadStatus"></div>
                 </div>
 
                 <input type="text" class="profile-name-input" id="profileNameInput" placeholder="اسم المستخدم..." maxlength="20">
@@ -2078,7 +2183,9 @@
             </div>
         </div>
 
-        <!-- RULES -->
+        <!-- ============================================================
+        RULES MODAL
+        ============================================================ -->
         <div class="modal-overlay" id="rulesModal">
             <div class="modal-box">
                 <div class="modal-title"><span class="material-symbols-outlined">gavel</span> قوانين الغروب</div>
@@ -2096,7 +2203,9 @@
             </div>
         </div>
 
-        <!-- ADMIN -->
+        <!-- ============================================================
+        ADMIN MODAL
+        ============================================================ -->
         <div class="modal-overlay" id="adminModal">
             <div class="modal-box">
                 <div class="modal-title"><span class="material-symbols-outlined">shield_person</span> لوحة المسؤول</div>
@@ -2155,6 +2264,9 @@
 
     </div>
 
+    <!-- ============================================================
+    JAVASCRIPT - نيزك v2.7.0 (بدون Firebase Storage)
+    ============================================================ -->
     <script>
         // ============================================================
         // 🔥 FIREBASE CONFIG
@@ -2168,17 +2280,20 @@
             appId: "1:181727674867:web:ae9824d9051bab9f73d286",
             measurementId: "G-VEL3PGTKY1"
         };
+
+        // ============================================================
+        // 🚀 INIT FIREBASE (بدون Storage)
+        // ============================================================
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-        const storage = firebase.storage();
 
         // ============================================================
         // 👑 ADMIN CONFIG
         // ============================================================
         const ADMIN_NAME = "slx23m";
-        const ADMIN_PASSWORD = "Slman1442";
-        const VERSION = "v2.3.0";
+        const ADMIN_PASSWORD = "1442";
+        const VERSION = "v2.7.0";
 
         // ============================================================
         // 🚫 DEFAULT BAD WORDS
@@ -2209,9 +2324,9 @@
             muteTimeout = null,
             muteCount = 0,
             currentTheme = 'dark',
-            userAvatarURL = '',
-            userAvatarFile = null,
-            tempAvatarFile = null;
+            userAvatarBase64 = '',
+            tempAvatarBase64 = '',
+            isAdminLoginAttempt = false;
 
         // ============================================================
         // 📄 DOM REFERENCES
@@ -2267,73 +2382,162 @@
         const profileAvatarInput = $('profileAvatarInput');
         const profileNameInput = $('profileNameInput');
         const profileSaveBtn = $('profileSaveBtn');
+        const profileUploadStatus = $('profileUploadStatus');
 
         const loginAvatarPreview = $('loginAvatarPreview');
         const loginAvatarPlaceholder = $('loginAvatarPlaceholder');
         const loginAvatarBtn = $('loginAvatarBtn');
         const loginAvatarInput = $('loginAvatarInput');
+        const loginUploadStatus = $('loginUploadStatus');
+
+        const loginAdminPasswordBox = $('loginAdminPasswordBox');
+        const loginAdminPasswordInput = $('loginAdminPasswordInput');
+        const loginAdminPasswordError = $('loginAdminPasswordError');
 
         // ============================================================
-        // 📸 AVATAR FUNCTIONS
+        // 📸 AVATAR FUNCTIONS - باستخدام Base64 فقط
         // ============================================================
         function getInitials(name) {
             if (!name) return '👤';
-            const parts = name.trim().split(' ');
+            var parts = name.trim().split(' ');
             if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
             return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
         }
 
         function getAvatarColor(name) {
-            const colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6', '#60a5fa', '#34d399'];
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) {
+            var colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6', '#60a5fa', '#34d399'];
+            var hash = 0;
+            for (var i = 0; i < name.length; i++) {
                 hash = name.charCodeAt(i) + ((hash << 5) - hash);
             }
             return colors[Math.abs(hash) % colors.length];
         }
 
-        function updateAvatarUI(element, placeholder, avatarURL, name) {
+        function updateAvatarUI(element, placeholder, avatarBase64, name) {
             if (!element) return;
-            if (avatarURL && avatarURL.startsWith('http')) {
-                element.innerHTML = `<img src="${avatarURL}" alt="صورة شخصية">`;
+            if (avatarBase64 && avatarBase64.indexOf('data:image') === 0) {
+                element.innerHTML = '<img src="' + avatarBase64 + '" alt="صورة شخصية" loading="lazy">';
                 if (placeholder) placeholder.textContent = '';
             } else {
-                const initials = getInitials(name);
-                const color = getAvatarColor(name);
-                const fontSize = element === loginAvatarPreview ? '28px' :
+                var initials = getInitials(name);
+                var color = getAvatarColor(name);
+                var fontSize = element === loginAvatarPreview ? '28px' :
                     element === profileAvatarPreview ? '32px' : '16px';
                 element.innerHTML =
-                    `<span class="avatar-placeholder" style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${fontSize};font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">${initials}</span>`;
+                    '<span class="avatar-placeholder" style="background:' + color + ';display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:' +
+                    fontSize + ';font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">' + initials +
+                    '</span>';
                 if (placeholder) placeholder.textContent = '';
             }
         }
 
-        function updateAllAvatars(avatarURL, name) {
-            updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarURL, name);
-            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarURL, name);
-            updateAvatarUI(loginAvatarPreview, loginAvatarPlaceholder, avatarURL, name);
+        function updateAllAvatars(avatarBase64, name) {
+            updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarBase64, name);
+            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarBase64, name);
+            updateAvatarUI(loginAvatarPreview, loginAvatarPlaceholder, avatarBase64, name);
             if (headerUsername) headerUsername.textContent = name;
         }
 
         // ============================================================
-        // 📤 UPLOAD AVATAR TO FIREBASE
+        // 🖼️ COMPRESS IMAGE TO BASE64 (بدون Storage)
         // ============================================================
-        function uploadAvatar(file, username) {
-            return new Promise((resolve, reject) => {
-                if (!file) return resolve(null);
-
-                const storageRef = storage.ref(`avatars/${username}_${Date.now()}.jpg`);
-                const uploadTask = storageRef.put(file);
-
-                uploadTask.on('state_changed',
-                    null,
-                    (error) => reject(error),
-                    () => {
-                        storageRef.getDownloadURL().then((url) => {
-                            resolve(url);
-                        }).catch(reject);
+        function compressImageToBase64(file, maxWidth, maxHeight, quality, statusElement) {
+            return new Promise(function(resolve, reject) {
+                try {
+                    if (statusElement) {
+                        statusElement.textContent = '⏳ جاري ضغط الصورة...';
+                        statusElement.className = 'upload-status show loading';
                     }
-                );
+
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            var img = new Image();
+                            img.onload = function() {
+                                try {
+                                    var canvas = document.createElement('canvas');
+                                    var ctx = canvas.getContext('2d');
+
+                                    var width = img.width;
+                                    var height = img.height;
+
+                                    if (width > maxWidth) {
+                                        height = (height * maxWidth) / width;
+                                        width = maxWidth;
+                                    }
+                                    if (height > maxHeight) {
+                                        width = (width * maxHeight) / height;
+                                        height = maxHeight;
+                                    }
+
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    ctx.drawImage(img, 0, 0, width, height);
+
+                                    var base64 = canvas.toDataURL('image/jpeg', quality);
+
+                                    if (statusElement) {
+                                        statusElement.textContent = '✅ تم ضغط الصورة بنجاح';
+                                        statusElement.className = 'upload-status show success';
+                                        setTimeout(function() {
+                                            statusElement.className = 'upload-status';
+                                        }, 1500);
+                                    }
+
+                                    resolve(base64);
+                                } catch (err) {
+                                    console.warn('⚠️ خطأ في معالجة الصورة:', err);
+                                    if (statusElement) {
+                                        statusElement.textContent = '❌ فشل معالجة الصورة';
+                                        statusElement.className = 'upload-status show error';
+                                    }
+                                    reject(err);
+                                }
+                            };
+                            img.onerror = function() {
+                                console.warn('⚠️ فشل تحميل الصورة');
+                                if (statusElement) {
+                                    statusElement.textContent = '❌ فشل تحميل الصورة';
+                                    statusElement.className = 'upload-status show error';
+                                }
+                                reject(new Error('فشل تحميل الصورة'));
+                            };
+                            img.src = e.target.result;
+                        } catch (err) {
+                            console.warn('⚠️ خطأ في قراءة الصورة:', err);
+                            if (statusElement) {
+                                statusElement.textContent = '❌ فشل قراءة الصورة';
+                                statusElement.className = 'upload-status show error';
+                            }
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = function() {
+                        console.warn('⚠️ فشل قراءة الملف');
+                        if (statusElement) {
+                            statusElement.textContent = '❌ فشل قراءة الملف';
+                            statusElement.className = 'upload-status show error';
+                        }
+                        reject(new Error('فشل قراءة الملف'));
+                    };
+                    reader.readAsDataURL(file);
+                } catch (err) {
+                    console.warn('⚠️ خطأ في الضغط:', err);
+                    if (statusElement) {
+                        statusElement.textContent = '❌ فشل الضغط: ' + err.message;
+                        statusElement.className = 'upload-status show error';
+                    }
+                    reject(err);
+                }
+            });
+        }
+
+        // ============================================================
+        // 📤 SAVE AVATAR TO FIRESTORE (Base64)
+        // ============================================================
+        function saveAvatarToFirestore(username, base64) {
+            return db.collection('users').doc(username).update({
+                avatar: base64 || ''
             });
         }
 
@@ -2344,11 +2548,13 @@
             if (!isLoggedIn) return;
             profileNameInput.value = currentUser;
             profileModal.classList.add('active');
-            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, userAvatarURL, currentUser);
+            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, userAvatarBase64, currentUser);
+            profileUploadStatus.className = 'upload-status';
+            profileUploadStatus.textContent = '';
         }
 
         async function saveProfile() {
-            const newName = profileNameInput.value.trim();
+            var newName = profileNameInput.value.trim();
             if (!newName || newName.length < 2) {
                 alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
                 return;
@@ -2357,38 +2563,40 @@
             showLoading(true);
 
             try {
-                let newAvatarURL = userAvatarURL;
+                var newAvatarBase64 = userAvatarBase64;
 
-                if (tempAvatarFile) {
-                    const url = await uploadAvatar(tempAvatarFile, currentUser);
-                    if (url) newAvatarURL = url;
-                    tempAvatarFile = null;
+                // إذا تم اختيار صورة جديدة
+                if (tempAvatarBase64) {
+                    newAvatarBase64 = tempAvatarBase64;
+                    tempAvatarBase64 = '';
                 }
 
-                const oldName = currentUser;
+                var oldName = currentUser;
 
+                // تحديث بيانات المستخدم في Firestore
                 await db.collection('users').doc(oldName).update({
                     username: newName,
-                    avatar: newAvatarURL,
+                    avatar: newAvatarBase64,
                     color: userColor
                 });
 
                 currentUser = newName;
-                userAvatarURL = newAvatarURL;
-                updateAllAvatars(newAvatarURL, newName);
+                userAvatarBase64 = newAvatarBase64;
+                updateAllAvatars(newAvatarBase64, newName);
 
+                // تحديث اسم المرسل في الرسائل
                 if (oldName !== newName) {
-                    const messagesSnap = await db.collection('messages')
+                    var messagesSnap = await db.collection('messages')
                         .where('sender', '==', oldName)
                         .get();
-                    const batch = db.batch();
-                    messagesSnap.forEach(doc => {
-                        batch.update(doc.ref, { sender: newName, avatar: newAvatarURL });
+                    var batch = db.batch();
+                    messagesSnap.forEach(function(doc) {
+                        batch.update(doc.ref, { sender: newName, avatar: newAvatarBase64 });
                     });
                     await batch.commit();
                 }
 
-                addSystemMessage(`✅ تم تحديث الملف الشخصي لـ ${newName}`, 'success');
+                addSystemMessage('✅ تم تحديث الملف الشخصي لـ ' + newName, 'success');
                 profileModal.classList.remove('active');
 
             } catch (error) {
@@ -2412,7 +2620,7 @@
                 themeIcon.textContent = 'dark_mode';
             }
 
-            document.querySelectorAll('.theme-btn').forEach(btn => {
+            document.querySelectorAll('.theme-btn').forEach(function(btn) {
                 btn.classList.toggle('active', btn.dataset.theme === theme);
             });
 
@@ -2421,7 +2629,7 @@
             } catch (e) {}
 
             if (isAdmin && isAdminVerified) {
-                db.collection('settings').doc('theme').set({ theme: theme }).catch(() => {});
+                db.collection('settings').doc('theme').set({ theme: theme }).catch(function() {});
             }
         }
 
@@ -2437,7 +2645,7 @@
 
         function loadSavedTheme() {
             try {
-                const saved = localStorage.getItem('chat_theme');
+                var saved = localStorage.getItem('chat_theme');
                 if (saved) {
                     applyTheme(saved);
                     return;
@@ -2445,14 +2653,14 @@
             } catch (e) {}
 
             db.collection('settings').doc('theme').get()
-                .then(doc => {
+                .then(function(doc) {
                     if (doc.exists && doc.data().theme) {
                         applyTheme(doc.data().theme);
                     } else {
                         applyTheme('dark');
                     }
                 })
-                .catch(() => {
+                .catch(function() {
                     applyTheme('dark');
                 });
         }
@@ -2461,9 +2669,9 @@
         // 🔒 GENERATE HASHED IP
         // ============================================================
         function getHashedIP() {
-            const h = Date.now().toString(36) + Math.random().toString(36).substr(2, 8) + navigator.userAgent.substring(0, 20)
+            var h = Date.now().toString(36) + Math.random().toString(36).substr(2, 8) + navigator.userAgent.substring(0, 20)
                 .replace(/[^a-zA-Z0-9]/g, '');
-            try { return btoa(h).substring(0, 20); } catch { return h.substring(0, 20); }
+            try { return btoa(h).substring(0, 20); } catch (e) { return h.substring(0, 20); }
         }
 
         // ============================================================
@@ -2476,13 +2684,19 @@
                 .test(t.trim());
         }
 
-        function showLoading(s) { s ? loadingOverlay.classList.add('active') : loadingOverlay.classList.remove('active'); }
+        function showLoading(s) {
+            if (s) {
+                loadingOverlay.classList.add('active');
+            } else {
+                loadingOverlay.classList.remove('active');
+            }
+        }
 
         // ============================================================
         // ⏰ CLOCK
         // ============================================================
         function updateClock() {
-            const n = new Date();
+            var n = new Date();
             $('statusTime').textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2,
                 '0');
         }
@@ -2492,9 +2706,10 @@
         // ============================================================
         // 🎨 COLOR PICKER
         // ============================================================
-        document.querySelectorAll('.color-circle').forEach(el => {
+        document.querySelectorAll('.color-circle').forEach(function(el) {
             el.addEventListener('click', function() {
-                document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('.color-circle').forEach(function(c) { c.classList.remove(
+                    'selected'); });
                 this.classList.add('selected');
                 userColor = this.dataset.color;
             });
@@ -2514,7 +2729,7 @@
                 emojiToggle.classList.remove('active');
             }
         });
-        document.querySelectorAll('.emoji-item').forEach(el => {
+        document.querySelectorAll('.emoji-item').forEach(function(el) {
             el.addEventListener('click', function() {
                 msgInput.value += this.textContent;
                 msgInput.focus();
@@ -2528,7 +2743,7 @@
         // ============================================================
         themeToggle.addEventListener('click', toggleTheme);
 
-        document.querySelectorAll('.theme-btn').forEach(btn => {
+        document.querySelectorAll('.theme-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 if (!isAdmin || !isAdminVerified) return;
                 applyTheme(this.dataset.theme);
@@ -2536,7 +2751,23 @@
         });
 
         // ============================================================
-        // 📸 AVATAR EVENTS - Login
+        // 👑 ADMIN LOGIN DETECTION
+        // ============================================================
+        usernameInput.addEventListener('input', function() {
+            var val = this.value.trim();
+            if (val === ADMIN_NAME) {
+                loginAdminPasswordBox.style.display = 'block';
+                loginAdminPasswordInput.value = '';
+                loginAdminPasswordError.classList.remove('show');
+                isAdminLoginAttempt = true;
+            } else {
+                loginAdminPasswordBox.style.display = 'none';
+                isAdminLoginAttempt = false;
+            }
+        });
+
+        // ============================================================
+        // 📸 AVATAR EVENTS - Login (Base64)
         // ============================================================
         loginAvatarBtn.addEventListener('click', function() {
             loginAvatarInput.click();
@@ -2548,24 +2779,31 @@
 
         loginAvatarInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
-                const file = this.files[0];
+                var file = this.files[0];
                 if (file.size > 5 * 1024 * 1024) {
                     alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
                     this.value = '';
                     return;
                 }
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    loginAvatarPreview.innerHTML = `<img src="${ev.target.result}" alt="صورة شخصية">`;
-                    loginAvatarPlaceholder.textContent = '';
-                    tempAvatarFile = file;
-                };
-                reader.readAsDataURL(file);
+
+                // ضغط الصورة وتحويلها إلى Base64
+                compressImageToBase64(file, 300, 300, 0.6, loginUploadStatus)
+                    .then(function(base64) {
+                        loginAvatarPreview.innerHTML = '<img src="' + base64 + '" alt="صورة شخصية">';
+                        loginAvatarPlaceholder.textContent = '';
+                        tempAvatarBase64 = base64;
+                        loginUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط دخول للحفظ';
+                        loginUploadStatus.className = 'upload-status show success';
+                    })
+                    .catch(function(err) {
+                        console.error('❌ فشل ضغط الصورة:', err);
+                        alert('⚠️ فشل معالجة الصورة: ' + err.message);
+                    });
             }
         });
 
         // ============================================================
-        // 📸 AVATAR EVENTS - Profile
+        // 📸 AVATAR EVENTS - Profile (Base64)
         // ============================================================
         profileAvatarBtn.addEventListener('click', function() {
             profileAvatarInput.click();
@@ -2577,19 +2815,25 @@
 
         profileAvatarInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
-                const file = this.files[0];
+                var file = this.files[0];
                 if (file.size > 5 * 1024 * 1024) {
                     alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
                     this.value = '';
                     return;
                 }
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    profileAvatarPreview.innerHTML = `<img src="${ev.target.result}" alt="صورة شخصية">`;
-                    profileAvatarPlaceholder.textContent = '';
-                    tempAvatarFile = file;
-                };
-                reader.readAsDataURL(file);
+
+                compressImageToBase64(file, 300, 300, 0.6, profileUploadStatus)
+                    .then(function(base64) {
+                        profileAvatarPreview.innerHTML = '<img src="' + base64 + '" alt="صورة شخصية">';
+                        profileAvatarPlaceholder.textContent = '';
+                        tempAvatarBase64 = base64;
+                        profileUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط حفظ للتحديث';
+                        profileUploadStatus.className = 'upload-status show success';
+                    })
+                    .catch(function(err) {
+                        console.error('❌ فشل ضغط الصورة:', err);
+                        alert('⚠️ فشل معالجة الصورة: ' + err.message);
+                    });
             }
         });
 
@@ -2602,13 +2846,17 @@
 
         closeProfileModal.addEventListener('click', function() {
             profileModal.classList.remove('active');
-            tempAvatarFile = null;
+            tempAvatarBase64 = '';
+            profileUploadStatus.className = 'upload-status';
+            profileUploadStatus.textContent = '';
         });
 
         profileModal.addEventListener('click', function(e) {
             if (e.target === profileModal) {
                 profileModal.classList.remove('active');
-                tempAvatarFile = null;
+                tempAvatarBase64 = '';
+                profileUploadStatus.className = 'upload-status';
+                profileUploadStatus.textContent = '';
             }
         });
 
@@ -2688,10 +2936,11 @@
             if (!badwordsList) return;
             if (!badWords.length) { badwordsList.innerHTML =
                     '<span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>'; return; }
-            let h = '';
+            var h = '';
             badWords.forEach(function(w) {
                 h +=
-                    `<span class="badword-tag">${w}<button class="remove-badword" data-word="${w}"><span class="material-symbols-outlined" style="font-size:12px;">close</span></button></span>`;
+                    '<span class="badword-tag">' + w + '<button class="remove-badword" data-word="' + w +
+                    '"><span class="material-symbols-outlined" style="font-size:12px;">close</span></button></span>';
             });
             badwordsList.innerHTML = h;
             document.querySelectorAll('.remove-badword').forEach(function(b) {
@@ -2700,7 +2949,7 @@
         }
 
         function addBadWord() {
-            const w = badwordInput.value.trim();
+            var w = badwordInput.value.trim();
             if (!w) return;
             if (badWords.includes(w)) { alert('⚠️ هذه الكلمة موجودة بالفعل'); return; }
             badWords.push(w);
@@ -2711,7 +2960,7 @@
         }
 
         function removeBadWord(w) {
-            const i = badWords.indexOf(w);
+            var i = badWords.indexOf(w);
             if (i > -1) { badWords.splice(i, 1);
                 saveBadWords();
                 renderBadWords(); }
@@ -2723,8 +2972,10 @@
         // 🔍 BAD WORD DETECTION
         // ============================================================
         function containsBadWord(t) {
-            const l = t.toLowerCase();
-            for (var i = 0; i < badWords.length; i++) { if (l.includes(badWords[i].toLowerCase())) return badWords[i]; }
+            var l = t.toLowerCase();
+            for (var i = 0; i < badWords.length; i++) {
+                if (l.indexOf(badWords[i].toLowerCase()) !== -1) return badWords[i];
+            }
             return null;
         }
 
@@ -2763,7 +3014,7 @@
         // 💬 MESSAGE
         // ============================================================
         function createMessage(id, d, self) {
-            if (blockedUsers.includes(d.sender) && !self) return null;
+            if (blockedUsers.indexOf(d.sender) !== -1 && !self) return null;
 
             var g = document.createElement('div');
             var grouped = (d.sender === lastSender && lastSender !== '');
@@ -2774,11 +3025,11 @@
 
             var avatar = document.createElement('div');
             avatar.className = 'msg-avatar';
-            if (d.avatar && d.avatar.startsWith('http')) {
-                avatar.innerHTML = `<img src="${d.avatar}" alt="${d.sender}">`;
+            if (d.avatar && d.avatar.indexOf('data:image') === 0) {
+                avatar.innerHTML = '<img src="' + d.avatar + '" alt="' + d.sender + '" loading="lazy">';
             } else {
-                const initials = getInitials(d.sender);
-                const color = getAvatarColor(d.sender);
+                var initials = getInitials(d.sender);
+                var color = getAvatarColor(d.sender);
                 avatar.style.background = color;
                 avatar.textContent = initials;
                 avatar.style.display = 'flex';
@@ -2820,14 +3071,18 @@
             } else {
                 if (isEmojiOnly(d.text)) tx.classList.add('emoji-big');
                 tx.textContent = d.text;
-                if (d.edited) { var ed = document.createElement('span');
+                if (d.edited) {
+                    var ed = document.createElement('span');
                     ed.className = 'edited-badge';
                     ed.textContent = '(معدّل)';
-                    tx.appendChild(ed); }
-                if (d.warning) { var wb = document.createElement('span');
+                    tx.appendChild(ed);
+                }
+                if (d.warning) {
+                    var wb = document.createElement('span');
                     wb.className = 'warning-badge';
                     wb.textContent = '⚠️ كلمة ممنوعة';
-                    tx.appendChild(wb); }
+                    tx.appendChild(wb);
+                }
             }
             b.appendChild(tx);
 
@@ -2898,8 +3153,9 @@
             return g;
         }
 
-        function hideAllActions() { document.querySelectorAll('.msg-actions.active').forEach(function(e) { e.classList
-                    .remove('active'); }); }
+        function hideAllActions() {
+            document.querySelectorAll('.msg-actions.active').forEach(function(e) { e.classList.remove('active'); });
+        }
         document.addEventListener('click', hideAllActions);
 
         // ============================================================
@@ -2938,7 +3194,7 @@
                 if (emptyState) emptyState.style.display = 'none';
                 s.forEach(function(d) {
                     var dt = d.data();
-                    if (blockedUsers.includes(dt.sender)) return;
+                    if (blockedUsers.indexOf(dt.sender) !== -1) return;
                     db.collection('users').doc(dt.sender).get().then(function(userDoc) {
                         if (userDoc.exists) {
                             dt.avatar = userDoc.data().avatar || '';
@@ -2959,7 +3215,7 @@
             unsubscribe = db.collection('messages').orderBy('timestamp', 'asc').limit(100).onSnapshot(function(s) {
                 s.docChanges().forEach(function(c) {
                     var d = c.doc.data();
-                    if (blockedUsers.includes(d.sender)) return;
+                    if (blockedUsers.indexOf(d.sender) !== -1) return;
                     db.collection('users').doc(d.sender).get().then(function(userDoc) {
                         if (userDoc.exists) {
                             d.avatar = userDoc.data().avatar || '';
@@ -2983,8 +3239,10 @@
                                 }
                             }
                         }
-                        if (c.type === 'removed') { var ex = messagesDiv.querySelector('[data-id="' + c.doc.id +
-                            '"]'); if (ex) ex.remove(); }
+                        if (c.type === 'removed') {
+                            var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
+                            if (ex) ex.remove();
+                        }
                     }).catch(function() {
                         if (c.type === 'added') {
                             var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
@@ -3005,8 +3263,10 @@
                                 }
                             }
                         }
-                        if (c.type === 'removed') { var ex = messagesDiv.querySelector('[data-id="' + c.doc.id +
-                            '"]'); if (ex) ex.remove(); }
+                        if (c.type === 'removed') {
+                            var ex = messagesDiv.querySelector('[data-id="' + c.doc.id + '"]');
+                            if (ex) ex.remove();
+                        }
                     });
                 });
                 if (s.empty) { if (emptyState) emptyState.style.display = 'flex'; } else { if (emptyState) emptyState
@@ -3033,10 +3293,12 @@
                 color: userColor,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 ip: userIP,
-                avatar: userAvatarURL
+                avatar: userAvatarBase64
             };
-            if (replyTo) { data.replyTo = { id: replyTo.id, sender: replyTo.sender, text: replyTo.text.substring(0,
-                        60) + (replyTo.text.length > 60 ? '...' : '') }; }
+            if (replyTo) {
+                data.replyTo = { id: replyTo.id, sender: replyTo.sender, text: replyTo.text.substring(0,
+                        60) + (replyTo.text.length > 60 ? '...' : '') };
+            }
             db.collection('messages').add(data).then(function() { msgInput.value = '';
                 msgInput.focus();
                 clearReply(); }).catch(function() { alert('⚠️ فشل الإرسال'); }).finally(function() { sendBtn.disabled =
@@ -3109,7 +3371,7 @@
         function blockUser(username) {
             if (!isAdmin || username === ADMIN_NAME) return;
             if (!confirm('🚫 حظر @' + username + ' نهائياً؟')) return;
-            if (!blockedUsers.includes(username)) {
+            if (blockedUsers.indexOf(username) === -1) {
                 blockedUsers.push(username);
                 db.collection('blocked').doc('list').set({ users: blockedUsers }).then(function() {
                     addSystemMessage('🚫 @' + username + ' تم حظره بواسطة المسؤول', 'warning');
@@ -3224,23 +3486,39 @@
                     os.forEach(function(d) { onlineSet.add(d.id); });
                     db.collection('violations').get().then(function(vs) {
                         var vc = {};
-                        vs.forEach(function(d) { var dt = d.data(); if (dt.user) vc[dt.user] = (vc[dt
-                                .user] || 0) + 1; });
+                        vs.forEach(function(d) {
+                            var dt = d.data();
+                            if (dt.user) vc[dt.user] = (vc[dt.user] || 0) + 1;
+                        });
                         var h = '';
                         s.forEach(function(d) {
                             var dt = d.data();
-                            var blocked = blockedUsers.includes(dt.username);
+                            var blocked = blockedUsers.indexOf(dt.username) !== -1;
                             var online = onlineSet.has(dt.username);
                             var color = dt.color || '#2b6ef0';
                             var vcount = vc[dt.username] || 0;
                             var avatarHtml = '';
-                            if (dt.avatar && dt.avatar.startsWith('http')) {
-                                avatarHtml = `<img src="${dt.avatar}" alt="${dt.username}">`;
+                            if (dt.avatar && dt.avatar.indexOf('data:image') === 0) {
+                                avatarHtml = '<img src="' + dt.avatar + '" alt="' + dt.username + '">';
                             } else {
                                 avatarHtml = getInitials(dt.username);
                             }
                             h +=
-                                `<div class="user-item"><div class="user-info"><div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:${getAvatarColor(dt.username)};color:#fff;font-weight:600;">${avatarHtml}</div><span>${dt.username} ${dt.username === ADMIN_NAME ? '👑' : ''} ${blocked ? '🚫' : ''} ${online ? '🟢' : '⚪'}</span>${vcount > 0 ? `<span class="muted-badge">⚠️ ${vcount}</span>` : ''}</div><div class="user-actions">${dt.username !== ADMIN_NAME ? `${blocked ? `<button class="unblock-user" onclick="unblockUser('${dt.username}')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>` : `<button class="block-user" onclick="blockUser('${dt.username}')" title="حظر"><span class="material-symbols-outlined">block</span></button>`}<button class="delete-user" onclick="deleteUserAccount('${dt.username}')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button></div>` : ''}</div>`;
+                                '<div class="user-item"><div class="user-info"><div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:' +
+                                getAvatarColor(dt.username) + ';color:#fff;font-weight:600;">' + avatarHtml +
+                                '</div><span>' + dt.username + (dt.username === ADMIN_NAME ? ' 👑' : '') + (blocked ?
+                                    ' 🚫' : '') + (online ? ' 🟢' : ' ⚪') +
+                                '</span>' + (vcount > 0 ? '<span class="muted-badge">⚠️ ' + vcount + '</span>' :
+                                    '') +
+                                '</div><div class="user-actions">' + (dt.username !== ADMIN_NAME ? (blocked ?
+                                    '<button class="unblock-user" onclick="unblockUser(\'' + dt.username +
+                                    '\')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>' :
+                                    '<button class="block-user" onclick="blockUser(\'' + dt.username +
+                                    '\')" title="حظر"><span class="material-symbols-outlined">block</span></button>'
+                                    ) +
+                                    '<button class="delete-user" onclick="deleteUserAccount(\'' + dt.username +
+                                    '\')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button>'
+                                    : '') + '</div></div>';
                         });
                         adminUsersList.innerHTML = h;
                     });
@@ -3299,6 +3577,10 @@
             infoMsg.classList.add('show');
             setTimeout(function() { infoMsg.classList.remove('show'); }, 2000);
             usernameInput.value = '';
+            loginAdminPasswordBox.style.display = 'none';
+            isAdminLoginAttempt = false;
+            userAvatarBase64 = '';
+            tempAvatarBase64 = '';
         }
         logoutBtn.addEventListener('click', logout);
 
@@ -3328,7 +3610,7 @@
                 ip: userIP,
                 online: true,
                 forceLogout: false,
-                avatar: userAvatarURL || '',
+                avatar: userAvatarBase64 || '',
                 firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -3342,17 +3624,15 @@
         }
 
         // ============================================================
-        // 🔍 CHECK USER - كل شخص يقدر يسجل دخول بنفس الاسم
+        // 🔍 CHECK USER
         // ============================================================
         function checkUserInDB(username) {
             return db.collection('users').doc(username).get().then(function(d) {
                 if (d.exists) {
                     var dt = d.data();
-                    // المسؤول له صلاحية خاصة
                     if (username === ADMIN_NAME) {
                         return { exists: true, sameIP: true, isAdmin: true };
                     }
-                    // أي شخص يقدر يسجل دخول بنفس الاسم (عدد غير محدود)
                     return { exists: true, sameIP: true, isAdmin: false };
                 }
                 return { exists: false, sameIP: false, isAdmin: false };
@@ -3364,7 +3644,7 @@
         // ============================================================
         function saveSession(username, color, avatar) {
             try {
-                const session = {
+                var session = {
                     username: username,
                     color: color,
                     ip: userIP,
@@ -3383,10 +3663,10 @@
         // ============================================================
         function checkSession() {
             try {
-                const sessionData = localStorage.getItem('chat_session');
+                var sessionData = localStorage.getItem('chat_session');
                 if (!sessionData) return null;
-                const session = JSON.parse(sessionData);
-                const maxAge = 7 * 24 * 60 * 60 * 1000;
+                var session = JSON.parse(sessionData);
+                var maxAge = 7 * 24 * 60 * 60 * 1000;
                 if (Date.now() - session.timestamp > maxAge) {
                     localStorage.removeItem('chat_session');
                     return null;
@@ -3403,43 +3683,59 @@
         async function login() {
             var raw = usernameInput.value.trim();
             if (!raw || raw.length < 2) { loginError.style.display = 'block'; return; }
+
+            // التحقق من اسم المسؤول
+            if (raw === ADMIN_NAME) {
+                var pass = loginAdminPasswordInput.value.trim();
+                if (pass !== ADMIN_PASSWORD) {
+                    loginAdminPasswordError.classList.add('show');
+                    loginAdminPasswordInput.value = '';
+                    loginAdminPasswordInput.focus();
+                    return;
+                }
+                loginAdminPasswordError.classList.remove('show');
+            }
+
             var name = sanitizeInput(raw);
             if (!name) { loginError.textContent = '⚠️ اسم غير صالح';
                 loginError.style.display = 'block'; return; }
+
             loginError.style.display = 'none';
             connectionError.style.display = 'none';
+
             showLoading(true);
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
+
             try {
                 userIP = getHashedIP();
 
-                // كل شخص يقدر يسجل دخول بنفس الاسم
-                const check = await checkUserInDB(name);
+                var check = await checkUserInDB(name);
 
-                // رفع الصورة إذا كانت موجودة
-                let avatarURL = '';
-                if (tempAvatarFile) {
-                    try {
-                        avatarURL = await uploadAvatar(tempAvatarFile, name);
-                    } catch (e) {
-                        console.warn('⚠️ فشل رفع الصورة:', e);
-                    }
-                    tempAvatarFile = null;
+                var avatarBase64 = '';
+                if (tempAvatarBase64) {
+                    avatarBase64 = tempAvatarBase64;
+                    tempAvatarBase64 = '';
                 }
 
                 await auth.signInAnonymously();
                 currentUser = name;
-                userAvatarURL = avatarURL;
+                userAvatarBase64 = avatarBase64;
                 isLoggedIn = true;
                 isAdmin = (name === ADMIN_NAME);
                 isMuted = false;
                 muteCount = 0;
                 if (muteTimeout) clearTimeout(muteTimeout);
                 mutedNotice.classList.remove('active');
-                if (isAdmin) { adminBtn.classList.remove('hidden');
-                    adminBadge.classList.add('show'); } else { adminBtn.classList.add('hidden');
-                    adminBadge.classList.remove('show'); }
+
+                if (isAdmin) {
+                    adminBtn.classList.remove('hidden');
+                    adminBadge.classList.add('show');
+                } else {
+                    adminBtn.classList.add('hidden');
+                    adminBadge.classList.remove('show');
+                }
+
                 await loadBlockedUsers();
                 loginOverlay.classList.add('hidden');
                 chatContainer.style.display = 'flex';
@@ -3447,20 +3743,20 @@
                 sendBtn.disabled = false;
                 msgInput.focus();
 
-                updateAllAvatars(avatarURL, name);
+                updateAllAvatars(avatarBase64, name);
 
                 if (isAdmin) db.collection('users').doc(name).update({ forceLogout: false }).catch(function() {});
                 setUserOnline(name);
-                saveSession(name, userColor, avatarURL);
+                saveSession(name, userColor, avatarBase64);
 
                 if (isAdmin) {
                     db.collection('settings').doc('theme').get()
-                        .then(doc => {
+                        .then(function(doc) {
                             if (doc.exists && doc.data().theme) {
                                 applyTheme(doc.data().theme);
                             }
                         })
-                        .catch(() => {});
+                        .catch(function() {});
                 }
 
                 if (!check.exists) {
@@ -3470,53 +3766,55 @@
                 } else {
                     addSystemMessage('👋 ' + name + ' انضم إلى الدردشة');
                 }
+
                 loadMessages();
                 listenMessages();
                 loadBadWords();
                 window.addEventListener('beforeunload', function() { setUserOffline(name); });
+
             } catch (e) {
                 connectionError.textContent = '❌ ' + e.message;
                 connectionError.style.display = 'block';
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
             }
+
             showLoading(false);
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
         }
 
         // ============================================================
         // 🔄 AUTO LOGIN
         // ============================================================
         function autoLogin() {
-            const session = checkSession();
-            if (session && session.username) {
-                usernameInput.value = session.username;
-                if (session.color) {
-                    userColor = session.color;
-                    document.querySelectorAll('.color-circle').forEach(el => {
-                        el.classList.toggle('selected', el.dataset.color === session.color);
-                    });
-                }
-                if (session.avatar) {
-                    userAvatarURL = session.avatar;
-                    loginAvatarPreview.innerHTML = `<img src="${session.avatar}" alt="صورة شخصية">`;
-                    loginAvatarPlaceholder.textContent = '';
-                }
-                setTimeout(function() {
-                    login();
-                }, 500);
-                infoMsg.textContent = '🔄 جاري تسجيل الدخول التلقائي...';
-                infoMsg.classList.add('show');
-                setTimeout(function() { infoMsg.classList.remove('show'); }, 3000);
-            } else {
-                loadSavedTheme();
-            }
+            loadSavedTheme();
+            infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
+            infoMsg.classList.add('show');
+            setTimeout(function() { infoMsg.classList.remove('show'); }, 3000);
         }
 
         // ============================================================
         // 🎯 EVENTS
         // ============================================================
         loginBtn.addEventListener('click', login);
-        usernameInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') login(); });
+
+        usernameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (isAdminLoginAttempt) {
+                    loginAdminPasswordInput.focus();
+                } else {
+                    login();
+                }
+            }
+        });
+
+        loginAdminPasswordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+
         sendBtn.addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMessage(); });
 
@@ -3535,7 +3833,7 @@
         // 🚀 START
         // ============================================================
         userIP = getHashedIP();
-        console.log('🚀 نيزك ' + VERSION + ' - تم التشغيل بنجاح');
+        console.log('🚀 نيزك ' + VERSION + ' - تم التشغيل بنجاح (بدون Storage)');
         console.log('👑 المسؤول: ' + ADMIN_NAME);
         console.log('🔒 كلمة المرور: ' + ADMIN_PASSWORD);
         console.log('🔒 IP مشوش: ' + userIP);
@@ -3543,7 +3841,7 @@
         console.log('💾 ميزة حفظ الجلسة مفعلة');
         console.log('📱 تسجيل الدخول المتعدد من نفس الاسم مفعل');
         console.log('🌓 نظام الثيمات مفعل');
-        console.log('📸 الصور الشخصية مفعلة');
+        console.log('📸 الصور الشخصية مخزنة في Firestore (Base64)');
 
         autoLogin();
     </script>
