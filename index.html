@@ -1064,109 +1064,7 @@
             opacity: 0.5;
         }
 
-        .login-avatar-section {
-            margin: 14px 0 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .login-avatar-preview {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            overflow: hidden;
-            border: 2px solid var(--accent-glow);
-            box-shadow: 0 0 20px var(--accent-glow);
-            cursor: pointer;
-            transition: 0.2s;
-            position: relative;
-        }
-
-        .login-avatar-preview:hover {
-            transform: scale(1.05);
-            border-color: var(--accent);
-        }
-
-        .login-avatar-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .login-avatar-preview .avatar-placeholder {
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-        }
-
-        .upload-status {
-            text-align: center;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            background: var(--bg-input);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            margin-top: 4px;
-            width: 100%;
-            display: none;
-        }
-
-        .upload-status.show {
-            display: block;
-        }
-
-        .upload-status.loading {
-            color: var(--accent);
-            border-color: var(--accent-glow);
-        }
-
-        .upload-status.success {
-            color: var(--green);
-            border-color: rgba(35, 165, 90, 0.2);
-        }
-
-        .upload-status.error {
-            color: var(--red);
-            border-color: rgba(237, 66, 69, 0.2);
-        }
-
-        .login-avatar-btn {
-            padding: 4px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            background: var(--bg-input);
-            color: var(--text-secondary);
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .login-avatar-btn:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-
+        /* تم إزالة قسم اختيار الصورة من تسجيل الدخول */
         .color-options {
             display: flex;
             gap: 8px;
@@ -1957,11 +1855,6 @@
                 font-size: 10px;
                 top: 8px;
             }
-            .login-avatar-preview {
-                width: 60px;
-                height: 60px;
-                font-size: 22px;
-            }
             .profile-avatar-preview {
                 width: 68px;
                 height: 68px;
@@ -2030,7 +1923,7 @@
     <div id="app">
 
         <!-- ============================================================
-        LOGIN SCREEN
+        LOGIN SCREEN - بدون صورة
         ============================================================ -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
@@ -2038,18 +1931,6 @@
                 <h1>نيزك <span class="hl">دردشة</span></h1>
                 <p class="login-sub">آمنة • سريعة • خاصة • v3.0</p>
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
-
-                <div class="login-avatar-section">
-                    <div class="login-avatar-preview" id="loginAvatarPreview">
-                        <span class="avatar-placeholder" id="loginAvatarPlaceholder">👤</span>
-                    </div>
-                    <button class="login-avatar-btn" id="loginAvatarBtn">
-                        <span class="material-symbols-outlined" style="font-size:16px;">photo_camera</span>
-                        اختر صورة
-                    </button>
-                    <input type="file" id="loginAvatarInput" class="file-input-hidden" accept="image/*">
-                    <div class="upload-status" id="loginUploadStatus"></div>
-                </div>
 
                 <div class="color-options" id="colorPicker">
                     <div class="color-circle selected" style="background:#2b6ef0;" data-color="#2b6ef0"></div>
@@ -2152,7 +2033,7 @@
         </div>
 
         <!-- ============================================================
-        PROFILE MODAL
+        PROFILE MODAL - فقط هنا يمكن تعديل الصورة
         ============================================================ -->
         <div class="modal-overlay profile-modal" id="profileModal">
             <div class="modal-box">
@@ -2330,7 +2211,7 @@
         let userAvatarBase64 = '';
         let tempAvatarBase64 = '';
         let isAdminLoginAttempt = false;
-        let messageIds = new Set(); // لمنع تكرار الرسائل
+        let messageIds = new Set();
 
         // ============================================================
         // 📄 DOM REFERENCES
@@ -2388,12 +2269,6 @@
         const profileSaveBtn = $('profileSaveBtn');
         const profileUploadStatus = $('profileUploadStatus');
 
-        const loginAvatarPreview = $('loginAvatarPreview');
-        const loginAvatarPlaceholder = $('loginAvatarPlaceholder');
-        const loginAvatarBtn = $('loginAvatarBtn');
-        const loginAvatarInput = $('loginAvatarInput');
-        const loginUploadStatus = $('loginUploadStatus');
-
         const loginAdminPasswordBox = $('loginAdminPasswordBox');
         const loginAdminPasswordInput = $('loginAdminPasswordInput');
         const loginAdminPasswordError = $('loginAdminPasswordError');
@@ -2425,8 +2300,7 @@
             } else {
                 var initials = getInitials(name);
                 var color = getAvatarColor(name);
-                var fontSize = element === loginAvatarPreview ? '28px' :
-                    element === profileAvatarPreview ? '32px' : '16px';
+                var fontSize = element === profileAvatarPreview ? '32px' : '16px';
                 element.innerHTML =
                     '<span class="avatar-placeholder" style="background:' + color + ';display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:' +
                     fontSize + ';font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">' + initials +
@@ -2438,7 +2312,6 @@
         function updateAllAvatars(avatarBase64, name) {
             updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarBase64, name);
             updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarBase64, name);
-            updateAvatarUI(loginAvatarPreview, loginAvatarPlaceholder, avatarBase64, name);
             if (headerUsername) headerUsername.textContent = name;
         }
 
@@ -2759,42 +2632,7 @@
         });
 
         // ============================================================
-        // 📸 AVATAR EVENTS - Login
-        // ============================================================
-        loginAvatarBtn.addEventListener('click', function() {
-            loginAvatarInput.click();
-        });
-
-        loginAvatarPreview.addEventListener('click', function() {
-            loginAvatarInput.click();
-        });
-
-        loginAvatarInput.addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                var file = this.files[0];
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
-                    this.value = '';
-                    return;
-                }
-
-                compressImageToBase64(file, 300, 300, 0.6, loginUploadStatus)
-                    .then(function(base64) {
-                        loginAvatarPreview.innerHTML = '<img src="' + base64 + '" alt="صورة شخصية">';
-                        loginAvatarPlaceholder.textContent = '';
-                        tempAvatarBase64 = base64;
-                        loginUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط دخول للحفظ';
-                        loginUploadStatus.className = 'upload-status show success';
-                    })
-                    .catch(function(err) {
-                        console.error('❌ فشل ضغط الصورة:', err);
-                        alert('⚠️ فشل معالجة الصورة: ' + err.message);
-                    });
-            }
-        });
-
-        // ============================================================
-        // 📸 AVATAR EVENTS - Profile
+        // 📸 AVATAR EVENTS - Profile فقط
         // ============================================================
         profileAvatarBtn.addEventListener('click', function() {
             profileAvatarInput.click();
@@ -3002,7 +2840,7 @@
         }
 
         // ============================================================
-        // 💬 MESSAGE - مع منع التكرار
+        // 💬 MESSAGE
         // ============================================================
         function createMessage(id, d, self) {
             if (blockedUsers.indexOf(d.sender) !== -1 && !self) return null;
@@ -3152,10 +2990,9 @@
         document.addEventListener('click', hideAllActions);
 
         // ============================================================
-        // 📨 ADD MESSAGE - مع منع التكرار
+        // 📨 ADD MESSAGE
         // ============================================================
         function addMessage(id, d, self) {
-            // منع تكرار الرسائل
             if (messageIds.has(id)) return;
             messageIds.add(id);
 
@@ -3184,7 +3021,7 @@
         }
 
         // ============================================================
-        // 📥 LOAD & LISTEN - مع منع التكرار والحفاظ على الترتيب
+        // 📥 LOAD & LISTEN
         // ============================================================
         function loadMessages() {
             if (emptyState) emptyState.style.display = 'flex';
@@ -3223,7 +3060,6 @@
                     });
 
                     Promise.all(promises).then(function() {
-                        // ترتيب الرسائل حسب الوقت (من الأقدم إلى الأحدث)
                         tempMessages.sort(function(a, b) {
                             var timeA = a.data.timestamp ? a.data.timestamp.toDate ? a.data.timestamp
                                 .toDate() : new Date(a.data.timestamp) : new Date();
@@ -3259,7 +3095,6 @@
                         if (blockedUsers.indexOf(d.sender) !== -1) return;
 
                         if (c.type === 'added') {
-                            // التحقق من عدم وجود الرسالة مسبقاً
                             if (!messageIds.has(c.doc.id)) {
                                 if (!d.avatar) {
                                     db.collection('users').doc(d.sender).get()
@@ -3624,11 +3459,11 @@
                                                     '\')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>' :
                                                     '<button class="block-user" onclick="blockUser(\'' +
                                                     dt.username +
-                                                    '\")" title="حظر"><span class="material-symbols-outlined">block</span></button>'
+                                                    '\')" title="حظر"><span class="material-symbols-outlined">block</span></button>'
                                                     ) +
                                                     '<button class="delete-user" onclick="deleteUserAccount(\'' +
                                                     dt.username +
-                                                    '\")" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button>'
+                                                    '\')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button>'
                                                     : '') + '</div></div>';
                                     });
                                     adminUsersList.innerHTML = h;
@@ -3862,12 +3697,6 @@
                     }
                 }
 
-                // إذا كان هناك صورة جديدة تم اختيارها
-                if (tempAvatarBase64) {
-                    avatarBase64 = tempAvatarBase64;
-                    tempAvatarBase64 = '';
-                }
-
                 await auth.signInAnonymously();
 
                 currentUser = name;
@@ -3996,7 +3825,7 @@
         // ============================================================
         userIP = getHashedIP();
 
-        console.log('🚀 نيزك ' + VERSION + ' - الإصدار النهائي المتكامل');
+        console.log('🚀 نيزك ' + VERSION + ' - الإصدار النهائي');
         console.log('👑 المسؤول: ' + ADMIN_NAME);
         console.log('🔒 كلمة المرور: ' + ADMIN_PASSWORD);
         console.log('🔒 IP مشوش: ' + userIP);
@@ -4011,4 +3840,4 @@
         autoLogin();
     </script>
 </body>
-    </html>
+                </html>
