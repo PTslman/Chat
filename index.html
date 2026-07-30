@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>نيزك v4.0 - دردشة تفاعلية</title>
+    <title>نيزك v5.0 - دردشة متطورة</title>
     
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
@@ -14,10 +14,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 
-    <!-- ===== شاشة التحميل ===== -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
@@ -31,7 +31,7 @@
             <div class="login-box">
                 <div class="login-logo">💬</div>
                 <h1>نيزك <span class="hl">دردشة</span></h1>
-                <p class="login-sub">آمنة • سريعة • تفاعلية • v4.0</p>
+                <p class="login-sub">آمنة • سريعة • متطورة • v5.0</p>
                 
                 <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
                 
@@ -42,8 +42,6 @@
                     <div class="color-circle" style="background:#23a55a;" data-color="#23a55a"></div>
                     <div class="color-circle" style="background:#a78bfa;" data-color="#a78bfa"></div>
                     <div class="color-circle" style="background:#f472b6;" data-color="#f472b6"></div>
-                    <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
-                    <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
                 </div>
 
                 <div class="login-admin-password-box" id="loginAdminPasswordBox">
@@ -68,7 +66,7 @@
             <div class="chat-header">
                 <div class="status-bar">
                     <span id="statusTime">12:00</span>
-                    <span class="version">v4.0.0</span>
+                    <span class="version">v5.0.0</span>
                     <span class="online-count" id="onlineCount">🟢 0</span>
                 </div>
                 <div class="header-left">
@@ -81,6 +79,9 @@
                     </div>
                 </div>
                 <div class="header-actions">
+                    <button class="search-btn" id="searchBtn" title="بحث">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
                     <button class="theme-toggle" id="themeToggle" title="تبديل الثيم">
                         <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
                     </button>
@@ -94,6 +95,16 @@
                         <span class="material-symbols-outlined">logout</span>
                     </button>
                 </div>
+            </div>
+
+            <!-- شريط البحث -->
+            <div class="search-bar" id="searchBar" style="display:none;">
+                <div class="search-input-wrapper">
+                    <span class="material-symbols-outlined">search</span>
+                    <input type="text" id="searchInput" placeholder="ابحث في الرسائل..." autofocus>
+                    <button class="search-close" id="searchClose">✖</button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
             </div>
 
             <!-- منطقة الرسائل -->
@@ -114,6 +125,7 @@
             <!-- مؤشر الكتابة -->
             <div class="typing-indicator" id="typingIndicator">
                 <span></span><span></span><span></span>
+                <span class="typing-text" id="typingText">يكتب...</span>
             </div>
 
             <!-- تنبيه المنع -->
@@ -147,22 +159,26 @@
                 <button class="reaction-option" data-reaction="💀">💀</button>
                 <button class="reaction-option" data-reaction="🤣">🤣</button>
                 <button class="reaction-option" data-reaction="🥰">🥰</button>
+                <button class="reaction-option" data-reaction="😊">😊</button>
+                <button class="reaction-option" data-reaction="😎">😎</button>
+            </div>
+
+            <!-- معاينة الرد -->
+            <div class="reply-preview" id="replyPreview" style="display:none;">
+                <div class="reply-preview-content">
+                    <span class="reply-preview-sender" id="replyPreviewSender">@user</span>
+                    <span class="reply-preview-text" id="replyPreviewText">رسالة...</span>
+                </div>
+                <button class="reply-preview-cancel" id="replyPreviewCancel">✖</button>
             </div>
 
             <!-- منطقة الإدخال -->
             <div class="chat-input">
-                <div class="reply-preview" id="replyPreview" style="display:none;">
-                    <div class="reply-preview-content">
-                        <span class="reply-preview-sender" id="replyPreviewSender">@user</span>
-                        <span class="reply-preview-text" id="replyPreviewText">رسالة...</span>
-                    </div>
-                    <button class="reply-preview-cancel" id="replyPreviewCancel">✖</button>
-                </div>
-                
                 <div class="input-row">
-                    <button class="attach-btn" id="attachBtn" title="إرفاق">
+                    <button class="attach-btn" id="attachBtn" title="إرفاق ملف">
                         <span class="material-symbols-outlined">attach_file</span>
                     </button>
+                    
                     <div class="input-wrapper">
                         <button class="emoji-toggle" id="emojiToggle">
                             <span class="material-symbols-outlined">mood</span>
@@ -172,14 +188,33 @@
                             <span class="material-symbols-outlined">mic</span>
                         </button>
                     </div>
+                    
                     <button class="send-btn" id="sendBtn" disabled>
                         <span class="material-symbols-outlined">send</span>
                     </button>
                 </div>
+
+                <!-- شريط التحميل للملفات -->
+                <div class="upload-progress" id="uploadProgress" style="display:none;">
+                    <div class="upload-progress-bar" id="uploadProgressBar"></div>
+                    <span class="upload-progress-text" id="uploadProgressText">جاري الرفع...</span>
+                </div>
+
+                <!-- إعدادات التسجيل الصوتي -->
+                <div class="voice-recording" id="voiceRecording" style="display:none;">
+                    <div class="voice-recording-indicator">
+                        <span class="recording-dot"></span>
+                        <span class="recording-time" id="recordingTime">00:00</span>
+                    </div>
+                    <div class="voice-recording-actions">
+                        <button class="voice-cancel" id="voiceCancel">✖ إلغاء</button>
+                        <button class="voice-send" id="voiceSend">📤 إرسال</button>
+                    </div>
+                </div>
             </div>
 
             <div class="app-footer show" id="appFooter">
-                نيزك v4.0.0 • جميع الحقوق محفوظة
+                نيزك v5.0.0 • جميع الحقوق محفوظة
             </div>
         </div>
 
@@ -277,21 +312,12 @@
                             <span class="material-symbols-outlined" style="font-size:16px;">palette</span> تخصيص الثيم
                         </div>
                         <div class="theme-options" id="themeOptions">
-                            <button class="theme-btn active" data-theme="dark">
-                                <span class="material-symbols-outlined">dark_mode</span> داكن
-                            </button>
-                            <button class="theme-btn" data-theme="light">
-                                <span class="material-symbols-outlined">light_mode</span> نهاري
-                            </button>
-                            <button class="theme-btn" data-theme="admin-dark">
-                                <span class="material-symbols-outlined">gradient</span> بنفسجي
-                            </button>
-                            <button class="theme-btn" data-theme="admin-forest">
-                                <span class="material-symbols-outlined">grass</span> غابة
-                            </button>
-                            <button class="theme-btn" data-theme="admin-rose">
-                                <span class="material-symbols-outlined">flower</span> وردي
-                            </button>
+                            <button class="theme-btn active" data-theme="dark">🌙 داكن</button>
+                            <button class="theme-btn" data-theme="light">☀️ نهاري</button>
+                            <button class="theme-btn" data-theme="admin-dark">💜 بنفسجي</button>
+                            <button class="theme-btn" data-theme="admin-forest">🌿 غابة</button>
+                            <button class="theme-btn" data-theme="admin-rose">🌸 وردي</button>
+                            <button class="theme-btn" data-theme="admin-ocean">🌊 محيط</button>
                         </div>
                     </div>
 
@@ -301,9 +327,7 @@
                         </div>
                         <div class="badwords-input-row">
                             <input type="text" id="badwordInput" placeholder="أدخل كلمة ممنوعة..." maxlength="30">
-                            <button id="addBadwordBtn">
-                                <span class="material-symbols-outlined" style="font-size:16px;">add</span> إضافة
-                            </button>
+                            <button id="addBadwordBtn">➕ إضافة</button>
                         </div>
                         <div class="badwords-list" id="badwordsList">
                             <span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>
@@ -317,8 +341,32 @@
             </div>
         </div>
 
+        <!-- ===== نافذة عرض الملفات ===== -->
+        <div class="modal-overlay file-viewer" id="fileViewer">
+            <div class="modal-box file-viewer-box">
+                <div class="file-viewer-content" id="fileViewerContent">
+                    <div class="file-viewer-header">
+                        <span class="file-viewer-title" id="fileViewerTitle">ملف</span>
+                        <button class="file-viewer-close" id="fileViewerClose">✖</button>
+                    </div>
+                    <div class="file-viewer-body" id="fileViewerBody">
+                        <img src="" alt="صورة" id="fileViewerImage" style="display:none;max-width:100%;border-radius:12px;">
+                        <div class="file-viewer-file" id="fileViewerFile" style="display:none;">
+                            <span class="material-symbols-outlined" style="font-size:64px;color:var(--accent);">description</span>
+                            <span id="fileViewerFileName">ملف</span>
+                            <a href="#" id="fileViewerDownload" class="file-download-btn">📥 تحميل</a>
+                        </div>
+                        <div class="file-viewer-audio" id="fileViewerAudio" style="display:none;">
+                            <audio controls id="fileViewerAudioPlayer" style="width:100%;"></audio>
+                        </div>
+                    </div>
+                </div>
+                <button class="close-modal" id="closeFileViewer">✖ إغلاق</button>
+            </div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>
 </body>
-    </html>
+</html>
