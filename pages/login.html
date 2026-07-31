@@ -2,33 +2,45 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>تسجيل الدخول - NeZak Chat</title>
     <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
     <div class="login-container">
-        <h2>💬 NeZak Chat</h2>
-        <p style="text-align: center; color: #666; margin-bottom: 20px;">أدخل اسم المستخدم الخاص بك</p>
+        <div class="login-brand">
+            <span class="brand-icon">💬</span>
+            <h2>NeZak Chat</h2>
+            <p class="brand-subtitle">تواصل مع الأصدقاء</p>
+        </div>
         
         <!-- نموذج تسجيل الدخول العادي -->
-        <div id="loginForm">
-            <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="20">
-            <button onclick="login()">🚪 دخول</button>
-            <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #999;">مرحباً بك في عالم المراسلة</p>
+        <div id="loginForm" class="login-form">
+            <div class="input-group">
+                <label>👤 اسم المستخدم</label>
+                <input type="text" id="usernameInput" placeholder="أدخل اسمك..." maxlength="20" autofocus>
+            </div>
+            <button onclick="login()" class="btn-login">🚪 دخول</button>
+            <p class="login-hint">✨ أدخل أي اسم للدخول كضيف</p>
         </div>
 
-        <!-- نموذج تسجيل الدخول للمسؤول (يظهر فقط عند كتابة slx23m) -->
-        <div id="adminLoginForm" style="display: none;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <span style="font-size: 50px;">🛡️</span>
-                <h3 style="color: #e53e3e; margin-top: 10px;">دخول المسؤول</h3>
-                <p style="color: #666; font-size: 14px;">أدخل كلمة المرور للدخول كمسؤول</p>
+        <!-- نموذج تسجيل الدخول للمسؤول -->
+        <div id="adminLoginForm" class="login-form" style="display: none;">
+            <div class="admin-header">
+                <span class="admin-shield-big">🛡️</span>
+                <h3 style="color: #e53e3e;">دخول المسؤول</h3>
+                <p style="color: #666; font-size: 13px;">أدخل كلمة المرور للدخول كمسؤول</p>
             </div>
-            <input type="text" id="adminUsernameInput" placeholder="اسم المستخدم" value="slx23m" readonly style="background: #f0f0f0;">
-            <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
-            <button onclick="adminLogin()" style="background: #e53e3e;">🛡️ دخول كمسؤول</button>
-            <button onclick="backToUserLogin()" style="background: #999; margin-top: 10px;">🔙 رجوع</button>
+            <div class="input-group">
+                <label>🔑 اسم المستخدم</label>
+                <input type="text" id="adminUsernameInput" value="slx23m" readonly style="background: #f5f5f5;">
+            </div>
+            <div class="input-group">
+                <label>🔐 كلمة المرور</label>
+                <input type="password" id="adminPasswordInput" placeholder="أدخل كلمة المرور">
+            </div>
+            <button onclick="adminLogin()" class="btn-admin">🛡️ دخول كمسؤول</button>
+            <button onclick="backToUserLogin()" class="btn-back">🔙 رجوع</button>
         </div>
     </div>
 
@@ -38,11 +50,19 @@
             window.location.href = '../index.html';
         }
 
+        // دعم تسجيل الخروج للكل (إذا كان هناك جلسة سابقة)
+        window.addEventListener('load', function() {
+            // تنظيف أي جلسة سابقة
+            if (!sessionStorage.getItem('keepSession')) {
+                localStorage.clear();
+            }
+        });
+
         window.login = function() {
             const username = document.getElementById('usernameInput').value.trim();
             
             if (!username) {
-                alert('⚠️ الرجاء إدخال اسم المستخدم');
+                showNotification('⚠️ الرجاء إدخال اسم المستخدم', 'error');
                 return;
             }
 
@@ -55,9 +75,21 @@
             }
 
             // تسجيل دخول عادي
+            const userData = {
+                username: username,
+                role: 'user',
+                isAdmin: false,
+                loginTime: Date.now(),
+                device: navigator.userAgent,
+                lastActive: Date.now()
+            };
+            
             localStorage.setItem('chatUsername', username);
             localStorage.setItem('userRole', 'user');
             localStorage.setItem('isAdmin', 'false');
+            localStorage.setItem('userData', JSON.stringify(userData));
+            sessionStorage.setItem('keepSession', 'true');
+            
             window.location.href = '../index.html';
         };
 
@@ -65,14 +97,26 @@
             const password = document.getElementById('adminPasswordInput').value;
             
             if (password === '1442') {
-                // تسجيل دخول المسؤول
+                const adminData = {
+                    username: 'المسؤول',
+                    role: 'admin',
+                    isAdmin: true,
+                    adminCode: 'slx23m',
+                    loginTime: Date.now(),
+                    device: navigator.userAgent,
+                    lastActive: Date.now()
+                };
+                
                 localStorage.setItem('chatUsername', 'المسؤول');
                 localStorage.setItem('userRole', 'admin');
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('adminCode', 'slx23m');
+                localStorage.setItem('userData', JSON.stringify(adminData));
+                sessionStorage.setItem('keepSession', 'true');
+                
                 window.location.href = '../index.html';
             } else {
-                alert('❌ كلمة المرور غير صحيحة');
+                showNotification('❌ كلمة المرور غير صحيحة', 'error');
                 document.getElementById('adminPasswordInput').value = '';
                 document.getElementById('adminPasswordInput').focus();
             }
@@ -95,8 +139,26 @@
             if (e.key === 'Enter') window.adminLogin();
         });
 
+        // دالة الإشعارات
+        function showNotification(message, type = 'info') {
+            const existing = document.querySelector('.custom-notification');
+            if (existing) existing.remove();
+            
+            const notif = document.createElement('div');
+            notif.className = `custom-notification ${type}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.style.opacity = '0';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+
         // التركيز التلقائي
-        document.getElementById('usernameInput').focus();
+        setTimeout(() => {
+            document.getElementById('usernameInput').focus();
+        }, 500);
     </script>
 </body>
 </html>
