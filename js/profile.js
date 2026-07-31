@@ -2,81 +2,81 @@
 // 👤 PROFILE MODULE - نيزك v3.5.0
 // ============================================================
 
-let userAvatarBase64 = '';
-let tempAvatarBase64 = '';
+window.userAvatarBase64 = '';
+window.tempAvatarBase64 = '';
 
 // ============================================================
 // DOM REFS
 // ============================================================
-const profileModal = document.getElementById('profileModal');
-const closeProfileModal = document.getElementById('closeProfileModal');
-const profileAvatarPreview = document.getElementById('profileAvatarPreview');
-const profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
-const profileAvatarBtn = document.getElementById('profileAvatarBtn');
-const profileAvatarInput = document.getElementById('profileAvatarInput');
-const profileNameInput = document.getElementById('profileNameInput');
-const profileSaveBtn = document.getElementById('profileSaveBtn');
-const profileUploadStatus = document.getElementById('profileUploadStatus');
+var profileModal = document.getElementById('profileModal');
+var closeProfileModal = document.getElementById('closeProfileModal');
+var profileAvatarPreview = document.getElementById('profileAvatarPreview');
+var profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+var profileAvatarBtn = document.getElementById('profileAvatarBtn');
+var profileAvatarInput = document.getElementById('profileAvatarInput');
+var profileNameInput = document.getElementById('profileNameInput');
+var profileSaveBtn = document.getElementById('profileSaveBtn');
+var profileUploadStatus = document.getElementById('profileUploadStatus');
 
 // ============================================================
 // OPEN PROFILE
 // ============================================================
-function openProfileModal() {
-    if (typeof isLoggedIn === 'undefined' || !isLoggedIn) return;
-    if (profileNameInput) profileNameInput.value = currentUser || '';
+window.openProfileModal = function() {
+    if (!window.isLoggedIn) return;
+    if (profileNameInput) profileNameInput.value = window.currentUser || '';
     if (profileModal) profileModal.classList.add('active');
-    updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, userAvatarBase64, currentUser || '');
+    window.updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, window.userAvatarBase64, window.currentUser || '');
     if (profileUploadStatus) {
         profileUploadStatus.className = 'upload-status';
         profileUploadStatus.textContent = '';
     }
-}
+};
 
 // ============================================================
 // SAVE PROFILE
 // ============================================================
-async function saveProfile() {
+window.saveProfile = async function() {
     var newName = profileNameInput.value.trim();
     if (!newName || newName.length < 2) {
         alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
         return;
     }
 
-    showLoading(true);
+    window.showLoading(true);
 
     try {
-        var newAvatarBase64 = userAvatarBase64;
+        var newAvatarBase64 = window.userAvatarBase64;
 
-        if (tempAvatarBase64) {
-            newAvatarBase64 = tempAvatarBase64;
-            tempAvatarBase64 = '';
+        if (window.tempAvatarBase64) {
+            newAvatarBase64 = window.tempAvatarBase64;
+            window.tempAvatarBase64 = '';
         }
 
-        var oldName = currentUser;
+        var oldName = window.currentUser;
 
-        await db.collection('users').doc(oldName).update({
+        await window.db.collection('users').doc(oldName).update({
             username: newName,
             avatar: newAvatarBase64,
-            color: userColor || '#2b6ef0'
+            color: window.userColor || '#2b6ef0'
         });
 
-        currentUser = newName;
-        userAvatarBase64 = newAvatarBase64;
-        updateAllAvatars(newAvatarBase64, newName);
+        window.currentUser = newName;
+        window.userAvatarBase64 = newAvatarBase64;
+        window.updateAllAvatars(newAvatarBase64, newName);
 
         if (oldName !== newName) {
-            var messagesSnap = await db.collection('messages')
+            var messagesSnap = await window.db.collection('messages')
                 .where('sender', '==', oldName)
                 .get();
-            var batch = db.batch();
+            var batch = window.db.batch();
             messagesSnap.forEach(function(doc) {
                 batch.update(doc.ref, { sender: newName, avatar: newAvatarBase64 });
             });
             await batch.commit();
         }
 
-        if (typeof addSystemMessage === 'function') {
-            addSystemMessage('✅ تم تحديث الملف الشخصي لـ ' + newName, 'success');
+        if (typeof window.addSystemMessage === 'function') {
+            window.addSystemMessage('✅ تم تحديث الملف الشخصي لـ ' + newName, 'success');
         }
         if (profileModal) profileModal.classList.remove('active');
 
@@ -85,8 +85,8 @@ async function saveProfile() {
         alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي');
     }
 
-    showLoading(false);
-}
+    window.showLoading(false);
+};
 
 // ============================================================
 // PROFILE EVENTS
@@ -113,13 +113,13 @@ if (profileAvatarInput) {
                 return;
             }
 
-            compressImageToBase64(file, 300, 300, 0.6, profileUploadStatus)
+            window.compressImageToBase64(file, 300, 300, 0.6, profileUploadStatus)
                 .then(function(base64) {
                     if (profileAvatarPreview) {
                         profileAvatarPreview.innerHTML = '<img src="' + base64 + '" alt="صورة شخصية">';
                     }
                     if (profileAvatarPlaceholder) profileAvatarPlaceholder.textContent = '';
-                    tempAvatarBase64 = base64;
+                    window.tempAvatarBase64 = base64;
                     if (profileUploadStatus) {
                         profileUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط حفظ للتحديث';
                         profileUploadStatus.className = 'upload-status show success';
@@ -136,7 +136,7 @@ if (profileAvatarInput) {
 if (closeProfileModal) {
     closeProfileModal.addEventListener('click', function() {
         if (profileModal) profileModal.classList.remove('active');
-        tempAvatarBase64 = '';
+        window.tempAvatarBase64 = '';
         if (profileUploadStatus) {
             profileUploadStatus.className = 'upload-status';
             profileUploadStatus.textContent = '';
@@ -148,7 +148,7 @@ if (profileModal) {
     profileModal.addEventListener('click', function(e) {
         if (e.target === profileModal) {
             profileModal.classList.remove('active');
-            tempAvatarBase64 = '';
+            window.tempAvatarBase64 = '';
             if (profileUploadStatus) {
                 profileUploadStatus.className = 'upload-status';
                 profileUploadStatus.textContent = '';
@@ -158,18 +158,13 @@ if (profileModal) {
 }
 
 if (profileSaveBtn) {
-    profileSaveBtn.addEventListener('click', saveProfile);
+    profileSaveBtn.addEventListener('click', window.saveProfile);
 }
 
 if (profileNameInput) {
     profileNameInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') saveProfile();
+        if (e.key === 'Enter') window.saveProfile();
     });
-    }
-// ============================================================
-// جعل الدوال والمتغيرات عامة
-// ============================================================
-window.userAvatarBase64 = userAvatarBase64;
-window.tempAvatarBase64 = tempAvatarBase64;
-window.openProfileModal = openProfileModal;
-window.saveProfile = saveProfile;
+}
+
+console.log('✅ تم تحميل profile.js');
