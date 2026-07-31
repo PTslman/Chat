@@ -40,8 +40,11 @@ var headerUsername = document.getElementById('headerUsername');
 // ============================================================
 window.checkUserInDB = function(username, retryCount) {
     retryCount = retryCount || 0;
+    console.log('🔍 التحقق من المستخدم:', username);
+    
     return window.db.collection('users').doc(username).get()
         .then(function(d) {
+            console.log('✅ تم التحقق من المستخدم:', d.exists ? 'موجود' : 'غير موجود');
             if (d.exists) {
                 var dt = d.data();
                 if (username === window.ADMIN_NAME) {
@@ -52,7 +55,7 @@ window.checkUserInDB = function(username, retryCount) {
             return { exists: false, sameIP: false, isAdmin: false };
         })
         .catch(function(err) {
-            console.warn('⚠️ فشل التحقق من المستخدم (محاولة ' + (retryCount + 1) + '):', err);
+            console.warn('⚠️ فشل التحقق من المستخدم (محاولة ' + (retryCount + 1) + '):', err.message);
             if (retryCount < 3) {
                 console.log('🔄 إعادة المحاولة بعد 1 ثانية...');
                 return new Promise(function(resolve) {
@@ -61,7 +64,9 @@ window.checkUserInDB = function(username, retryCount) {
                     }, 1000);
                 });
             }
-            throw err;
+            // إذا فشل كل شيء، نعتبر المستخدم غير موجود (نسمح بالتسجيل)
+            console.log('📌 بعد فشل المحاولات، نعتبر المستخدم جديد');
+            return { exists: false, sameIP: false, isAdmin: false };
         });
 };
 
@@ -70,6 +75,8 @@ window.checkUserInDB = function(username, retryCount) {
 // ============================================================
 window.setUserOnline = function(name, retryCount) {
     retryCount = retryCount || 0;
+    console.log('🟢 تعيين المستخدم متصل:', name);
+    
     window.db.collection('users').doc(name).set({
         username: name,
         color: window.userColor,
@@ -79,8 +86,10 @@ window.setUserOnline = function(name, retryCount) {
         avatar: window.userAvatarBase64 || '',
         firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+        console.log('✅ تم تحديث حالة المستخدم:', name);
     }).catch(function(err) {
-        console.warn('⚠️ فشل تحديث حالة المستخدم (محاولة ' + (retryCount + 1) + '):', err);
+        console.warn('⚠️ فشل تحديث حالة المستخدم (محاولة ' + (retryCount + 1) + '):', err.message);
         if (retryCount < 3) {
             setTimeout(function() {
                 window.setUserOnline(name, retryCount + 1);
@@ -92,11 +101,13 @@ window.setUserOnline = function(name, retryCount) {
 window.setUserOffline = function(name, retryCount) {
     retryCount = retryCount || 0;
     if (!name) return;
+    console.log('🔴 تعيين المستخدم غير متصل:', name);
+    
     window.db.collection('users').doc(name).update({
         online: false,
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(function(err) {
-        console.warn('⚠️ فشل تحديث حالة الخروج (محاولة ' + (retryCount + 1) + '):', err);
+        console.warn('⚠️ فشل تحديث حالة الخروج (محاولة ' + (retryCount + 1) + '):', err.message);
         if (retryCount < 3) {
             setTimeout(function() {
                 window.setUserOffline(name, retryCount + 1);
@@ -110,13 +121,16 @@ window.setUserOffline = function(name, retryCount) {
 // ============================================================
 window.loadBlockedUsers = function(retryCount) {
     retryCount = retryCount || 0;
+    console.log('🔍 تحميل المستخدمين المحظورين...');
+    
     return window.db.collection('blocked').doc('list').get()
         .then(function(d) {
             window.blockedUsers = (d.exists && d.data().users) ? d.data().users : [];
+            console.log('✅ تم تحميل ' + window.blockedUsers.length + ' مستخدم محظور');
             return window.blockedUsers;
         })
         .catch(function(err) {
-            console.warn('⚠️ فشل تحميل المستخدمين المحظورين (محاولة ' + (retryCount + 1) + '):', err);
+            console.warn('⚠️ فشل تحميل المستخدمين المحظورين (محاولة ' + (retryCount + 1) + '):', err.message);
             if (retryCount < 3) {
                 console.log('🔄 إعادة المحاولة بعد 1.5 ثانية...');
                 return new Promise(function(resolve) {
@@ -134,6 +148,8 @@ window.loadBlockedUsers = function(retryCount) {
 // PERFORM LOGOUT
 // ============================================================
 window.performLogout = function() {
+    console.log('🚪 تسجيل الخروج...');
+    
     if (window.currentUser) {
         window.setUserOffline(window.currentUser);
         if (typeof window.addSystemMessage === 'function') {
@@ -248,15 +264,23 @@ window.login = async function() {
     try {
         window.userIP = window.getHashedIP();
 
-        // التحقق من وجود الدالة checkConnection
-        if (typeof window.checkConnection === 'function') {
-            var isConnected = await window.checkConnection();
-            console.log('📶 حالة الاتصال:', isConnected ? 'متصل' : 'غير متصل');
-        } else {
-            console.warn('⚠️ window.checkConnection غير معرفة، تخطي التحقق');
+        // التحقق من الاتصال (استخدام try/catch)
+        try {
+            if (typeof window.checkConnection === 'function') {
+                var isConnected = await window.checkConnection();
+                console.log('📶 حالة الاتصال:', isConnected ? 'متصل' : 'غير متصل');
+            }
+        } catch (e) {
+            console.warn('⚠️ فشل التحقق من الاتصال:', e.message);
         }
 
-        var check = await window.checkUserInDB(name);
+        // التحقق من المستخدم - حتى لو فشل نكمل
+        var check = { exists: false, isAdmin: false };
+        try {
+            check = await window.checkUserInDB(name);
+        } catch (e) {
+            console.warn('⚠️ فشل التحقق من المستخدم، نكمل كـ مستخدم جديد:', e.message);
+        }
 
         var avatarBase64 = '';
 
@@ -267,16 +291,16 @@ window.login = async function() {
                     avatarBase64 = userDoc.data().avatar;
                 }
             } catch (e) {
-                console.warn('⚠️ فشل تحميل بيانات المستخدم، استخدام البيانات المحلية:', e);
+                console.warn('⚠️ فشل تحميل بيانات المستخدم، استخدام البيانات المحلية:', e.message);
             }
         }
 
         // تسجيل الدخول المجهول
         try {
             await window.auth.signInAnonymously();
+            console.log('✅ تم تسجيل الدخول المجهول');
         } catch (e) {
-            console.warn('⚠️ فشل تسجيل الدخول المجهول:', e);
-            // نستمر حتى بدون auth
+            console.warn('⚠️ فشل تسجيل الدخول المجهول:', e.message);
         }
 
         window.currentUser = name;
@@ -298,7 +322,12 @@ window.login = async function() {
             if (adminBadge) adminBadge.classList.remove('show');
         }
 
-        await window.loadBlockedUsers();
+        // تحميل المستخدمين المحظورين
+        try {
+            await window.loadBlockedUsers();
+        } catch (e) {
+            console.warn('⚠️ فشل تحميل المستخدمين المحظورين:', e.message);
+        }
 
         if (loginOverlay) loginOverlay.classList.add('hidden');
         if (chatContainer) chatContainer.style.display = 'flex';
@@ -385,7 +414,7 @@ window.checkForceLogout = function() {
                 }
             })
             .catch(function(err) {
-                console.warn('⚠️ فشل التحقق من force logout:', err);
+                console.warn('⚠️ فشل التحقق من force logout:', err.message);
             });
     }
 };
