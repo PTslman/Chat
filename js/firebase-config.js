@@ -1,26 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-import { 
-    getFirestore, 
-    collection, doc, getDoc, getDocs, 
-    addDoc, updateDoc, deleteDoc, 
-    onSnapshot, query, orderBy, 
-    where, serverTimestamp, setDoc,
-    writeBatch, limit
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { 
-    getAuth, 
-    signInAnonymously, 
-    onAuthStateChanged, 
-    signOut 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-    getStorage, 
-    ref, 
-    uploadBytes, 
-    getDownloadURL, 
-    deleteObject 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+// ============================================
+// إعدادات Firebase الخاصة بمشروع نيزك
+// ============================================
 
 const firebaseConfig = {
     apiKey: "AIzaSyAmEzziPwReETciyHcqUsThKmmwonH9FK0",
@@ -32,21 +12,18 @@ const firebaseConfig = {
     measurementId: "G-66MHWVRSQY"
 };
 
+// ============================================
 // تهيئة Firebase
+// ============================================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// تصدير كل شيء
-export {
-    db, auth, storage, analytics,
-    collection, doc, getDoc, getDocs,
-    addDoc, updateDoc, deleteDoc,
-    onSnapshot, query, orderBy,
-    where, serverTimestamp, setDoc,
-    writeBatch, limit,
-    signInAnonymously, onAuthStateChanged, signOut,
-    ref, uploadBytes, getDownloadURL, deleteObject
-};
+export { app, db, auth, storage };
