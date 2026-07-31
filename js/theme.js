@@ -2,13 +2,13 @@
 // 🌓 THEME SYSTEM - نيزك v3.5.0
 // ============================================================
 
-let currentTheme = 'dark';
+window.currentTheme = 'dark';
 
 // ============================================================
 // APPLY THEME
 // ============================================================
-function applyTheme(theme) {
-    currentTheme = theme;
+window.applyTheme = function(theme) {
+    window.currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
 
     var themeIcon = document.getElementById('themeIcon');
@@ -29,12 +29,54 @@ function applyTheme(theme) {
     } catch (e) {}
 
     // Save to Firestore if admin
-    if (typeof isAdmin !== 'undefined' && isAdmin && typeof isAdminVerified !== 'undefined' && isAdminVerified) {
-        if (db) {
-            db.collection('settings').doc('theme').set({ theme: theme }).catch(function() {});
-        }
+    if (window.isAdmin && window.isAdminVerified && window.db) {
+        window.db.collection('settings').doc('theme').set({ theme: theme }).catch(function() {});
     }
-}
+};
+
+// ============================================================
+// TOGGLE THEME
+// ============================================================
+window.toggleTheme = function() {
+    if (window.currentTheme === 'dark') {
+        window.applyTheme('light');
+    } else if (window.currentTheme === 'light') {
+        window.applyTheme('dark');
+    } else {
+        window.applyTheme('dark');
+    }
+};
+
+// ============================================================
+// LOAD SAVED THEME
+// ============================================================
+window.loadSavedTheme = function() {
+    try {
+        var saved = localStorage.getItem('chat_theme');
+        if (saved) {
+            window.applyTheme(saved);
+            return;
+        }
+    } catch (e) {}
+
+    if (window.db) {
+        window.db.collection('settings').doc('theme').get()
+            .then(function(doc) {
+                if (doc.exists && doc.data().theme) {
+                    window.applyTheme(doc.data().theme);
+                } else {
+                    window.applyTheme('dark');
+                }
+            })
+            .catch(function() {
+                window.applyTheme('dark');
+            });
+    } else {
+        window.applyTheme('dark');
+    }
+};
+
+console.log('✅ تم تحميل theme.js');}
 
 // ============================================================
 // TOGGLE THEME
