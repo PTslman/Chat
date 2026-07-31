@@ -354,3 +354,28 @@ function checkForceLogout() {
             .catch(function() {});
     }
       }
+// ============================================================
+// جعل الدوال والمتغيرات عامة
+// ============================================================
+window.currentUser = currentUser;
+window.userColor = userColor;
+window.isLoggedIn = isLoggedIn;
+window.isAdmin = isAdmin;
+window.isAdminVerified = isAdminVerified;
+window.userIP = userIP;
+window.isMuted = isMuted;
+window.muteTimeout = muteTimeout;
+window.muteCount = muteCount;
+window.blockedUsers = blockedUsers;
+window.isAdminLoginAttempt = isAdminLoginAttempt;
+window.unsubscribe = unsubscribe;
+
+window.checkUserInDB = checkUserInDB;
+window.setUserOnline = setUserOnline;
+window.setUserOffline = setUserOffline;
+window.loadBlockedUsers = loadBlockedUsers;
+window.applyMute = applyMute;
+window.performLogout = performLogout;
+window.logout = logout;
+window.login = login;
+window.checkForceLogout = checkForceLogout;
