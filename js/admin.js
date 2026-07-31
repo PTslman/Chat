@@ -5,31 +5,34 @@
 // ============================================================
 // DOM REFS
 // ============================================================
-var adminModal = document.getElementById('adminModal');
-var adminPanel = document.getElementById('adminPanel');
-var adminPasswordBox = document.getElementById('adminPasswordBox');
-var adminPasswordInput = document.getElementById('adminPasswordInput');
-var adminPasswordBtn = document.getElementById('adminPasswordBtn');
-var adminPasswordError = document.getElementById('adminPasswordError');
-var adminUsersList = document.getElementById('adminUsersList');
-var closeAdminModal = document.getElementById('closeAdminModal');
-var forceLogoutBtn = document.getElementById('forceLogoutBtn');
-var clearChatBtn = document.getElementById('clearChatBtn');
-var badwordInput = document.getElementById('badwordInput');
-var addBadwordBtn = document.getElementById('addBadwordBtn');
-var badwordsList = document.getElementById('badwordsList');
-var adminBtn = document.getElementById('adminBtn');
+const adminModal = document.getElementById('adminModal');
+const adminPanel = document.getElementById('adminPanel');
+const adminPasswordBox = document.getElementById('adminPasswordBox');
+const adminPasswordInput = document.getElementById('adminPasswordInput');
+const adminPasswordBtn = document.getElementById('adminPasswordBtn');
+const adminPasswordError = document.getElementById('adminPasswordError');
+const adminUsersList = document.getElementById('adminUsersList');
+const closeAdminModal = document.getElementById('closeAdminModal');
+const forceLogoutBtn = document.getElementById('forceLogoutBtn');
+const clearChatBtn = document.getElementById('clearChatBtn');
+const badwordInput = document.getElementById('badwordInput');
+const addBadwordBtn = document.getElementById('addBadwordBtn');
+const badwordsList = document.getElementById('badwordsList');
 
 // ============================================================
-// LOAD BAD WORDS
+// LOAD BAD WORDS - مع get()
 // ============================================================
 window.loadBadWords = function() {
-    window.db.collection('settings').doc('badwords').get().then(function(d) {
-        window.badWords = (d.exists && d.data().words) ? d.data().words : window.DEFAULT_BAD_WORDS;
-        if (!d.exists) window.saveBadWords();
-        window.renderBadWords();
-    }).catch(function() { window.badWords = window.DEFAULT_BAD_WORDS;
-        window.renderBadWords(); });
+    window.db.collection('settings').doc('badwords').get()
+        .then(function(d) {
+            window.badWords = (d.exists && d.data().words) ? d.data().words : window.DEFAULT_BAD_WORDS;
+            if (!d.exists) window.saveBadWords();
+            window.renderBadWords();
+        })
+        .catch(function() { 
+            window.badWords = window.DEFAULT_BAD_WORDS;
+            window.renderBadWords(); 
+        });
 };
 
 window.saveBadWords = function() { 
@@ -38,13 +41,13 @@ window.saveBadWords = function() {
 
 window.renderBadWords = function() {
     if (!badwordsList) return;
-    if (!window.badWords.length) { badwordsList.innerHTML =
-            '<span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>'; return; }
+    if (!window.badWords.length) { 
+        badwordsList.innerHTML = '<span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>'; 
+        return; 
+    }
     var h = '';
     window.badWords.forEach(function(w) {
-        h +=
-            '<span class="badword-tag">' + w + '<button class="remove-badword" data-word="' + w +
-            '"><span class="material-symbols-outlined" style="font-size:12px;">close</span></button></span>';
+        h += '<span class="badword-tag">' + w + '<button class="remove-badword" data-word="' + w + '"><span class="material-symbols-outlined" style="font-size:12px;">close</span></button></span>';
     });
     badwordsList.innerHTML = h;
     document.querySelectorAll('.remove-badword').forEach(function(b) {
@@ -65,13 +68,15 @@ window.addBadWord = function() {
 
 window.removeBadWord = function(w) {
     var i = window.badWords.indexOf(w);
-    if (i > -1) { window.badWords.splice(i, 1);
+    if (i > -1) { 
+        window.badWords.splice(i, 1);
         window.saveBadWords();
-        window.renderBadWords(); }
+        window.renderBadWords(); 
+    }
 };
 
 // ============================================================
-// LOAD ADMIN USERS
+// LOAD ADMIN USERS - مع get()
 // ============================================================
 window.loadAdminUsers = function() {
     if (!window.isAdmin || !window.isAdminVerified) return;
@@ -81,8 +86,7 @@ window.loadAdminUsers = function() {
     window.db.collection('users').get()
         .then(function(s) {
             if (s.empty) {
-                adminUsersList.innerHTML =
-                    '<div style="color:var(--text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>';
+                adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>';
                 return;
             }
 
@@ -108,43 +112,33 @@ window.loadAdminUsers = function() {
                                 var avatarHtml = '';
 
                                 if (dt.avatar && dt.avatar.indexOf('data:image') === 0) {
-                                    avatarHtml = '<img src="' + dt.avatar + '" alt="' + dt
-                                    .username + '">';
+                                    avatarHtml = '<img src="' + dt.avatar + '" alt="' + dt.username + '">';
                                 } else {
                                     avatarHtml = window.getInitials(dt.username);
                                 }
 
-                                h +=
-                                    '<div class="user-item"><div class="user-info"><div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:' +
+                                h += '<div class="user-item"><div class="user-info"><div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:' +
                                     window.getAvatarColor(dt.username) +
                                     ';color:#fff;font-weight:600;">' + avatarHtml +
-                                    '</div><span>' + dt.username + (dt.username === window.ADMIN_NAME ?
-                                        ' 👑' : '') + (blocked ? ' 🚫' : '') + (online ? ' 🟢' :
-                                        ' ⚪') +
-                                    '</span>' + (vcount > 0 ?
-                                        '<span class="muted-badge">⚠️ ' + vcount + '</span>' :
-                                        '') +
-                                    '</div><div class="user-actions">' + (dt.username !==
-                                        window.ADMIN_NAME ? (blocked ?
-                                            '<button class="unblock-user" onclick="window.unblockUser(\'' +
-                                            dt.username +
-                                            '\')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>' :
-                                            '<button class="block-user" onclick="window.blockUser(\'' +
-                                            dt.username +
-                                            '\')" title="حظر"><span class="material-symbols-outlined">block</span></button>'
-                                            ) +
-                                            '<button class="delete-user" onclick="window.deleteUserAccount(\'' +
-                                            dt.username +
-                                            '\')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button>'
-                                            : '') + '</div></div>';
+                                    '</div><span>' + dt.username + (dt.username === window.ADMIN_NAME ? ' 👑' : '') + 
+                                    (blocked ? ' 🚫' : '') + (online ? ' 🟢' : ' ⚪') +
+                                    '</span>' + (vcount > 0 ? '<span class="muted-badge">⚠️ ' + vcount + '</span>' : '') +
+                                    '</div><div class="user-actions">' + 
+                                    (dt.username !== window.ADMIN_NAME ? 
+                                        (blocked ?
+                                            '<button class="unblock-user" onclick="window.unblockUser(\'' + dt.username + '\')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>' :
+                                            '<button class="block-user" onclick="window.blockUser(\'' + dt.username + '\')" title="حظر"><span class="material-symbols-outlined">block</span></button>'
+                                        ) +
+                                        '<button class="delete-user" onclick="window.deleteUserAccount(\'' + dt.username + '\')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button>'
+                                    : '') + 
+                                    '</div></div>';
                             });
                             adminUsersList.innerHTML = h;
                         });
                 });
         })
         .catch(function() {
-            adminUsersList.innerHTML =
-                '<div style="color:var(--red);font-size:12px;">❌ خطأ في التحميل</div>';
+            adminUsersList.innerHTML = '<div style="color:var(--red);font-size:12px;">❌ خطأ في التحميل</div>';
         });
 };
 
@@ -173,9 +167,9 @@ window.unblockUser = function(username) {
 // ============================================================
 window.deleteUserAccount = function(username) {
     if (!window.isAdmin || username === window.ADMIN_NAME) return;
-    if (!confirm('⚠️ هل أنت متأكد من حذف حساب @' + username + ' بالكامل؟\nسيتم حذف جميع رسائله وبياناته نهائياً.'))
-        return;
+    if (!confirm('⚠️ هل أنت متأكد من حذف حساب @' + username + ' بالكامل؟\nسيتم حذف جميع رسائله وبياناته نهائياً.')) return;
     window.showLoading(true);
+    
     window.db.collection('users').doc(username).delete()
         .then(function() {
             return window.db.collection('messages').where('sender', '==', username).get()
@@ -194,8 +188,7 @@ window.deleteUserAccount = function(username) {
         })
         .then(function() {
             if (typeof window.addSystemMessage === 'function') {
-                window.addSystemMessage('🗑️ تم حذف حساب @' + username + ' بالكامل نهائياً بواسطة المسؤول',
-                    'success');
+                window.addSystemMessage('🗑️ تم حذف حساب @' + username + ' بالكامل نهائياً بواسطة المسؤول', 'success');
             }
             document.querySelectorAll('[data-sender="' + username + '"]').forEach(function(el) {
                 el.remove();
@@ -217,6 +210,7 @@ window.clearChat = function() {
     if (!window.isAdmin || !window.isAdminVerified) return;
     if (!confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل نهائياً؟\nلا يمكن استعادتها بعد الحذف.')) return;
     window.showLoading(true);
+    
     window.db.collection('messages').get()
         .then(function(snap) {
             var batch = window.db.batch();
@@ -230,7 +224,7 @@ window.clearChat = function() {
             document.querySelectorAll('.msg-group, .system-msg, .msg-count').forEach(function(el) {
                 el.remove();
             });
-            var emptyState = document.getElementById('emptyState');
+            const emptyState = document.getElementById('emptyState');
             if (emptyState) emptyState.style.display = 'flex';
             window.messageIds.clear();
             window.updateMessageCount();
@@ -246,6 +240,8 @@ window.clearChat = function() {
 // ============================================================
 // ADMIN EVENTS
 // ============================================================
+const adminBtn = document.getElementById('adminBtn');
+
 if (adminBtn) {
     adminBtn.addEventListener('click', function() {
         window.isAdminVerified = false;
@@ -279,7 +275,9 @@ if (adminPasswordBtn) {
 }
 
 if (adminPasswordInput) {
-    adminPasswordInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && adminPasswordBtn) adminPasswordBtn.click(); });
+    adminPasswordInput.addEventListener('keypress', function(e) { 
+        if (e.key === 'Enter' && adminPasswordBtn) adminPasswordBtn.click(); 
+    });
 }
 
 if (closeAdminModal) {
@@ -314,7 +312,9 @@ if (addBadwordBtn) {
 }
 
 if (badwordInput) {
-    badwordInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') window.addBadWord(); });
+    badwordInput.addEventListener('keypress', function(e) { 
+        if (e.key === 'Enter') window.addBadWord(); 
+    });
 }
 
 // ============================================================
