@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>نيزك - مراسلة فورية</title>
     
     <!-- Google Fonts -->
@@ -11,16 +11,33 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/chat.css" />
     <link rel="stylesheet" href="css/sidebar.css" />
     <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+    <link rel="stylesheet" href="css/themes.css" />
 </head>
 <body>
+    <!-- شاشة التحميل -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="fas fa-comet"></i>
+                <span>نيزك</span>
+            </div>
+            <div class="loading-spinner"></div>
+            <p>جاري التحميل...</p>
+        </div>
+    </div>
+
     <!-- شاشة تسجيل الدخول -->
     <div id="auth-screen" class="auth-screen">
-        <div class="auth-container">
+        <div class="auth-container fade-in-up">
             <div class="auth-logo">
                 <i class="fas fa-comet"></i>
                 <span>نيزك</span>
@@ -28,21 +45,72 @@
             <h2>مرحباً بك</h2>
             <p>تسجيل الدخول للدردشة</p>
             
-            <div class="auth-form">
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="login-email" placeholder="البريد الإلكتروني" />
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="كلمة المرور" />
-                </div>
-                <button id="login-btn" class="btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> دخول
+            <!-- علامات تبويب تسجيل الدخول -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="user">
+                    <i class="fas fa-user"></i> مستخدم
                 </button>
-                <p class="auth-switch">
-                    ليس لديك حساب؟ <span id="show-signup">سجل الآن</span>
-                </p>
+                <button class="auth-tab" data-tab="admin">
+                    <i class="fas fa-crown"></i> مسؤول
+                </button>
+            </div>
+            
+            <!-- نموذج تسجيل الدخول للمستخدم العادي -->
+            <div id="user-login" class="auth-form-container active">
+                <div class="auth-form">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="login-username" placeholder="اسم المستخدم" />
+                    </div>
+                    <button id="login-btn" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> دخول سريع
+                    </button>
+                    <p class="auth-hint">
+                        <i class="fas fa-info-circle"></i> أدخل اسم مستخدم للدخول بدون كلمة مرور
+                    </p>
+                </div>
+            </div>
+            
+            <!-- نموذج تسجيل الدخول للمسؤول -->
+            <div id="admin-login" class="auth-form-container">
+                <div class="auth-form">
+                    <div class="input-group">
+                        <i class="fas fa-user-shield"></i>
+                        <input type="text" id="admin-username" placeholder="اسم المستخدم" />
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="admin-password" placeholder="كلمة المرور" />
+                    </div>
+                    <button id="admin-login-btn" class="btn-primary admin-btn">
+                        <i class="fas fa-crown"></i> دخول المسؤول
+                    </button>
+                    <p class="admin-hint">
+                        <i class="fas fa-info-circle"></i> اسم: slx23m | كلمة: 1442
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- قوانين الغروب -->
+    <div id="rules-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-gavel"></i> قوانين الغروب</h2>
+                <button class="modal-close" onclick="closeRules()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> احترام جميع المستخدمين</li>
+                    <li><i class="fas fa-check-circle"></i> عدم استخدام كلمات بذيئة</li>
+                    <li><i class="fas fa-check-circle"></i> عدم إزعاج الآخرين</li>
+                    <li><i class="fas fa-check-circle"></i> الالتزام بالقيم الإسلامية</li>
+                    <li><i class="fas fa-check-circle"></i> عدم نشر محتوى غير لائق</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeRules()">أوافق</button>
             </div>
         </div>
     </div>
@@ -53,28 +121,44 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">
-                        <img src="assets/images/default-avatar.png" alt="Avatar" />
+                    <div class="user-avatar" id="user-avatar" onclick="openProfile()">
+                        <img src="assets/images/default-avatar.png" alt="Avatar" id="profile-img" />
+                        <span class="status-dot online" id="user-status-dot"></span>
                     </div>
                     <div class="user-details">
                         <span id="user-name">المستخدم</span>
-                        <span class="user-status">متصل</span>
+                        <span class="user-status" id="user-status-text">متصل</span>
                     </div>
                 </div>
-                <button id="logout-btn" class="btn-icon" title="تسجيل الخروج">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+                <div class="sidebar-actions">
+                    <button class="btn-icon" id="theme-toggle" title="تغيير الثيم">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn-icon" id="logout-btn" title="تسجيل الخروج">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="sidebar-search">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="search-contacts" placeholder="بحث..." />
+                    <input type="text" id="search-contacts" placeholder="بحث في جهات الاتصال..." />
                 </div>
+            </div>
+            
+            <!-- عدد المتصلين -->
+            <div class="online-count" id="online-count">
+                <i class="fas fa-circle online-dot"></i>
+                <span id="online-count-text">0 متصل</span>
             </div>
             
             <div class="contacts-list" id="contacts-list">
                 <!-- سيتم تحميل جهات الاتصال هنا -->
+            </div>
+            
+            <div class="sidebar-footer">
+                <span class="version">الإصدار 2.0</span>
             </div>
         </div>
 
@@ -83,12 +167,33 @@
             <div class="chat-header" id="chat-header">
                 <div class="chat-user-info">
                     <div class="chat-user-avatar">
-                        <img src="assets/images/default-avatar.png" alt="Avatar" />
+                        <img src="assets/images/default-avatar.png" alt="Avatar" id="chat-avatar" />
                     </div>
                     <div class="chat-user-details">
                         <span id="chat-user-name">اختر محادثة</span>
                         <span class="chat-user-status" id="chat-user-status">غير متصل</span>
                     </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="btn-icon" id="search-messages-btn" title="بحث في الرسائل">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="btn-icon" id="clear-chat-btn" title="حذف الدردشة">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- شريط الرجعة (Reply Bar) -->
+            <div class="reply-bar" id="reply-bar" style="display:none;">
+                <div class="reply-content">
+                    <div class="reply-info">
+                        <span class="reply-to">الرد على:</span>
+                        <span class="reply-text" id="reply-text">نص الرسالة</span>
+                    </div>
+                    <button class="btn-icon" id="cancel-reply">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
 
@@ -99,6 +204,12 @@
                     <p>اختر أحد جهات الاتصال للبدء</p>
                 </div>
             </div>
+
+            <!-- زر التمرير للأسفل -->
+            <button class="scroll-down-btn" id="scroll-down-btn" style="display:none;">
+                <i class="fas fa-arrow-down"></i>
+                <span class="new-messages-count" id="new-messages-count">0</span>
+            </button>
 
             <div class="chat-input-area">
                 <div class="chat-input-wrapper">
@@ -119,7 +230,146 @@
         </div>
     </div>
 
+    <!-- لوحة الإيموجي -->
+    <div class="emoji-picker" id="emoji-picker" style="display:none;">
+        <div class="emoji-grid">
+            <span class="emoji-item" data-emoji="😊">😊</span>
+            <span class="emoji-item" data-emoji="❤️">❤️</span>
+            <span class="emoji-item" data-emoji="😂">😂</span>
+            <span class="emoji-item" data-emoji="😍">😍</span>
+            <span class="emoji-item" data-emoji="🔥">🔥</span>
+            <span class="emoji-item" data-emoji="👍">👍</span>
+            <span class="emoji-item" data-emoji="🎉">🎉</span>
+            <span class="emoji-item" data-emoji="💯">💯</span>
+            <span class="emoji-item" data-emoji="🤣">🤣</span>
+            <span class="emoji-item" data-emoji="😎">😎</span>
+            <span class="emoji-item" data-emoji="🥰">🥰</span>
+            <span class="emoji-item" data-emoji="😱">😱</span>
+            <span class="emoji-item" data-emoji="🤔">🤔</span>
+            <span class="emoji-item" data-emoji="🙏">🙏</span>
+            <span class="emoji-item" data-emoji="💪">💪</span>
+            <span class="emoji-item" data-emoji="✨">✨</span>
+            <span class="emoji-item" data-emoji="🌟">🌟</span>
+            <span class="emoji-item" data-emoji="🎊">🎊</span>
+            <span class="emoji-item" data-emoji="💀">💀</span>
+            <span class="emoji-item" data-emoji="👀">👀</span>
+            <span class="emoji-item" data-emoji="😅">😅</span>
+            <span class="emoji-item" data-emoji="🤗">🤗</span>
+            <span class="emoji-item" data-emoji="😘">😘</span>
+            <span class="emoji-item" data-emoji="🥳">🥳</span>
+        </div>
+    </div>
+
+    <!-- قائمة خيارات الرسالة (Long Press) -->
+    <div class="message-options" id="message-options" style="display:none;">
+        <div class="options-overlay" id="options-overlay"></div>
+        <div class="options-menu" id="options-menu">
+            <button class="option-item" data-action="reply">
+                <i class="fas fa-reply"></i> رد
+            </button>
+            <button class="option-item" data-action="react">
+                <i class="fas fa-smile"></i> تفاعل
+            </button>
+            <button class="option-item" data-action="copy">
+                <i class="fas fa-copy"></i> نسخ
+            </button>
+            <button class="option-item" data-action="edit">
+                <i class="fas fa-edit"></i> تعديل
+            </button>
+            <button class="option-item" data-action="report">
+                <i class="fas fa-flag"></i> إبلاغ
+            </button>
+            <button class="option-item danger" data-action="delete">
+                <i class="fas fa-trash"></i> حذف
+            </button>
+        </div>
+    </div>
+
+    <!-- عارض الصور -->
+    <div class="image-viewer" id="image-viewer" style="display:none;">
+        <div class="image-viewer-overlay" onclick="closeImageViewer()"></div>
+        <div class="image-viewer-content">
+            <img id="viewer-image" src="" alt="صورة" />
+            <button class="image-viewer-close" onclick="closeImageViewer()">&times;</button>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل الملف الشخصي -->
+    <div class="profile-modal" id="profile-modal" style="display:none;">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h3><i class="fas fa-user-edit"></i> تعديل الملف الشخصي</h3>
+                <button class="modal-close" onclick="closeProfile()">&times;</button>
+            </div>
+            <div class="profile-modal-body">
+                <div class="profile-avatar-upload">
+                    <div class="profile-avatar-preview" id="profile-avatar-preview">
+                        <img src="assets/images/default-avatar.png" alt="صورة الملف" id="profile-preview-img" />
+                    </div>
+                    <button class="btn-secondary" onclick="document.getElementById('avatar-input').click()">
+                        <i class="fas fa-camera"></i> تغيير الصورة
+                    </button>
+                    <input type="file" id="avatar-input" accept="image/*" style="display:none;" />
+                </div>
+                <div class="profile-form">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="profile-name" placeholder="الاسم" />
+                    </div>
+                    <div class="profile-colors">
+                        <label>اللون المفضل:</label>
+                        <div class="color-options" id="color-options">
+                            <span class="color-option active" data-color="#0088cc" style="background:#0088cc;"></span>
+                            <span class="color-option" data-color="#25d366" style="background:#25d366;"></span>
+                            <span class="color-option" data-color="#ff6b6b" style="background:#ff6b6b;"></span>
+                            <span class="color-option" data-color="#ffd93d" style="background:#ffd93d;"></span>
+                            <span class="color-option" data-color="#6c5ce7" style="background:#6c5ce7;"></span>
+                            <span class="color-option" data-color="#00b894" style="background:#00b894;"></span>
+                            <span class="color-option" data-color="#fd79a8" style="background:#fd79a8;"></span>
+                            <span class="color-option" data-color="#fdcb6e" style="background:#fdcb6e;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-modal-footer">
+                <button class="btn-secondary" onclick="closeProfile()">إلغاء</button>
+                <button class="btn-primary" id="save-profile-btn">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تفاعلات الرسالة -->
+    <div class="reactions-popup" id="reactions-popup" style="display:none;">
+        <div class="reactions-grid">
+            <span class="reaction-item" data-reaction="❤️">❤️</span>
+            <span class="reaction-item" data-reaction="😂">😂</span>
+            <span class="reaction-item" data-reaction="😍">😍</span>
+            <span class="reaction-item" data-reaction="🔥">🔥</span>
+            <span class="reaction-item" data-reaction="👍">👍</span>
+            <span class="reaction-item" data-reaction="👏">👏</span>
+            <span class="reaction-item" data-reaction="😱">😱</span>
+            <span class="reaction-item" data-reaction="💀">💀</span>
+            <span class="reaction-item" data-reaction="🤣">🤣</span>
+            <span class="reaction-item" data-reaction="🥰">🥰</span>
+            <span class="reaction-item" data-reaction="😊">😊</span>
+            <span class="reaction-item" data-reaction="😎">😎</span>
+        </div>
+    </div>
+
+    <!-- نافذة نتائج البحث -->
+    <div class="search-results-modal" id="search-results-modal" style="display:none;">
+        <div class="search-results-content">
+            <div class="search-results-header">
+                <h4><i class="fas fa-search"></i> نتائج البحث</h4>
+                <button class="modal-close" onclick="closeSearchResults()">&times;</button>
+            </div>
+            <div class="search-results-body" id="search-results-body">
+                <p class="search-empty">لا توجد نتائج</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script type="module" src="js/app.js"></script>
 </body>
-</html>
+    </html>
