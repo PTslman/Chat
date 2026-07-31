@@ -350,3 +350,15 @@ if (forceLogoutBtn) {
 if (clearChatBtn) {
     clearChatBtn.addEventListener('click', clearChat);
 }
+// ============================================================
+// جعل الدوال والمتغيرات عامة
+// ============================================================
+window.loadBadWords = loadBadWords;
+window.saveBadWords = saveBadWords;
+window.renderBadWords = renderBadWords;
+window.addBadWord = addBadWord;
+window.removeBadWord = removeBadWord;
+window.loadAdminUsers = loadAdminUsers;
+window.unblockUser = unblockUser;
+window.deleteUserAccount = deleteUserAccount;
+window.clearChat = clearChat;
