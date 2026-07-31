@@ -1,27 +1,25 @@
-
 // ============================================================
 // 🚀 APP MAIN - نيزك v3.5.0
 // ============================================================
 
-console.log('🚀 نيزك ' + VERSION + ' - أقدم فوق، أحدث تحت (مثل الدردشة الطبيعية)');
-console.log('👑 المسؤول: ' + ADMIN_NAME);
-console.log('🔒 كلمة المرور: ' + ADMIN_PASSWORD);
-console.log('🚫 عدد الكلمات المحظورة: ' + DEFAULT_BAD_WORDS.length);
+console.log('🚀 نيزك ' + window.VERSION + ' - أقدم فوق، أحدث تحت');
+console.log('👑 المسؤول: ' + window.ADMIN_NAME);
 
 // ============================================================
 // DOM REFS
 // ============================================================
-const rulesBtn = document.getElementById('rulesBtn');
-const rulesModal = document.getElementById('rulesModal');
-const closeRulesModal = document.getElementById('closeRulesModal');
-const themeToggle = document.getElementById('themeToggle');
-const themeOptions = document.getElementById('themeOptions');
-const scrollBottomBtn = document.getElementById('scrollBottomBtn');
-const emojiToggle = document.getElementById('emojiToggle');
-const emojiRail = document.getElementById('emojiRail');
+var rulesBtn = document.getElementById('rulesBtn');
+var rulesModal = document.getElementById('rulesModal');
+var closeRulesModal = document.getElementById('closeRulesModal');
+var themeToggle = document.getElementById('themeToggle');
+var themeOptions = document.getElementById('themeOptions');
+var scrollBottomBtn = document.getElementById('scrollBottomBtn');
+var emojiToggle = document.getElementById('emojiToggle');
+var emojiRail = document.getElementById('emojiRail');
+var messagesDiv = document.getElementById('messages');
 
 // التأكد من أن db و auth موجودين
-if (typeof db === 'undefined') {
+if (typeof window.db === 'undefined') {
     console.error('❌ Firebase غير مهيأ! تأكد من تحميل firebase-init.js');
 }
 
@@ -45,7 +43,7 @@ document.querySelectorAll('.color-circle').forEach(function(el) {
     el.addEventListener('click', function() {
         document.querySelectorAll('.color-circle').forEach(function(c) { c.classList.remove('selected'); });
         this.classList.add('selected');
-        userColor = this.dataset.color;
+        window.userColor = this.dataset.color;
     });
 });
 
@@ -87,13 +85,13 @@ document.querySelectorAll('.emoji-item').forEach(function(el) {
 // 🌓 THEME EVENTS
 // ============================================================
 if (themeToggle) {
-    themeToggle.addEventListener('click', toggleTheme);
+    themeToggle.addEventListener('click', window.toggleTheme);
 }
 
 document.querySelectorAll('.theme-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-        if (!isAdmin || !isAdminVerified) return;
-        applyTheme(this.dataset.theme);
+        if (!window.isAdmin || !window.isAdminVerified) return;
+        window.applyTheme(this.dataset.theme);
     });
 });
 
@@ -129,14 +127,14 @@ var loginAdminPasswordError = document.getElementById('loginAdminPasswordError')
 if (usernameInput) {
     usernameInput.addEventListener('input', function() {
         var val = this.value.trim();
-        if (val === ADMIN_NAME) {
+        if (val === window.ADMIN_NAME) {
             if (loginAdminPasswordBox) loginAdminPasswordBox.style.display = 'block';
             if (loginAdminPasswordInput) loginAdminPasswordInput.value = '';
             if (loginAdminPasswordError) loginAdminPasswordError.classList.remove('show');
-            isAdminLoginAttempt = true;
+            window.isAdminLoginAttempt = true;
         } else {
             if (loginAdminPasswordBox) loginAdminPasswordBox.style.display = 'none';
-            isAdminLoginAttempt = false;
+            window.isAdminLoginAttempt = false;
         }
     });
 }
@@ -144,7 +142,6 @@ if (usernameInput) {
 // ============================================================
 // 🖱️ SCROLL TO BOTTOM
 // ============================================================
-var messagesDiv = document.getElementById('messages');
 if (messagesDiv) {
     messagesDiv.addEventListener('scroll', function() {
         var atBottom = messagesDiv.scrollTop + messagesDiv.clientHeight >= messagesDiv.scrollHeight - 50;
@@ -163,16 +160,16 @@ if (scrollBottomBtn) {
 // ============================================================
 var loginBtn = document.getElementById('loginBtn');
 if (loginBtn) {
-    loginBtn.addEventListener('click', login);
+    loginBtn.addEventListener('click', window.login);
 }
 
 if (usernameInput) {
     usernameInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            if (isAdminLoginAttempt && loginAdminPasswordInput) {
+            if (window.isAdminLoginAttempt && loginAdminPasswordInput) {
                 loginAdminPasswordInput.focus();
             } else {
-                login();
+                window.login();
             }
         }
     });
@@ -181,7 +178,7 @@ if (usernameInput) {
 if (loginAdminPasswordInput) {
     loginAdminPasswordInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            login();
+            window.login();
         }
     });
 }
@@ -193,25 +190,25 @@ var sendBtn = document.getElementById('sendBtn');
 var msgInput = document.getElementById('msgInput');
 
 if (sendBtn) {
-    sendBtn.addEventListener('click', sendMessage);
+    sendBtn.addEventListener('click', window.sendMessage);
 }
 
 if (msgInput) {
     msgInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendMessage();
+        if (e.key === 'Enter') window.sendMessage();
     });
 
     msgInput.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            if (editingMessage) {
-                editingMessage = null;
+            if (window.editingMessage) {
+                window.editingMessage = null;
                 if (sendBtn) {
                     sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
                     sendBtn.style.background = '';
                 }
                 if (msgInput) msgInput.value = '';
             }
-            clearReply();
+            window.clearReply();
         }
     });
 }
@@ -221,20 +218,20 @@ if (msgInput) {
 // ============================================================
 var logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {
-    logoutBtn.addEventListener('click', logout);
+    logoutBtn.addEventListener('click', window.logout);
 }
 
 // ============================================================
 // 🔐 AUTH STATE
 // ============================================================
-if (auth) {
-    auth.onAuthStateChanged(function(user) {
-        if (!user && !isLoggedIn) {
+if (window.auth) {
+    window.auth.onAuthStateChanged(function(user) {
+        if (!user && !window.isLoggedIn) {
             var loginOverlay = document.getElementById('loginOverlay');
             var chatContainer = document.getElementById('chatContainer');
             if (loginOverlay) loginOverlay.classList.remove('hidden');
             if (chatContainer) chatContainer.style.display = 'none';
-            showLoading(false);
+            window.showLoading(false);
         }
     });
 }
@@ -242,13 +239,13 @@ if (auth) {
 // ============================================================
 // 🔍 CHECK FORCE LOGOUT
 // ============================================================
-setInterval(checkForceLogout, 5000);
+setInterval(window.checkForceLogout, 5000);
 
 // ============================================================
 // 🚀 AUTO LOGIN
 // ============================================================
 function autoLogin() {
-    loadSavedTheme();
+    window.loadSavedTheme();
     var infoMsg = document.getElementById('infoMsg');
     if (infoMsg) {
         infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
@@ -260,5 +257,8 @@ function autoLogin() {
 // ============================================================
 // 🚀 START
 // ============================================================
-userIP = getHashedIP();
+window.userIP = window.getHashedIP();
 autoLogin();
+
+console.log('✅ تم تحميل app.js');
+console.log('✅ جميع الملفات جاهزة!');
