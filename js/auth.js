@@ -248,10 +248,12 @@ window.login = async function() {
     try {
         window.userIP = window.getHashedIP();
 
-        // التحقق من الاتصال أولاً
-        var isConnected = await window.checkConnection();
-        if (!isConnected) {
-            console.log('📶 وضع عدم الاتصال - محاولة مع البيانات المخزنة');
+        // التحقق من وجود الدالة checkConnection
+        if (typeof window.checkConnection === 'function') {
+            var isConnected = await window.checkConnection();
+            console.log('📶 حالة الاتصال:', isConnected ? 'متصل' : 'غير متصل');
+        } else {
+            console.warn('⚠️ window.checkConnection غير معرفة، تخطي التحقق');
         }
 
         var check = await window.checkUserInDB(name);
