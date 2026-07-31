@@ -11,26 +11,29 @@
         <h2>💬 NeZak Chat</h2>
         <p style="text-align: center; color: #666; margin-bottom: 20px;">أدخل اسم المستخدم الخاص بك</p>
         
+        <!-- نموذج تسجيل الدخول العادي -->
         <div id="loginForm">
             <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="20">
-            <button onclick="login()">دخول</button>
+            <button onclick="login()">🚪 دخول</button>
             <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #999;">مرحباً بك في عالم المراسلة</p>
         </div>
 
-        <!-- Admin Login Form (مخفي عن العاديين) -->
+        <!-- نموذج تسجيل الدخول للمسؤول (يظهر فقط عند كتابة slx23m) -->
         <div id="adminLoginForm" style="display: none;">
-            <h3 style="color: #667eea; text-align: center;">🔐 الدخول كمدير</h3>
-            <input type="text" id="adminUsernameInput" placeholder="اسم المستخدم" value="slx23m" readonly>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <span style="font-size: 50px;">🛡️</span>
+                <h3 style="color: #e53e3e; margin-top: 10px;">دخول المسؤول</h3>
+                <p style="color: #666; font-size: 14px;">أدخل كلمة المرور للدخول كمسؤول</p>
+            </div>
+            <input type="text" id="adminUsernameInput" placeholder="اسم المستخدم" value="slx23m" readonly style="background: #f0f0f0;">
             <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
-            <button onclick="adminLogin()">دخول كمدير</button>
-            <button onclick="backToUserLogin()" style="background: #999; margin-top: 10px;">رجوع</button>
+            <button onclick="adminLogin()" style="background: #e53e3e;">🛡️ دخول كمسؤول</button>
+            <button onclick="backToUserLogin()" style="background: #999; margin-top: 10px;">🔙 رجوع</button>
         </div>
     </div>
 
     <script type="module">
-        import { database, ref, push, onChildAdded, set, get, child } from '../scripts/firebase-config.js';
-        
-        // Check if already logged in
+        // التحقق من تسجيل الدخول مسبقاً
         if (localStorage.getItem('chatUsername')) {
             window.location.href = '../index.html';
         }
@@ -39,18 +42,19 @@
             const username = document.getElementById('usernameInput').value.trim();
             
             if (!username) {
-                alert('الرجاء إدخال اسم المستخدم');
+                alert('⚠️ الرجاء إدخال اسم المستخدم');
                 return;
             }
 
-            // Check for admin code - يظهر نموذج المدير
+            // التحقق من كود المسؤول
             if (username === 'slx23m') {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('adminLoginForm').style.display = 'block';
+                document.getElementById('adminPasswordInput').focus();
                 return;
             }
 
-            // Regular login - تسجيل دخول عادي
+            // تسجيل دخول عادي
             localStorage.setItem('chatUsername', username);
             localStorage.setItem('userRole', 'user');
             localStorage.setItem('isAdmin', 'false');
@@ -61,8 +65,8 @@
             const password = document.getElementById('adminPasswordInput').value;
             
             if (password === '1442') {
-                // تسجيل دخول المدير مع صلاحيات كاملة
-                localStorage.setItem('chatUsername', '👑 المدير');
+                // تسجيل دخول المسؤول
+                localStorage.setItem('chatUsername', 'المسؤول');
                 localStorage.setItem('userRole', 'admin');
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('adminCode', 'slx23m');
@@ -70,6 +74,7 @@
             } else {
                 alert('❌ كلمة المرور غير صحيحة');
                 document.getElementById('adminPasswordInput').value = '';
+                document.getElementById('adminPasswordInput').focus();
             }
         };
 
@@ -78,9 +83,10 @@
             document.getElementById('adminLoginForm').style.display = 'none';
             document.getElementById('usernameInput').value = '';
             document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('usernameInput').focus();
         };
 
-        // Enter key support
+        // دعم زر Enter
         document.getElementById('usernameInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') window.login();
         });
@@ -88,6 +94,9 @@
         document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') window.adminLogin();
         });
+
+        // التركيز التلقائي
+        document.getElementById('usernameInput').focus();
     </script>
 </body>
 </html>
