@@ -5,31 +5,24 @@
 // ============================================================
 // 👑 ADMIN CONFIG
 // ============================================================
-const ADMIN_NAME = "slx23m";
-const ADMIN_PASSWORD = "1442";
-const VERSION = "v3.5.0";
-
-// جعلها عامة
-window.ADMIN_NAME = ADMIN_NAME;
-window.ADMIN_PASSWORD = ADMIN_PASSWORD;
-window.VERSION = VERSION;
+window.ADMIN_NAME = "slx23m";
+window.ADMIN_PASSWORD = "1442";
+window.VERSION = "v3.5.0";
 
 // ============================================================
 // 🚫 DEFAULT BAD WORDS
 // ============================================================
-const DEFAULT_BAD_WORDS = [
+window.DEFAULT_BAD_WORDS = [
     'كس', 'قحب', 'عاهر', 'زاني', 'زنا', 'خنا', 'لوط',
     'منيوك', 'شرموط', 'قحبة', 'عاهرة', 'زانية', 'خنيث',
     'مخنث', 'لاطي', 'لوطي', 'شاذ', 'منيوكة', 'شرموطة',
     'مومس', 'داعر', 'داعرة', 'فاجر', 'فاجرة'
 ];
 
-window.DEFAULT_BAD_WORDS = DEFAULT_BAD_WORDS;
-
 // ============================================================
 // 🔒 FIREBASE CONFIG
 // ============================================================
-const firebaseConfig = {
+window.firebaseConfig = {
     apiKey: "AIzaSyAmEzziPwReETciyHcqUsThKmmwonH9FK0",
     authDomain: "nezak-b7284.firebaseapp.com",
     projectId: "nezak-b7284",
@@ -39,4 +32,4 @@ const firebaseConfig = {
     measurementId: "G-66MHWVRSQY"
 };
 
-window.firebaseConfig = firebaseConfig;
+console.log('✅ تم تحميل config.js');
