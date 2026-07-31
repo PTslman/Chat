@@ -77,3 +77,10 @@ function loadSavedTheme() {
         applyTheme('dark');
     }
 }
+// ============================================================
+// جعل الدوال عامة
+// ============================================================
+window.applyTheme = applyTheme;
+window.toggleTheme = toggleTheme;
+window.loadSavedTheme = loadSavedTheme;
+window.currentTheme = currentTheme;
