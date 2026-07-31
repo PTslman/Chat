@@ -9,6 +9,11 @@ const ADMIN_NAME = "slx23m";
 const ADMIN_PASSWORD = "1442";
 const VERSION = "v3.5.0";
 
+// جعلها عامة
+window.ADMIN_NAME = ADMIN_NAME;
+window.ADMIN_PASSWORD = ADMIN_PASSWORD;
+window.VERSION = VERSION;
+
 // ============================================================
 // 🚫 DEFAULT BAD WORDS
 // ============================================================
@@ -18,6 +23,8 @@ const DEFAULT_BAD_WORDS = [
     'مخنث', 'لاطي', 'لوطي', 'شاذ', 'منيوكة', 'شرموطة',
     'مومس', 'داعر', 'داعرة', 'فاجر', 'فاجرة'
 ];
+
+window.DEFAULT_BAD_WORDS = DEFAULT_BAD_WORDS;
 
 // ============================================================
 // 🔒 FIREBASE CONFIG
@@ -31,3 +38,5 @@ const firebaseConfig = {
     appId: "1:242982946613:web:b77d5f65b0204bff042e7c",
     measurementId: "G-66MHWVRSQY"
 };
+
+window.firebaseConfig = firebaseConfig;
