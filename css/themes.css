@@ -1,91 +1,68 @@
+/* ============================================
+   سمات الألوان - نيزك
+   ============================================ */
+
+/* السمة الفاتحة (افتراضية) */
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f0f2f5;
+    --bg-chat: #f8f9fa;
+    --text-primary: #111b21;
+    --text-secondary: #667781;
+    --border-color: #e9edef;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* السمة الداكنة */
 [data-theme="dark"] {
-    --bg-primary: #0B141A;
-    --bg-secondary: #1A2D3A;
-    --bg-chat: #0E1A24;
-    --bg-input: #1A2D3A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A8B3BF;
-    --text-muted: #6B7B87;
-    --border-color: #2A3942;
-    --message-sent: #005C4B;
-    --message-received: #1F2C33;
-    --shadow: 0 8px 32px rgba(0,0,0,0.5);
+    --bg-primary: #111b21;
+    --bg-secondary: #1c2b36;
+    --bg-chat: #0a141a;
+    --text-primary: #e9edef;
+    --text-secondary: #aebac1;
+    --border-color: #2a3942;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-[data-theme="light"] {
-    --bg-primary: #FFFFFF;
-    --bg-secondary: #F0F2F5;
-    --bg-chat: #E8EDF1;
-    --bg-input: #FFFFFF;
-    --text-primary: #000000;
-    --text-secondary: #54656F;
-    --text-muted: #8A9BA8;
-    --border-color: #D1D7DB;
-    --message-sent: #D9FDD3;
-    --message-received: #FFFFFF;
-    --shadow: 0 8px 32px rgba(0,0,0,0.15);
+/* السمة الزرقاء */
+[data-theme="blue"] {
+    --primary: #0088cc;
+    --primary-dark: #006699;
+    --primary-light: #e3f2fd;
+    --bg-primary: #ffffff;
+    --bg-secondary: #e8edf2;
+    --bg-chat: #f5f8fa;
 }
 
-[data-theme="purple"] {
-    --bg-primary: #1A0A2E;
-    --bg-secondary: #2D1B4E;
-    --bg-chat: #23123A;
-    --bg-input: #2D1B4E;
-    --text-primary: #FFFFFF;
-    --text-secondary: #B39DDB;
-    --text-muted: #7B5EA7;
-    --border-color: #3D2A5E;
-    --message-sent: #4A2A7A;
-    --message-received: #2D1B4E;
-    --primary: #9C27B0;
-    --primary-dark: #6A1B9A;
+/* السمة الخضراء */
+[data-theme="green"] {
+    --primary: #25d366;
+    --primary-dark: #128c7e;
+    --primary-light: #e8f5e9;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f0f4f0;
+    --bg-chat: #f5faf5;
 }
 
-[data-theme="forest"] {
-    --bg-primary: #0A1F0A;
-    --bg-secondary: #1A3A1A;
-    --bg-chat: #0E2A0E;
-    --bg-input: #1A3A1A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #8BC34A;
-    --text-muted: #558B2F;
-    --border-color: #2A4A2A;
-    --message-sent: #1A4A1A;
-    --message-received: #1A3A1A;
-    --primary: #4CAF50;
-    --primary-dark: #2E7D32;
+/* تطبيق السمة */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
 }
 
-[data-theme="pink"] {
-    --bg-primary: #1A0A1A;
-    --bg-secondary: #3A1A2A;
-    --bg-chat: #2A0E1E;
-    --bg-input: #3A1A2A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #F48FB1;
-    --text-muted: #C2185B;
-    --border-color: #4A2A3A;
-    --message-sent: #4A1A3A;
-    --message-received: #3A1A2A;
-    --primary: #E91E63;
-    --primary-dark: #880E4F;
-}
-
-[data-theme="ocean"] {
-    --bg-primary: #0A1A2A;
-    --bg-secondary: #1A2A4A;
-    --bg-chat: #0E1E3A;
-    --bg-input: #1A2A4A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #64B5F6;
-    --text-muted: #1565C0;
-    --border-color: #2A3A5A;
-    --message-sent: #1A3A6A;
-    --message-received: #1A2A4A;
-    --primary: #2196F3;
-    --primary-dark: #0D47A1;
-}
-
-.theme-transition {
-    transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+.theme-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
