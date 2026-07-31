@@ -11,14 +11,10 @@ window.badWords = [];
 // ============================================================
 // DOM REFS
 // ============================================================
-var messagesDiv = document.getElementById('messages');
-var msgInput = document.getElementById('msgInput');
-var sendBtn = document.getElementById('sendBtn');
-var emptyState = document.getElementById('emptyState');
-var emojiToggle = document.getElementById('emojiToggle');
-var emojiRail = document.getElementById('emojiRail');
-var typingIndicator = document.getElementById('typingIndicator');
-var scrollBottomBtn = document.getElementById('scrollBottomBtn');
+const messagesDiv = document.getElementById('messages');
+const msgInput = document.getElementById('msgInput');
+const sendBtn = document.getElementById('sendBtn');
+const emptyState = document.getElementById('emptyState');
 
 // ============================================================
 // CREATE MESSAGE ELEMENT
@@ -233,7 +229,7 @@ window.updateMessageCount = function() {
 };
 
 // ============================================================
-// LOAD MESSAGES
+// LOAD MESSAGES - مع get()
 // ============================================================
 window.loadMessages = function() {
     if (emptyState) emptyState.style.display = 'flex';
