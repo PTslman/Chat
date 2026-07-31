@@ -1,1 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - NeZak Chat</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+<body>
+    <div class="admin-panel">
+        <h2>🛠️ لوحة تحكم المدير</h2>
+        <p style="color: #666; margin-bottom: 20px;">إدارة الرسائل وحذفها</p>
+        <div id="messagesList"></div>
+        <button onclick="logout()" style="margin-top:20px; padding:10px 20px; background:#e53e3e; color:white; border:none; border-radius:10px; cursor:pointer;">تسجيل الخروج</button>
+    </div>
 
+    <script type="module">
+        import { database, ref, onChildAdded, remove } from '../scripts/firebase-config.js';
+        
+        // Check admin access
+        if (!localStorage.getItem('isAdmin')) {
+            window.location.href = '../pages/login.html';
+        }
+
+        const messagesList = document.getElementById('messagesList');
+        const messagesRef = ref(database, 'messages');
+
+        onChildAdded(messagesRef, (snapshot) => {
+            const data = snapshot.val();
+            const messageId = snapshot.key;
+            
+            const messageItem = document.createElement('div');
+            messageItem.className = 'message-item';
+            messageItem.innerHTML = `
+                <div>
+                    <strong>${data.sender}</strong>
+                    <p style="margin:5px 0;">${data.text}</p>
+                    <small style="color:#999;">${new Date(data.timestamp).toLocaleString()}</small>
+                </div>
+                <button onclick="deleteMessage('${messageId}')">🗑️ حذف</button>
+            `;
+            
+            messagesList.appendChild(messageItem);
+        });
+
+        window.deleteMessage = function(messageId) {
+            if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+                const messageRef = ref(database, `messages/${messageId}`);
+                remove(messageRef);
+                // Refresh the list
+                location.reload();
+            }
+        };
+
+        window.logout = function() {
+            localStorage.clear();
+            window.location.href = '../pages/login.html';
+        };
+    </script>
+</body>
+</html>
