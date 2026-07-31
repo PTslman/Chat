@@ -1,1 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - NeZak Chat</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>💬 NeZak Chat</h2>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">أدخل اسم المستخدم الخاص بك</p>
+        <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="20">
+        <button onclick="login()">دخول</button>
+        <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #999;">مرحباً بك في عالم المراسلة</p>
+    </div>
 
+    <!-- Admin Password Modal -->
+    <div id="adminModal" class="admin-modal">
+        <div class="modal-content">
+            <h3>🔐 كلمة المرور المطلوبة</h3>
+            <p style="color: #666; margin: 10px 0;">أدخل كلمة المرور للوصول إلى لوحة التحكم</p>
+            <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
+            <button onclick="verifyAdmin()" style="width:100%; padding:10px; background:#667eea; color:white; border:none; border-radius:10px; margin-top:10px;">تأكيد</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { database, ref, push, onChildAdded, set } from '../scripts/firebase-config.js';
+        
+        window.login = function() {
+            const username = document.getElementById('usernameInput').value.trim();
+            
+            if (!username) {
+                alert('الرجاء إدخال اسم المستخدم');
+                return;
+            }
+
+            // Check for admin code
+            if (username === 'slx23m') {
+                document.getElementById('adminModal').classList.add('active');
+                return;
+            }
+
+            // Regular login
+            localStorage.setItem('chatUsername', username);
+            window.location.href = '../index.html';
+        };
+
+        window.verifyAdmin = function() {
+            const password = document.getElementById('adminPasswordInput').value;
+            
+            if (password === '1442') {
+                localStorage.setItem('chatUsername', 'admin');
+                localStorage.setItem('isAdmin', 'true');
+                window.location.href = '../pages/admin-panel.html';
+            } else {
+                alert('كلمة المرور غير صحيحة');
+                document.getElementById('adminPasswordInput').value = '';
+            }
+        };
+
+        // Enter key support
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') window.login();
+        });
+
+        document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') window.verifyAdmin();
+        });
+    </script>
+</body>
+</html>
