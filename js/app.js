@@ -1,5 +1,5 @@
 // ============================================================
-// 🚀 APP MAIN - نيزك v3.5.0
+// 🚀 APP MAIN - نيزك v3.5.0 (الحل النهائي)
 // ============================================================
 
 console.log('🚀 نيزك ' + window.VERSION + ' - أقدم فوق، أحدث تحت');
@@ -8,72 +8,69 @@ console.log('👑 المسؤول: ' + window.ADMIN_NAME);
 // ============================================================
 // DOM REFS
 // ============================================================
-var rulesBtn = document.getElementById('rulesBtn');
-var rulesModal = document.getElementById('rulesModal');
-var closeRulesModal = document.getElementById('closeRulesModal');
-var themeToggle = document.getElementById('themeToggle');
-var themeOptions = document.getElementById('themeOptions');
-var scrollBottomBtn = document.getElementById('scrollBottomBtn');
-var emojiToggle = document.getElementById('emojiToggle');
-var emojiRail = document.getElementById('emojiRail');
-var messagesDiv = document.getElementById('messages');
-
-// التأكد من أن db و auth موجودين
-if (typeof window.db === 'undefined') {
-    console.error('❌ Firebase غير مهيأ! تأكد من تحميل firebase-init.js');
-}
+const rulesBtn = document.getElementById('rulesBtn');
+const rulesModal = document.getElementById('rulesModal');
+const closeRulesModal = document.getElementById('closeRulesModal');
+const themeToggle = document.getElementById('themeToggle');
+const themeOptions = document.getElementById('themeOptions');
+const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+const emojiToggle = document.getElementById('emojiToggle');
+const emojiRail = document.getElementById('emojiRail');
+const messagesDiv = document.getElementById('messages');
 
 // ============================================================
 // ⏰ CLOCK
 // ============================================================
 function updateClock() {
-    var n = new Date();
-    var statusTime = document.getElementById('statusTime');
+    const n = new Date();
+    const statusTime = document.getElementById('statusTime');
     if (statusTime) {
-        statusTime.textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+        statusTime.textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getHours()).padStart(2, '0');
     }
 }
 updateClock();
 setInterval(updateClock, 30000);
 
 // ============================================================
-// 📶 مراقبة حالة الاتصال - باستخدام window.monitorConnection
+// 📶 مراقبة الاتصال (باستخدام onSnapshot)
 // ============================================================
-function startMonitorConnection() {
-    if (typeof window.monitorConnection === 'function') {
-        window.monitorConnection();
-        console.log('✅ تم بدء مراقبة الاتصال');
-    } else {
-        console.warn('⚠️ window.monitorConnection غير معرفة');
-        // مراقبة بسيطة باستخدام users
-        if (window.db) {
-            window.db.collection('users').limit(1).onSnapshot(function() {
-                console.log('✅ الاتصال بقاعدة البيانات نشط');
-                var connectionError = document.getElementById('connectionError');
-                if (connectionError) {
-                    connectionError.style.display = 'none';
-                }
-            }, function(error) {
-                console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error);
-                var connectionError = document.getElementById('connectionError');
+if (typeof window.startConnectionMonitor === 'function') {
+    window.startConnectionMonitor((isOnline) => {
+        const connectionError = document.getElementById('connectionError');
+        if (connectionError) {
+            if (!isOnline) {
+                connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
+                connectionError.style.display = 'block';
+            } else {
+                connectionError.style.display = 'none';
+            }
+        }
+    });
+} else {
+    // بديل يدوي
+    if (window.db) {
+        window.db.collection('users').limit(1).onSnapshot(
+            () => {
+                const connectionError = document.getElementById('connectionError');
+                if (connectionError) connectionError.style.display = 'none';
+            },
+            (error) => {
+                const connectionError = document.getElementById('connectionError');
                 if (connectionError) {
                     connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
                     connectionError.style.display = 'block';
                 }
-            });
-        }
+            }
+        );
     }
 }
-
-// بدء مراقبة الاتصال بعد 2 ثانية
-setTimeout(startMonitorConnection, 2000);
 
 // ============================================================
 // 🎨 COLOR PICKER
 // ============================================================
-document.querySelectorAll('.color-circle').forEach(function(el) {
+document.querySelectorAll('.color-circle').forEach((el) => {
     el.addEventListener('click', function() {
-        document.querySelectorAll('.color-circle').forEach(function(c) { c.classList.remove('selected'); });
+        document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
         this.classList.add('selected');
         window.userColor = this.dataset.color;
     });
@@ -83,7 +80,7 @@ document.querySelectorAll('.color-circle').forEach(function(el) {
 // 😊 EMOJI
 // ============================================================
 if (emojiToggle) {
-    emojiToggle.addEventListener('click', function(e) {
+    emojiToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         if (emojiRail) {
             emojiRail.classList.toggle('active');
@@ -92,7 +89,7 @@ if (emojiToggle) {
     });
 }
 
-document.addEventListener('click', function(e) {
+document.addEventListener('click', (e) => {
     if (emojiRail && emojiToggle) {
         if (!emojiRail.contains(e.target) && e.target !== emojiToggle && !emojiToggle.contains(e.target)) {
             emojiRail.classList.remove('active');
@@ -101,9 +98,9 @@ document.addEventListener('click', function(e) {
     }
 });
 
-document.querySelectorAll('.emoji-item').forEach(function(el) {
+document.querySelectorAll('.emoji-item').forEach((el) => {
     el.addEventListener('click', function() {
-        var msgInput = document.getElementById('msgInput');
+        const msgInput = document.getElementById('msgInput');
         if (msgInput) {
             msgInput.value += this.textContent;
             msgInput.focus();
@@ -120,7 +117,7 @@ if (themeToggle) {
     themeToggle.addEventListener('click', window.toggleTheme);
 }
 
-document.querySelectorAll('.theme-btn').forEach(function(btn) {
+document.querySelectorAll('.theme-btn').forEach((btn) => {
     btn.addEventListener('click', function() {
         if (!window.isAdmin || !window.isAdminVerified) return;
         window.applyTheme(this.dataset.theme);
@@ -131,34 +128,34 @@ document.querySelectorAll('.theme-btn').forEach(function(btn) {
 // 📋 RULES MODAL
 // ============================================================
 if (rulesBtn) {
-    rulesBtn.addEventListener('click', function() { 
-        if (rulesModal) rulesModal.classList.toggle('active'); 
+    rulesBtn.addEventListener('click', () => {
+        if (rulesModal) rulesModal.classList.toggle('active');
     });
 }
 
 if (closeRulesModal) {
-    closeRulesModal.addEventListener('click', function() { 
-        if (rulesModal) rulesModal.classList.remove('active'); 
+    closeRulesModal.addEventListener('click', () => {
+        if (rulesModal) rulesModal.classList.remove('active');
     });
 }
 
 if (rulesModal) {
-    rulesModal.addEventListener('click', function(e) { 
-        if (e.target === rulesModal) rulesModal.classList.remove('active'); 
+    rulesModal.addEventListener('click', (e) => {
+        if (e.target === rulesModal) rulesModal.classList.remove('active');
     });
 }
 
 // ============================================================
 // 👑 ADMIN LOGIN DETECTION
 // ============================================================
-var usernameInput = document.getElementById('usernameInput');
-var loginAdminPasswordBox = document.getElementById('loginAdminPasswordBox');
-var loginAdminPasswordInput = document.getElementById('loginAdminPasswordInput');
-var loginAdminPasswordError = document.getElementById('loginAdminPasswordError');
+const usernameInput = document.getElementById('usernameInput');
+const loginAdminPasswordBox = document.getElementById('loginAdminPasswordBox');
+const loginAdminPasswordInput = document.getElementById('loginAdminPasswordInput');
+const loginAdminPasswordError = document.getElementById('loginAdminPasswordError');
 
 if (usernameInput) {
     usernameInput.addEventListener('input', function() {
-        var val = this.value.trim();
+        const val = this.value.trim();
         if (val === window.ADMIN_NAME) {
             if (loginAdminPasswordBox) loginAdminPasswordBox.style.display = 'block';
             if (loginAdminPasswordInput) loginAdminPasswordInput.value = '';
@@ -176,13 +173,13 @@ if (usernameInput) {
 // ============================================================
 if (messagesDiv) {
     messagesDiv.addEventListener('scroll', function() {
-        var atBottom = messagesDiv.scrollTop + messagesDiv.clientHeight >= messagesDiv.scrollHeight - 50;
+        const atBottom = messagesDiv.scrollTop + messagesDiv.clientHeight >= messagesDiv.scrollHeight - 50;
         if (scrollBottomBtn) scrollBottomBtn.classList.toggle('show', !atBottom);
     });
 }
 
 if (scrollBottomBtn) {
-    scrollBottomBtn.addEventListener('click', function() {
+    scrollBottomBtn.addEventListener('click', () => {
         if (messagesDiv) messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' });
     });
 }
@@ -190,13 +187,13 @@ if (scrollBottomBtn) {
 // ============================================================
 // 🎯 EVENTS - LOGIN
 // ============================================================
-var loginBtn = document.getElementById('loginBtn');
+const loginBtn = document.getElementById('loginBtn');
 if (loginBtn) {
     loginBtn.addEventListener('click', window.login);
 }
 
 if (usernameInput) {
-    usernameInput.addEventListener('keypress', function(e) {
+    usernameInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             if (window.isAdminLoginAttempt && loginAdminPasswordInput) {
                 loginAdminPasswordInput.focus();
@@ -208,7 +205,7 @@ if (usernameInput) {
 }
 
 if (loginAdminPasswordInput) {
-    loginAdminPasswordInput.addEventListener('keypress', function(e) {
+    loginAdminPasswordInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             window.login();
         }
@@ -218,19 +215,19 @@ if (loginAdminPasswordInput) {
 // ============================================================
 // 🎯 EVENTS - SEND
 // ============================================================
-var sendBtn = document.getElementById('sendBtn');
-var msgInput = document.getElementById('msgInput');
+const sendBtn = document.getElementById('sendBtn');
+const msgInput = document.getElementById('msgInput');
 
 if (sendBtn) {
     sendBtn.addEventListener('click', window.sendMessage);
 }
 
 if (msgInput) {
-    msgInput.addEventListener('keypress', function(e) {
+    msgInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') window.sendMessage();
     });
 
-    msgInput.addEventListener('keydown', function(e) {
+    msgInput.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (window.editingMessage) {
                 window.editingMessage = null;
@@ -248,7 +245,7 @@ if (msgInput) {
 // ============================================================
 // 🎯 EVENTS - LOGOUT
 // ============================================================
-var logoutBtn = document.getElementById('logoutBtn');
+const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', window.logout);
 }
@@ -257,10 +254,10 @@ if (logoutBtn) {
 // 🔐 AUTH STATE
 // ============================================================
 if (window.auth) {
-    window.auth.onAuthStateChanged(function(user) {
+    window.auth.onAuthStateChanged((user) => {
         if (!user && !window.isLoggedIn) {
-            var loginOverlay = document.getElementById('loginOverlay');
-            var chatContainer = document.getElementById('chatContainer');
+            const loginOverlay = document.getElementById('loginOverlay');
+            const chatContainer = document.getElementById('chatContainer');
             if (loginOverlay) loginOverlay.classList.remove('hidden');
             if (chatContainer) chatContainer.style.display = 'none';
             window.showLoading(false);
@@ -278,11 +275,11 @@ setInterval(window.checkForceLogout, 5000);
 // ============================================================
 function autoLogin() {
     window.loadSavedTheme();
-    var infoMsg = document.getElementById('infoMsg');
+    const infoMsg = document.getElementById('infoMsg');
     if (infoMsg) {
         infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
         infoMsg.classList.add('show');
-        setTimeout(function() { infoMsg.classList.remove('show'); }, 3000);
+        setTimeout(() => infoMsg.classList.remove('show'), 3000);
     }
 }
 
@@ -292,5 +289,4 @@ function autoLogin() {
 window.userIP = window.getHashedIP();
 autoLogin();
 
-console.log('✅ تم تحميل app.js');
-console.log('✅ جميع الملفات جاهزة!');
+console.log('✅ تم تحميل app.js (الحل النهائي)');
