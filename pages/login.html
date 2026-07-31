@@ -1,17 +1,18 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تسجيل الدخول - NeZak Chat</title>
+    <title>تسجيل الدخول - نيزك</title>
     <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 </head>
 <body>
     <div class="login-container">
         <div class="login-brand">
             <span class="brand-icon">💬</span>
-            <h2>NeZak Chat</h2>
-            <p class="brand-subtitle">تواصل مع الأصدقاء</p>
+            <h2>نيزك <span class="hl">دردشة</span></h2>
+            <p class="brand-subtitle">آمنة • سريعة • خاصة</p>
         </div>
         
         <!-- نموذج تسجيل الدخول العادي -->
@@ -20,7 +21,32 @@
                 <label>👤 اسم المستخدم</label>
                 <input type="text" id="usernameInput" placeholder="أدخل اسمك..." maxlength="20" autofocus>
             </div>
+            
+            <div class="login-avatar-section">
+                <div class="login-avatar-preview" id="loginAvatarPreview">
+                    <span class="avatar-placeholder" id="loginAvatarPlaceholder">👤</span>
+                </div>
+                <button class="login-avatar-btn" id="loginAvatarBtn">
+                    <span class="material-symbols-outlined" style="font-size:16px;">photo_camera</span>
+                    اختر صورة
+                </button>
+                <input type="file" id="loginAvatarInput" class="file-input-hidden" accept="image/*">
+            </div>
+
+            <div class="color-options" id="colorPicker">
+                <div class="color-circle selected" style="background:#2b6ef0;" data-color="#2b6ef0"></div>
+                <div class="color-circle" style="background:#ed4245;" data-color="#ed4245"></div>
+                <div class="color-circle" style="background:#faa81a;" data-color="#faa81a"></div>
+                <div class="color-circle" style="background:#23a55a;" data-color="#23a55a"></div>
+                <div class="color-circle" style="background:#a78bfa;" data-color="#a78bfa"></div>
+                <div class="color-circle" style="background:#f472b6;" data-color="#f472b6"></div>
+                <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
+                <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
+            </div>
+
             <button onclick="login()" class="btn-login">🚪 دخول</button>
+            <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
+            <div class="info-msg" id="infoMsg"></div>
             <p class="login-hint">✨ أدخل أي اسم للدخول كضيف</p>
         </div>
 
@@ -29,11 +55,11 @@
             <div class="admin-header">
                 <span class="admin-shield-big">🛡️</span>
                 <h3 style="color: #e53e3e;">دخول المسؤول</h3>
-                <p style="color: #666; font-size: 13px;">أدخل كلمة المرور للدخول كمسؤول</p>
+                <p style="color: var(--text-secondary); font-size: 13px;">أدخل كلمة المرور للدخول كمسؤول</p>
             </div>
             <div class="input-group">
                 <label>🔑 اسم المستخدم</label>
-                <input type="text" id="adminUsernameInput" value="slx23m" readonly style="background: #f5f5f5;">
+                <input type="text" id="adminUsernameInput" value="slx23m" readonly style="background: var(--bg-input);">
             </div>
             <div class="input-group">
                 <label>🔐 كلمة المرور</label>
@@ -45,6 +71,8 @@
     </div>
 
     <script type="module">
+        import { database, ref, set, get } from '../scripts/firebase-config.js';
+
         // التحقق من تسجيل الدخول مسبقاً
         if (localStorage.getItem('chatUsername')) {
             window.location.href = '../index.html';
@@ -52,19 +80,136 @@
 
         // دعم تسجيل الخروج للكل (إذا كان هناك جلسة سابقة)
         window.addEventListener('load', function() {
-            // تنظيف أي جلسة سابقة
             if (!sessionStorage.getItem('keepSession')) {
                 localStorage.clear();
             }
         });
 
-        window.login = function() {
+        // ============================================================
+        // 📸 AVATAR FUNCTIONS
+        // ============================================================
+        let tempAvatarFile = null;
+
+        function getInitials(name) {
+            if (!name) return '👤';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+
+        function getAvatarColor(name) {
+            const colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6', '#60a5fa', '#34d399'];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function updateAvatarPreview(element, placeholder, file) {
+            if (!element) return;
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    element.innerHTML = `<img src="${ev.target.result}" alt="صورة شخصية">`;
+                    if (placeholder) placeholder.textContent = '';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const name = document.getElementById('usernameInput').value.trim() || 'مستخدم';
+                const initials = getInitials(name);
+                const color = getAvatarColor(name);
+                element.innerHTML = `
+                    <span class="avatar-placeholder" style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:28px;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">${initials}</span>
+                `;
+                if (placeholder) placeholder.textContent = '';
+            }
+        }
+
+        // ============================================================
+        // 📤 UPLOAD AVATAR TO FIREBASE
+        // ============================================================
+        function uploadAvatar(file, username) {
+            return new Promise((resolve, reject) => {
+                if (!file) return resolve(null);
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    const avatarRef = ref(database, `avatars/${username}`);
+                    set(avatarRef, {
+                        data: base64,
+                        timestamp: Date.now()
+                    }).then(() => {
+                        resolve(base64);
+                    }).catch(reject);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ============================================================
+        // 🎨 COLOR PICKER
+        // ============================================================
+        let userColor = '#2b6ef0';
+        document.querySelectorAll('.color-circle').forEach(el => {
+            el.addEventListener('click', function() {
+                document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                userColor = this.dataset.color;
+            });
+        });
+
+        // ============================================================
+        // 📸 AVATAR EVENTS
+        // ============================================================
+        const loginAvatarPreview = document.getElementById('loginAvatarPreview');
+        const loginAvatarPlaceholder = document.getElementById('loginAvatarPlaceholder');
+        const loginAvatarBtn = document.getElementById('loginAvatarBtn');
+        const loginAvatarInput = document.getElementById('loginAvatarInput');
+
+        loginAvatarBtn.addEventListener('click', function() {
+            loginAvatarInput.click();
+        });
+
+        loginAvatarPreview.addEventListener('click', function() {
+            loginAvatarInput.click();
+        });
+
+        loginAvatarInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
+                    this.value = '';
+                    return;
+                }
+                tempAvatarFile = file;
+                updateAvatarPreview(loginAvatarPreview, loginAvatarPlaceholder, file);
+            }
+        });
+
+        // تحديث الصورة عند تغيير الاسم
+        document.getElementById('usernameInput').addEventListener('input', function() {
+            if (!tempAvatarFile) {
+                updateAvatarPreview(loginAvatarPreview, loginAvatarPlaceholder, null);
+            }
+        });
+
+        // ============================================================
+        // 🚪 LOGIN FUNCTIONS
+        // ============================================================
+        window.login = async function() {
             const username = document.getElementById('usernameInput').value.trim();
+            const loginError = document.getElementById('loginError');
+            const infoMsg = document.getElementById('infoMsg');
             
-            if (!username) {
-                showNotification('⚠️ الرجاء إدخال اسم المستخدم', 'error');
+            if (!username || username.length < 2) {
+                loginError.style.display = 'block';
                 return;
             }
+            loginError.style.display = 'none';
 
             // التحقق من كود المسؤول
             if (username === 'slx23m') {
@@ -74,49 +219,90 @@
                 return;
             }
 
-            // تسجيل دخول عادي
+            // رفع الصورة إذا كانت موجودة
+            let avatarURL = '';
+            if (tempAvatarFile) {
+                try {
+                    avatarURL = await uploadAvatar(tempAvatarFile, username);
+                } catch (e) {
+                    console.warn('⚠️ فشل رفع الصورة:', e);
+                }
+                tempAvatarFile = null;
+            }
+
+            // حفظ بيانات المستخدم
             const userData = {
                 username: username,
+                color: userColor,
+                avatar: avatarURL,
                 role: 'user',
                 isAdmin: false,
                 loginTime: Date.now(),
-                device: navigator.userAgent,
-                lastActive: Date.now()
+                lastActive: Date.now(),
+                online: true
             };
             
+            // حفظ في localStorage
             localStorage.setItem('chatUsername', username);
             localStorage.setItem('userRole', 'user');
             localStorage.setItem('isAdmin', 'false');
+            localStorage.setItem('userColor', userColor);
+            localStorage.setItem('userAvatar', avatarURL);
             localStorage.setItem('userData', JSON.stringify(userData));
             sessionStorage.setItem('keepSession', 'true');
-            
+
+            // حفظ في Firebase
+            try {
+                const userRef = ref(database, `users/${username}`);
+                await set(userRef, userData);
+            } catch (e) {
+                console.warn('⚠️ فشل حفظ المستخدم في Firebase:', e);
+            }
+
             window.location.href = '../index.html';
         };
 
-        window.adminLogin = function() {
+        window.adminLogin = async function() {
             const password = document.getElementById('adminPasswordInput').value;
+            const adminPasswordError = document.getElementById('adminPasswordError') || document.createElement('div');
             
             if (password === '1442') {
                 const adminData = {
                     username: 'المسؤول',
+                    color: '#e53e3e',
+                    avatar: '',
                     role: 'admin',
                     isAdmin: true,
                     adminCode: 'slx23m',
                     loginTime: Date.now(),
-                    device: navigator.userAgent,
-                    lastActive: Date.now()
+                    lastActive: Date.now(),
+                    online: true
                 };
                 
                 localStorage.setItem('chatUsername', 'المسؤول');
                 localStorage.setItem('userRole', 'admin');
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('adminCode', 'slx23m');
+                localStorage.setItem('userColor', '#e53e3e');
                 localStorage.setItem('userData', JSON.stringify(adminData));
                 sessionStorage.setItem('keepSession', 'true');
-                
+
+                // حفظ في Firebase
+                try {
+                    const userRef = ref(database, 'users/المسؤول');
+                    await set(userRef, adminData);
+                } catch (e) {
+                    console.warn('⚠️ فشل حفظ المسؤول في Firebase:', e);
+                }
+
                 window.location.href = '../index.html';
             } else {
-                showNotification('❌ كلمة المرور غير صحيحة', 'error');
+                if (adminPasswordError) {
+                    adminPasswordError.textContent = '❌ كلمة المرور غير صحيحة';
+                    adminPasswordError.style.display = 'block';
+                } else {
+                    alert('❌ كلمة المرور غير صحيحة');
+                }
                 document.getElementById('adminPasswordInput').value = '';
                 document.getElementById('adminPasswordInput').focus();
             }
@@ -130,7 +316,9 @@
             document.getElementById('usernameInput').focus();
         };
 
-        // دعم زر Enter
+        // ============================================================
+        // ⌨️ KEYBOARD SUPPORT
+        // ============================================================
         document.getElementById('usernameInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') window.login();
         });
@@ -139,26 +327,57 @@
             if (e.key === 'Enter') window.adminLogin();
         });
 
-        // دالة الإشعارات
-        function showNotification(message, type = 'info') {
-            const existing = document.querySelector('.custom-notification');
-            if (existing) existing.remove();
-            
-            const notif = document.createElement('div');
-            notif.className = `custom-notification ${type}`;
-            notif.textContent = message;
-            document.body.appendChild(notif);
-            
-            setTimeout(() => {
-                notif.style.opacity = '0';
-                setTimeout(() => notif.remove(), 300);
-            }, 3000);
+        // ============================================================
+        // 🔄 AUTO LOGIN
+        // ============================================================
+        function checkSession() {
+            try {
+                const sessionData = localStorage.getItem('chat_session');
+                if (sessionData) {
+                    const session = JSON.parse(sessionData);
+                    const maxAge = 7 * 24 * 60 * 60 * 1000;
+                    if (Date.now() - session.timestamp < maxAge) {
+                        document.getElementById('usernameInput').value = session.username || '';
+                        if (session.color) {
+                            userColor = session.color;
+                            document.querySelectorAll('.color-circle').forEach(el => {
+                                el.classList.toggle('selected', el.dataset.color === session.color);
+                            });
+                        }
+                        if (session.avatar) {
+                            loginAvatarPreview.innerHTML = `<img src="${session.avatar}" alt="صورة شخصية">`;
+                            loginAvatarPlaceholder.textContent = '';
+                        }
+                        const infoMsg = document.getElementById('infoMsg');
+                        infoMsg.textContent = '🔄 جاري تسجيل الدخول التلقائي...';
+                        infoMsg.style.display = 'block';
+                        setTimeout(() => {
+                            window.login();
+                        }, 500);
+                        setTimeout(() => {
+                            infoMsg.style.display = 'none';
+                        }, 3000);
+                    }
+                }
+            } catch (e) {
+                console.log('⚠️ لا يمكن استعادة الجلسة');
+            }
         }
 
+        // ============================================================
+        // 🚀 START
+        // ============================================================
+        console.log('🚀 نيزك - تسجيل الدخول');
+        console.log('👑 المسؤول: slx23m');
+        console.log('🔒 كلمة المرور: 1442');
+        
+        // التحقق من الجلسة
+        checkSession();
+        
         // التركيز التلقائي
         setTimeout(() => {
             document.getElementById('usernameInput').focus();
         }, 500);
     </script>
 </body>
-</html>
+    </html>
