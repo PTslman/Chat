@@ -10,10 +10,10 @@ import {
     getDocs,
     onSnapshot,
     doc,
-    updateDoc,
-    serverTimestamp,
-    getDoc
+    getDoc,
+    orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { authManager } from './auth.js';
 
 // ============================================
 // مدير جهات الاتصال
@@ -25,7 +25,6 @@ class ContactsManager {
         this.contacts = [];
         this.unsubscribeContacts = null;
         this.contactsListeners = [];
-        this.userStatusListeners = [];
     }
 
     // تعيين المستخدم الحالي
@@ -41,7 +40,6 @@ class ContactsManager {
             this.unsubscribeContacts();
         }
 
-        // جلب جميع المستخدمين ماعدا المستخدم الحالي
         const usersRef = collection(db, 'users');
         const q = query(usersRef, where('uid', '!=', this.currentUser.uid));
 
@@ -50,21 +48,26 @@ class ContactsManager {
             
             for (const doc of snapshot.docs) {
                 const data = doc.data();
-                // جلب آخر رسالة لكل جهة اتصال
+                // تجاهل المسؤول إذا كان المستخدم عادي
+                if (!authManager.isAdminUser() && data.isAdmin) continue;
+                
                 const lastMessage = await this.getLastMessage(data.uid);
                 const unreadCount = await this.getUnreadCount(data.uid);
                 
                 contacts.push({
                     uid: data.uid,
-                    name: data.name || data.email.split('@')[0],
-                    email: data.email,
+                    name: data.name || data.email?.split('@')[0] || 'مستخدم',
+                    email: data.email || '',
                     photoURL: data.photoURL || 'assets/images/default-avatar.png',
                     status: data.status || 'offline',
                     lastSeen: data.lastSeen?.toDate() || new Date(),
                     isActive: data.isActive || false,
-                    lastMessage: lastMessage,
-                    unreadCount: unreadCount,
-                    lastMessageTime: lastMessage ? lastMessage.timestamp : null
+                    isAdmin: data.isAdmin || false,
+                    isBlocked: data.isBlocked || false,
+                    blockedUntil: data.blockedUntil || null,
+                    lastMessage: lastMessage?.text || '',
+                    lastMessageTime: lastMessage?.timestamp || null,
+                    unreadCount: unreadCount
                 });
             }
 
@@ -73,6 +76,8 @@ class ContactsManager {
                 if (a.lastMessageTime && b.lastMessageTime) {
                     return b.lastMessageTime - a.lastMessageTime;
                 }
+                if (a.lastMessageTime) return -1;
+                if (b.lastMessageTime) return 1;
                 return a.name.localeCompare(b.name);
             });
 
@@ -84,7 +89,7 @@ class ContactsManager {
         });
     }
 
-    // جلب آخر رسالة مع مستخدم
+    // جلب آخر رسالة
     async getLastMessage(otherUid) {
         if (!this.currentUser) return null;
 
@@ -97,18 +102,17 @@ class ContactsManager {
                 const data = chatDoc.data();
                 return {
                     text: data.lastMessage || '',
-                    timestamp: data.lastMessageTime?.toDate() || new Date(),
+                    timestamp: data.lastMessageTime?.toDate() || null,
                     sender: data.lastMessageSender || ''
                 };
             }
             return null;
         } catch (error) {
-            console.error('خطأ في جلب آخر رسالة:', error);
             return null;
         }
     }
 
-    // جلب عدد الرسائل غير المقروءة من مستخدم
+    // جلب عدد الرسائل غير المقروءة
     async getUnreadCount(otherUid) {
         if (!this.currentUser) return 0;
 
@@ -124,7 +128,6 @@ class ContactsManager {
             const snapshot = await getDocs(q);
             return snapshot.size;
         } catch (error) {
-            console.error('خطأ في جلب عدد الرسائل غير المقروءة:', error);
             return 0;
         }
     }
@@ -136,7 +139,7 @@ class ContactsManager {
 
     // البحث في جهات الاتصال
     searchContacts(searchTerm) {
-        if (!searchTerm.trim()) return this.contacts;
+        if (!searchTerm || !searchTerm.trim()) return this.contacts;
         
         const term = searchTerm.toLowerCase().trim();
         return this.contacts.filter(contact => 
@@ -145,7 +148,7 @@ class ContactsManager {
         );
     }
 
-    // الحصول على جهة اتصال بواسطة المعرف
+    // الحصول على جهة اتصال
     getContactByUid(uid) {
         return this.contacts.find(contact => contact.uid === uid);
     }
@@ -155,75 +158,16 @@ class ContactsManager {
         const contact = this.getContactByUid(uid);
         if (contact) {
             contact.status = status;
-            this.notifyStatusChange(uid, status);
         }
     }
 
-    // إضافة جهة اتصال جديدة
-    async addContact(email) {
-        try {
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('email', '==', email));
-            const snapshot = await getDocs(q);
-            
-            if (snapshot.empty) {
-                return { success: false, error: 'المستخدم غير موجود' };
-            }
-
-            const userData = snapshot.docs[0].data();
-            const uid = snapshot.docs[0].id;
-
-            // التأكد من أنه ليس المستخدم نفسه
-            if (uid === this.currentUser.uid) {
-                return { success: false, error: 'لا يمكن إضافة نفسك' };
-            }
-
-            // التأكد من أنه ليس موجوداً بالفعل
-            if (this.getContactByUid(uid)) {
-                return { success: false, error: 'جهة الاتصال موجودة بالفعل' };
-            }
-
-            // إضافة للمحليات
-            this.contacts.push({
-                uid: uid,
-                name: userData.name || userData.email.split('@')[0],
-                email: userData.email,
-                photoURL: userData.photoURL || 'assets/images/default-avatar.png',
-                status: 'offline',
-                lastSeen: new Date(),
-                isActive: userData.isActive || false,
-                lastMessage: null,
-                unreadCount: 0
-            });
-
-            return { success: true, contact: this.contacts[this.contacts.length - 1] };
-        } catch (error) {
-            console.error('خطأ في إضافة جهة اتصال:', error);
-            return { success: false, error: error.message };
+    // تحديث آخر رسالة لجهة اتصال
+    updateContactLastMessage(uid, message, timestamp) {
+        const contact = this.getContactByUid(uid);
+        if (contact) {
+            contact.lastMessage = message;
+            contact.lastMessageTime = timestamp;
         }
-    }
-
-    // مراقبة حالة المستخدمين
-    monitorUserStatus(uid, callback) {
-        if (!this.currentUser) return;
-
-        const userRef = doc(db, 'users', uid);
-        return onSnapshot(userRef, (doc) => {
-            if (doc.exists()) {
-                const data = doc.data();
-                callback({
-                    status: data.status || 'offline',
-                    lastSeen: data.lastSeen?.toDate() || new Date()
-                });
-            }
-        });
-    }
-
-    // إعلام بتغيير الحالة
-    notifyStatusChange(uid, status) {
-        this.userStatusListeners.forEach(listener => {
-            listener(uid, status);
-        });
     }
 
     // تنظيف الموارد
@@ -234,15 +178,10 @@ class ContactsManager {
         }
     }
 
-    // إضافة مستمع للتغييرات
+    // إضافة مستمع
     addContactsListener(callback) {
         this.contactsListeners.push(callback);
     }
-
-    addStatusListener(callback) {
-        this.userStatusListeners.push(callback);
-    }
 }
 
-// تصدير نسخة واحدة
 export const contactsManager = new ContactsManager();
