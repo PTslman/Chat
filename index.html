@@ -3,85 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeZak Chat</title>
+    <title>NeZak Chat - دردشة الأصدقاء</title>
     <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
-    <div class="chat-container">
+    <div class="chat-container" id="chatContainer">
+        <!-- رأس الدردشة -->
         <div class="chat-header" id="chatHeader">
-            <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
                 <h3>💬 NeZak Chat</h3>
-                <span id="userRoleBadge" style="font-size: 12px; background: #4a5568; padding: 2px 10px; border-radius: 10px;"></span>
+                <span id="userRoleBadge" class="role-badge user">👤 مستخدم</span>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <span class="online-users" id="onlineUsers">🟢 متصل</span>
-                <button onclick="logout()" style="background: none; border: none; color: white; cursor: pointer; font-size: 18px;">🚪</button>
+                <button onclick="logout()" class="logout-btn" title="تسجيل الخروج">🚪</button>
             </div>
         </div>
         
+        <!-- منطقة الرسائل -->
         <div class="messages-area" id="messagesArea">
-            <!-- Messages appear here -->
+            <div class="system-message">🌟 مرحباً بك في دردشة NeZak</div>
         </div>
         
+        <!-- منطقة الإدخال -->
         <div class="input-area">
             <input type="text" id="messageInput" placeholder="اكتب رسالتك..." maxlength="500">
-            <button onclick="sendMessage()">إرسال</button>
-            <!-- زر حذف الكل يظهر فقط للمدير -->
-            <button id="clearAllBtn" onclick="clearAllMessages()" style="display: none; background: #e53e3e;">🗑️</button>
+            <button onclick="sendMessage()" id="sendBtn">إرسال</button>
+            <!-- أزرار المسؤول تظهر فقط للمدير -->
+            <div id="adminButtons" style="display: none; gap: 5px;">
+                <button onclick="editLastMessage()" class="admin-btn" title="تعديل آخر رسالة">✏️</button>
+                <button onclick="deleteLastMessage()" class="admin-btn" title="حذف آخر رسالة">🗑️</button>
+                <button onclick="clearAllMessages()" class="admin-btn" title="حذف الكل">🧹</button>
+            </div>
+        </div>
+        
+        <!-- لوحة تحكم المسؤول المصغرة -->
+        <div id="adminMiniPanel" style="display: none; padding: 10px; background: #f8f9fa; border-top: 2px solid #e53e3e;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #666;">
+                <span>🛡️ لوحة المسؤول</span>
+                <div style="display: flex; gap: 15px;">
+                    <span>📊 الرسائل: <span id="messageCount">0</span></span>
+                    <span>👥 المستخدمين: <span id="userCount">1</span></span>
+                    <button onclick="toggleAdminPanel()" style="background: none; border: none; color: #e53e3e; cursor: pointer;">🔽</button>
+                </div>
+            </div>
+            <div id="adminPanelContent" style="display: none; margin-top: 10px;">
+                <button onclick="deleteAllMessages()" class="admin-btn-danger" style="width: 100%; padding: 8px; border: none; border-radius: 5px; cursor: pointer;">🗑️ حذف جميع الرسائل</button>
+                <button onclick="exportChat()" class="admin-btn-primary" style="width: 100%; padding: 8px; border: none; border-radius: 5px; margin-top: 5px; cursor: pointer;">📥 تصدير المحادثة</button>
+            </div>
         </div>
     </div>
 
     <script type="module">
-        import { database, ref, push, onChildAdded, set, remove, get, child, query, orderByChild, limitToLast } from './scripts/firebase-config.js';
+        // ========================================
+        // استيراد Firebase
+        // ========================================
+        import { database, ref, push, onChildAdded, set, remove, update, get, child, query, orderByChild, limitToLast } from './scripts/firebase-config.js';
         
+        // ========================================
+        // متغيرات الجلسة
+        // ========================================
         const username = localStorage.getItem('chatUsername') || 'زائر';
         const userRole = localStorage.getItem('userRole') || 'user';
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const adminCode = localStorage.getItem('adminCode');
         
+        // ========================================
+        // عناصر DOM
+        // ========================================
         const messagesArea = document.getElementById('messagesArea');
         const messageInput = document.getElementById('messageInput');
         const userRoleBadge = document.getElementById('userRoleBadge');
-        const clearAllBtn = document.getElementById('clearAllBtn');
-
-        // Show user role
-        if (isAdmin) {
-            userRoleBadge.textContent = '👑 مدير';
-            userRoleBadge.style.background = '#e53e3e';
-            clearAllBtn.style.display = 'block';
-            document.getElementById('chatHeader').style.background = 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)';
+        const chatContainer = document.getElementById('chatContainer');
+        const chatHeader = document.getElementById('chatHeader');
+        const adminButtons = document.getElementById('adminButtons');
+        const adminMiniPanel = document.getElementById('adminMiniPanel');
+        const messageCountSpan = document.getElementById('messageCount');
+        
+        // ========================================
+        // تهيئة واجهة المسؤول
+        // ========================================
+        if (isAdmin && adminCode === 'slx23m') {
+            // تغيير المظهر للمسؤول
+            chatContainer.classList.add('admin-mode');
+            chatHeader.style.background = 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)';
+            userRoleBadge.textContent = '🛡️ مسؤول';
+            userRoleBadge.className = 'role-badge admin';
+            
+            // إظهار أزرار المسؤول
+            adminButtons.style.display = 'flex';
+            adminMiniPanel.style.display = 'block';
+            
+            // تغيير أيقونة المرسل
+            document.querySelector('.chat-header h3').innerHTML = '🛡️ NeZak Chat (مدير)';
         } else {
             userRoleBadge.textContent = '👤 مستخدم';
-            userRoleBadge.style.background = '#4a5568';
+            userRoleBadge.className = 'role-badge user';
         }
 
-        // Load messages
+        // ========================================
+        // تحميل الرسائل
+        // ========================================
         const messagesRef = ref(database, 'messages');
-        
-        // تحميل آخر 50 رسالة فقط
-        const recentMessagesQuery = query(messagesRef, orderByChild('timestamp'), limitToLast(50));
+        let messagesList = [];
+        let lastMessageId = null;
         
         onChildAdded(messagesRef, (snapshot) => {
             const data = snapshot.val();
             const messageId = snapshot.key;
             
+            messagesList.push({ id: messageId, ...data });
+            lastMessageId = messageId;
+            
+            // تحديث عدد الرسائل
+            messageCountSpan.textContent = messagesList.length;
+            
+            // عرض الرسالة
+            displayMessage(messageId, data);
+        });
+
+        // ========================================
+        // دالة عرض الرسالة
+        // ========================================
+        function displayMessage(messageId, data) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${data.sender === username ? 'sent' : 'received'}`;
             messageDiv.dataset.messageId = messageId;
+            messageDiv.dataset.sender = data.sender;
             
-            // إظهار شارة المدير بجانب اسمه
-            const senderDisplay = data.isAdmin ? `👑 ${data.sender}` : data.sender;
+            // تحديد إذا كانت رسالة مسؤول
+            const isAdminSender = data.isAdmin || false;
+            const senderDisplay = isAdminSender ? `🛡️ ${data.sender}` : data.sender;
+            const adminClass = isAdminSender ? 'admin-message' : '';
             
             messageDiv.innerHTML = `
-                <div class="sender">${senderDisplay} ${data.isAdmin ? '⭐' : ''}</div>
-                <div class="bubble">${data.text}</div>
-                <div class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</div>
-                ${isAdmin ? `<button onclick="deleteMessage('${messageId}')" style="background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 12px; margin-top: 5px;">🗑️ حذف</button>` : ''}
+                <div class="sender">
+                    ${senderDisplay}
+                    ${isAdminSender ? '<span class="admin-indicator">🛡️</span>' : ''}
+                    ${data.edited ? ' <span style="font-size: 10px; color: #999;">(تم التعديل)</span>' : ''}
+                </div>
+                <div class="bubble ${adminClass}">${data.text}</div>
+                <div class="timestamp">
+                    ${new Date(data.timestamp).toLocaleTimeString()}
+                    ${isAdmin ? `<button onclick="deleteMessage('${messageId}')" class="delete-btn" style="background: none; border: none; color: #e53e3e; cursor: pointer; margin-left: 10px; font-size: 12px;">🗑️</button>` : ''}
+                    ${isAdmin ? `<button onclick="editMessage('${messageId}')" class="edit-btn" style="background: none; border: none; color: #667eea; cursor: pointer; margin-left: 5px; font-size: 12px;">✏️</button>` : ''}
+                </div>
             `;
+            
+            // إزالة رسالة النظام إذا وجدت
+            const systemMsg = messagesArea.querySelector('.system-message');
+            if (systemMsg) systemMsg.remove();
             
             messagesArea.appendChild(messageDiv);
             messagesArea.scrollTop = messagesArea.scrollHeight;
-        });
+        }
 
+        // ========================================
+        // دالة إرسال رسالة
+        // ========================================
         window.sendMessage = function() {
             const text = messageInput.value.trim();
             
@@ -91,28 +170,105 @@
                 sender: username,
                 text: text,
                 timestamp: Date.now(),
-                isAdmin: isAdmin, // معرفة إذا كانت الرسالة من مدير
-                userRole: userRole
+                isAdmin: isAdmin && adminCode === 'slx23m',
+                userRole: userRole,
+                edited: false
             });
             
             messageInput.value = '';
             messageInput.focus();
         };
 
+        // ========================================
+        // دوال المسؤول (تظهر فقط للمدير)
+        // ========================================
+        
+        // حذف رسالة
         window.deleteMessage = function(messageId) {
+            if (!isAdmin) return;
+            
             if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
                 const messageRef = ref(database, `messages/${messageId}`);
                 remove(messageRef);
+                // حذف من الواجهة
+                const msgElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                if (msgElement) msgElement.remove();
+                
+                // تحديث القائمة
+                messagesList = messagesList.filter(msg => msg.id !== messageId);
+                messageCountSpan.textContent = messagesList.length;
             }
         };
 
+        // حذف آخر رسالة
+        window.deleteLastMessage = function() {
+            if (!isAdmin) return;
+            
+            if (messagesList.length === 0) {
+                alert('لا توجد رسائل للحذف');
+                return;
+            }
+            
+            const lastMsg = messagesList[messagesList.length - 1];
+            deleteMessage(lastMsg.id);
+        };
+
+        // تعديل رسالة
+        window.editMessage = function(messageId) {
+            if (!isAdmin) return;
+            
+            const msgData = messagesList.find(msg => msg.id === messageId);
+            if (!msgData) return;
+            
+            const newText = prompt('تعديل الرسالة:', msgData.text);
+            if (newText && newText.trim() !== '') {
+                const messageRef = ref(database, `messages/${messageId}`);
+                update(messageRef, {
+                    text: newText.trim(),
+                    edited: true,
+                    editedAt: Date.now(),
+                    editedBy: username
+                });
+                
+                // تحديث الواجهة
+                const msgElement = document.querySelector(`[data-message-id="${messageId}] .bubble`);
+                if (msgElement) {
+                    msgElement.textContent = newText.trim();
+                }
+                
+                // تحديث القائمة
+                const index = messagesList.findIndex(msg => msg.id === messageId);
+                if (index !== -1) {
+                    messagesList[index].text = newText.trim();
+                    messagesList[index].edited = true;
+                }
+            }
+        };
+
+        // تعديل آخر رسالة
+        window.editLastMessage = function() {
+            if (!isAdmin) return;
+            
+            if (messagesList.length === 0) {
+                alert('لا توجد رسائل للتعديل');
+                return;
+            }
+            
+            const lastMsg = messagesList[messagesList.length - 1];
+            editMessage(lastMsg.id);
+        };
+
+        // حذف جميع الرسائل
         window.clearAllMessages = function() {
-            if (confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل؟ هذا الإجراء لا يمكن التراجع عنه!')) {
+            if (!isAdmin) return;
+            
+            if (confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل؟')) {
                 const adminConfirm = prompt('أدخل كلمة المرور للتأكيد:');
                 if (adminConfirm === '1442') {
-                    const messagesRef = ref(database, 'messages');
                     set(messagesRef, null);
-                    messagesArea.innerHTML = '';
+                    messagesList = [];
+                    messageCountSpan.textContent = '0';
+                    messagesArea.innerHTML = '<div class="system-message">🗑️ تم حذف جميع الرسائل</div>';
                     alert('✅ تم حذف جميع الرسائل بنجاح');
                 } else {
                     alert('❌ كلمة المرور غير صحيحة');
@@ -120,27 +276,69 @@
             }
         };
 
-        window.logout = function() {
-            localStorage.clear();
-            window.location.href = 'pages/login.html';
+        // عرض/إخفاء لوحة المسؤول
+        window.toggleAdminPanel = function() {
+            const content = document.getElementById('adminPanelContent');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
         };
 
-        // Enter key support
+        // تصدير المحادثة
+        window.exportChat = function() {
+            if (!isAdmin) return;
+            
+            let chatText = '📝 محادثة NeZak Chat\n';
+            chatText += `📅 التاريخ: ${new Date().toLocaleString()}\n`;
+            chatText += '='.repeat(50) + '\n\n';
+            
+            messagesList.forEach(msg => {
+                const sender = msg.isAdmin ? `🛡️ ${msg.sender}` : msg.sender;
+                const time = new Date(msg.timestamp).toLocaleTimeString();
+                chatText += `[${time}] ${sender}: ${msg.text}\n`;
+                if (msg.edited) chatText += `  (تم التعديل)\n`;
+            });
+            
+            const blob = new Blob([chatText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat-${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        // ========================================
+        // دعم Enter
+        // ========================================
         messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') window.sendMessage();
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                window.sendMessage();
+            }
         });
 
-        // Check if logged in
+        // ========================================
+        // التحقق من تسجيل الدخول
+        // ========================================
         if (!localStorage.getItem('chatUsername')) {
             window.location.href = 'pages/login.html';
         }
 
-        // منع المستخدم العادي من الوصول إلى لوحة المدير
-        if (isAdmin && window.location.pathname.includes('admin-panel.html')) {
-            // مسموح
-        } else if (!isAdmin && window.location.pathname.includes('admin-panel.html')) {
-            window.location.href = '../index.html';
-        }
+        // ========================================
+        // دالة تسجيل الخروج
+        // ========================================
+        window.logout = function() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                localStorage.clear();
+                window.location.href = 'pages/login.html';
+            }
+        };
+
+        // ========================================
+        // تحديث عدد المستخدمين (محاكاة)
+        // ========================================
+        document.getElementById('userCount').textContent = Math.floor(Math.random() * 5) + 1;
+        
+        console.log(`✅ تم تسجيل الدخول كـ: ${username} (${isAdmin ? '🛡️ مسؤول' : '👤 مستخدم'})`);
     </script>
 </body>
 </html>
