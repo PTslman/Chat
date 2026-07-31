@@ -166,3 +166,10 @@ if (profileNameInput) {
         if (e.key === 'Enter') saveProfile();
     });
     }
+// ============================================================
+// جعل الدوال والمتغيرات عامة
+// ============================================================
+window.userAvatarBase64 = userAvatarBase64;
+window.tempAvatarBase64 = tempAvatarBase64;
+window.openProfileModal = openProfileModal;
+window.saveProfile = saveProfile;
