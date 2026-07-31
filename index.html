@@ -3,78 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeZak Chat</title>
-    <link rel="stylesheet" href="styles/style.css">
+    <title>تسجيل الدخول - NeZak Chat</title>
+    <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h3>💬 NeZak Chat</h3>
-            <span class="online-users" id="onlineUsers">🟢 متصل</span>
-        </div>
+    <div class="login-container">
+        <h2>💬 NeZak Chat</h2>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">أدخل اسم المستخدم الخاص بك</p>
         
-        <div class="messages-area" id="messagesArea">
-            <!-- Messages appear here -->
+        <div id="loginForm">
+            <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="20">
+            <button onclick="login()">دخول</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #999;">مرحباً بك في عالم المراسلة</p>
         </div>
-        
-        <div class="input-area">
-            <input type="text" id="messageInput" placeholder="اكتب رسالتك..." maxlength="500">
-            <button onclick="sendMessage()">إرسال</button>
+
+        <!-- Admin Login Form (مخفي عن العاديين) -->
+        <div id="adminLoginForm" style="display: none;">
+            <h3 style="color: #667eea; text-align: center;">🔐 الدخول كمدير</h3>
+            <input type="text" id="adminUsernameInput" placeholder="اسم المستخدم" value="slx23m" readonly>
+            <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
+            <button onclick="adminLogin()">دخول كمدير</button>
+            <button onclick="backToUserLogin()" style="background: #999; margin-top: 10px;">رجوع</button>
         </div>
     </div>
 
     <script type="module">
-        import { database, ref, push, onChildAdded, set, remove } from './scripts/firebase-config.js';
+        import { database, ref, push, onChildAdded, set, get, child } from '../scripts/firebase-config.js';
         
-        const username = localStorage.getItem('chatUsername') || 'زائر';
-        const messagesArea = document.getElementById('messagesArea');
-        const messageInput = document.getElementById('messageInput');
+        // Check if already logged in
+        if (localStorage.getItem('chatUsername')) {
+            window.location.href = '../index.html';
+        }
 
-        // Load messages
-        const messagesRef = ref(database, 'messages');
-        
-        onChildAdded(messagesRef, (snapshot) => {
-            const data = snapshot.val();
-            const messageId = snapshot.key;
+        window.login = function() {
+            const username = document.getElementById('usernameInput').value.trim();
             
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${data.sender === username ? 'sent' : 'received'}`;
-            messageDiv.dataset.messageId = messageId;
-            
-            messageDiv.innerHTML = `
-                <div class="sender">${data.sender}</div>
-                <div class="bubble">${data.text}</div>
-                <div class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</div>
-            `;
-            
-            messagesArea.appendChild(messageDiv);
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-        });
+            if (!username) {
+                alert('الرجاء إدخال اسم المستخدم');
+                return;
+            }
 
-        window.sendMessage = function() {
-            const text = messageInput.value.trim();
+            // Check for admin code - يظهر نموذج المدير
+            if (username === 'slx23m') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('adminLoginForm').style.display = 'block';
+                return;
+            }
+
+            // Regular login - تسجيل دخول عادي
+            localStorage.setItem('chatUsername', username);
+            localStorage.setItem('userRole', 'user');
+            localStorage.setItem('isAdmin', 'false');
+            window.location.href = '../index.html';
+        };
+
+        window.adminLogin = function() {
+            const password = document.getElementById('adminPasswordInput').value;
             
-            if (!text) return;
-            
-            push(messagesRef, {
-                sender: username,
-                text: text,
-                timestamp: Date.now()
-            });
-            
-            messageInput.value = '';
-            messageInput.focus();
+            if (password === '1442') {
+                // تسجيل دخول المدير مع صلاحيات كاملة
+                localStorage.setItem('chatUsername', '👑 المدير');
+                localStorage.setItem('userRole', 'admin');
+                localStorage.setItem('isAdmin', 'true');
+                localStorage.setItem('adminCode', 'slx23m');
+                window.location.href = '../index.html';
+            } else {
+                alert('❌ كلمة المرور غير صحيحة');
+                document.getElementById('adminPasswordInput').value = '';
+            }
+        };
+
+        window.backToUserLogin = function() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('adminLoginForm').style.display = 'none';
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('adminPasswordInput').value = '';
         };
 
         // Enter key support
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') window.sendMessage();
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') window.login();
         });
 
-        // Check if logged in
-        if (!localStorage.getItem('chatUsername')) {
-            window.location.href = 'pages/login.html';
-        }
+        document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') window.adminLogin();
+        });
     </script>
 </body>
 </html>
