@@ -25,13 +25,51 @@ try {
     }
 }
 
-// تفعيل وضع عدم الاتصال
+// تفعيل وضع عدم الاتصال مع إعدادات أفضل
 if (window.db) {
-    window.db.enablePersistence({ synchronizeTabs: true })
-        .then(function() {
-            console.log('✅ تم تفعيل التخزين المؤقت');
-        })
-        .catch(function(err) {
-            console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
-        });
+    window.db.enablePersistence({ 
+        synchronizeTabs: true,
+        experimentalForceOwningTab: true
+    })
+    .then(function() {
+        console.log('✅ تم تفعيل التخزين المؤقت');
+    })
+    .catch(function(err) {
+        console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
+        // إذا فشل، نستمر بدون persistence
+        console.log('📌 نستمر بدون تخزين مؤقت');
+    });
+    
+    // إعدادات إضافية للاتصال
+    window.db.settings({
+        merge: true
+    });
 }
+
+// مراقبة حالة الاتصال
+if (window.db) {
+    window.db.collection('_').doc('_').onSnapshot(function() {
+        // مجرد مراقبة الاتصال
+    }, function(error) {
+        console.warn('⚠️ مشكلة في الاتصال:', error);
+    });
+}
+
+// دالة للتحقق من الاتصال
+window.checkConnection = function() {
+    return new Promise(function(resolve) {
+        if (!window.db) {
+            resolve(false);
+            return;
+        }
+        window.db.collection('_').doc('_').get()
+            .then(function() {
+                resolve(true);
+            })
+            .catch(function() {
+                resolve(false);
+            });
+    });
+};
+
+console.log('✅ تم تحميل firebase-init.js');
