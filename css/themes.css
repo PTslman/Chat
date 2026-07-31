@@ -1,1 +1,89 @@
+/* Theme System */
+[data-theme="dark"] {
+    --bg-primary: #0B141A;
+    --bg-secondary: #1A2D3A;
+    --bg-chat: #0E1A24;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A8B3BF;
+    --border-color: #2A3942;
+    --message-sent: #005C4B;
+    --message-received: #1F2C33;
+}
 
+[data-theme="light"] {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F0F2F5;
+    --bg-chat: #E8EDF1;
+    --text-primary: #000000;
+    --text-secondary: #54656F;
+    --border-color: #D1D7DB;
+    --message-sent: #D9FDD3;
+    --message-received: #FFFFFF;
+}
+
+[data-theme="purple"] {
+    --bg-primary: #1A0A2E;
+    --bg-secondary: #2D1B4E;
+    --bg-chat: #23123A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #B39DDB;
+    --border-color: #3D2A5E;
+    --message-sent: #4A2A7A;
+    --message-received: #2D1B4E;
+}
+
+[data-theme="forest"] {
+    --bg-primary: #0A1F0A;
+    --bg-secondary: #1A3A1A;
+    --bg-chat: #0E2A0E;
+    --text-primary: #FFFFFF;
+    --text-secondary: #8BC34A;
+    --border-color: #2A4A2A;
+    --message-sent: #1A4A1A;
+    --message-received: #1A3A1A;
+}
+
+[data-theme="pink"] {
+    --bg-primary: #1A0A1A;
+    --bg-secondary: #3A1A2A;
+    --bg-chat: #2A0E1E;
+    --text-primary: #FFFFFF;
+    --text-secondary: #F48FB1;
+    --border-color: #4A2A3A;
+    --message-sent: #4A1A3A;
+    --message-received: #3A1A2A;
+}
+
+[data-theme="ocean"] {
+    --bg-primary: #0A1A2A;
+    --bg-secondary: #1A2A4A;
+    --bg-chat: #0E1E3A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #64B5F6;
+    --border-color: #2A3A5A;
+    --message-sent: #1A3A6A;
+    --message-received: #1A2A4A;
+}
+
+/* Theme toggle animation */
+.theme-transition {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Custom scrollbar per theme */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
