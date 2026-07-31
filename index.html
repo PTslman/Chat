@@ -1,493 +1,1578 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NeZak Chat - دردشة الأصدقاء</title>
+    <title>نيزك - دردشة الأصدقاء</title>
     <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 </head>
 <body>
-    <div class="app-container">
-        <!-- شريط الحالة العلوي -->
-        <div class="status-bar">
-            <span class="status-time" id="currentTime"></span>
-            <span class="status-icons">📶 🔋</span>
-        </div>
 
-        <!-- رأس الدردشة -->
-        <div class="chat-header" id="chatHeader">
-            <div class="header-left">
-                <button onclick="toggleSidebar()" class="menu-btn">☰</button>
-                <div>
-                    <h3 id="chatTitle">💬 NeZak Chat</h3>
-                    <span class="header-status" id="onlineStatus">🟢 متصل</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <button onclick="logout()" class="logout-btn" title="تسجيل الخروج">🚪</button>
-            </div>
-        </div>
-
-        <!-- الشريط الجانبي (للمسؤول) -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <span style="font-size: 24px;">🛡️</span>
-                <h4>لوحة المسؤول</h4>
-                <button onclick="toggleSidebar()" class="close-sidebar">✕</button>
-            </div>
-            
-            <div class="sidebar-content">
-                <!-- إحصائيات -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-icon">📨</span>
-                        <span class="stat-number" id="totalMessages">0</span>
-                        <span class="stat-label">رسائل</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">👥</span>
-                        <span class="stat-number" id="totalUsers">0</span>
-                        <span class="stat-label">مستخدمين</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">🟢</span>
-                        <span class="stat-number" id="onlineUsers">0</span>
-                        <span class="stat-label">متصلين</span>
-                    </div>
-                </div>
-
-                <!-- قائمة المستخدمين -->
-                <div class="users-section">
-                    <h5>👥 المستخدمين النشطين</h5>
-                    <div id="usersList" class="users-list">
-                        <div class="user-item">
-                            <span class="user-status online">🟢</span>
-                            <span class="username">جاري التحميل...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- أدوات المسؤول -->
-                <div class="admin-tools">
-                    <h5>🛠️ أدوات المسؤول</h5>
-                    <button onclick="clearAllMessages()" class="admin-action danger">🧹 حذف الكل</button>
-                    <button onclick="exportChat()" class="admin-action primary">📥 تصدير المحادثة</button>
-                    <button onclick="kickUser()" class="admin-action warning">🚫 طرد مستخدم</button>
-                    <button onclick="muteUser()" class="admin-action warning">🔇 كتم مستخدم</button>
-                    <button onclick="clearAllChat()" class="admin-action danger">🗑️ مسح المحادثة</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- منطقة الرسائل (مقاربة للواتساب) -->
-        <div class="messages-area" id="messagesArea">
-            <div class="chat-placeholder">
-                <span class="placeholder-icon">💬</span>
-                <p>مرحباً بك في NeZak Chat</p>
-                <span class="placeholder-sub">ابدأ المحادثة الآن</span>
-            </div>
-        </div>
-        
-        <!-- منطقة الإدخال (مقاربة للواتساب) -->
-        <div class="input-area">
-            <button class="emoji-btn" onclick="toggleEmoji()">😊</button>
-            <input type="text" id="messageInput" placeholder="اكتب رسالة..." maxlength="500">
-            <button onclick="sendMessage()" class="send-btn">📤</button>
+    <!-- شاشة التحميل -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text">جاري التحميل...</div>
         </div>
     </div>
 
-    <!-- Overlay للشريط الجانبي -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div id="app">
 
-    <script type="module">
-        // ========================================
-        // استيراد Firebase
-        // ========================================
-        import { database, ref, push, onChildAdded, set, remove, update, get, child, query, orderByChild, limitToLast, onValue } from './scripts/firebase-config.js';
-        
-        // ========================================
-        // متغيرات الجلسة
-        // ========================================
-        const username = localStorage.getItem('chatUsername') || 'زائر';
-        const userRole = localStorage.getItem('userRole') || 'user';
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
-        const adminCode = localStorage.getItem('adminCode');
-        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        <!-- ========== تسجيل الدخول ========== -->
+        <div class="login-overlay" id="loginOverlay">
+            <div class="login-box">
+                <div class="login-logo">💬</div>
+                <h1>نيزك <span class="hl">دردشة</span></h1>
+                <p class="login-sub">آمنة • سريعة • خاصة</p>
+                
+                <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
 
-        // ========================================
-        // عناصر DOM
-        // ========================================
-        const messagesArea = document.getElementById('messagesArea');
-        const messageInput = document.getElementById('messageInput');
-        const chatHeader = document.getElementById('chatHeader');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const chatTitle = document.getElementById('chatTitle');
+                <div class="login-avatar-section">
+                    <div class="login-avatar-preview" id="loginAvatarPreview">
+                        <span class="avatar-placeholder" id="loginAvatarPlaceholder">👤</span>
+                    </div>
+                    <button class="login-avatar-btn" id="loginAvatarBtn">
+                        <span class="material-symbols-outlined" style="font-size:16px;">photo_camera</span>
+                        اختر صورة
+                    </button>
+                    <input type="file" id="loginAvatarInput" class="file-input-hidden" accept="image/*">
+                </div>
 
-        // ========================================
-        // تهيئة واجهة المسؤول
-        // ========================================
-        if (isAdmin && adminCode === 'slx23m') {
-            chatHeader.style.background = 'linear-gradient(135deg, #075e54 0%, #128c7e 100%)';
-            chatTitle.innerHTML = '🛡️ NeZak Chat (مدير)';
-            document.querySelector('.status-bar').style.background = '#075e54';
-            
-            // إظهار الشريط الجانبي للمسؤول
-            document.querySelector('.menu-btn').style.display = 'block';
-        } else {
-            document.querySelector('.menu-btn').style.display = 'none';
-        }
+                <div class="color-options" id="colorPicker">
+                    <div class="color-circle selected" style="background:#2b6ef0;" data-color="#2b6ef0"></div>
+                    <div class="color-circle" style="background:#ed4245;" data-color="#ed4245"></div>
+                    <div class="color-circle" style="background:#faa81a;" data-color="#faa81a"></div>
+                    <div class="color-circle" style="background:#23a55a;" data-color="#23a55a"></div>
+                    <div class="color-circle" style="background:#a78bfa;" data-color="#a78bfa"></div>
+                    <div class="color-circle" style="background:#f472b6;" data-color="#f472b6"></div>
+                    <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
+                    <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
+                </div>
 
-        // ========================================
-        // دالة تبديل الشريط الجانبي
-        // ========================================
-        window.toggleSidebar = function() {
-            if (!isAdmin) return;
-            sidebar.classList.toggle('active');
-            sidebarOverlay.classList.toggle('active');
-        };
+                <button class="login-btn" id="loginBtn"><span class="material-symbols-outlined">login</span> دخول</button>
+                <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
+                <div class="info-msg" id="infoMsg"></div>
+                <div style="margin-top:10px;font-size:11px;color:var(--text-muted);opacity:0.35;">
+                    🔒 حفظ الجلسة على هذا الجهاز
+                </div>
+            </div>
+        </div>
 
-        // ========================================
-        // عرض الوقت الحالي
-        // ========================================
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('currentTime').textContent = 
-                now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-        }
-        updateTime();
-        setInterval(updateTime, 30000);
+        <!-- ========== الدردشة ========== -->
+        <div class="chat-container" id="chatContainer" style="display:none;">
 
-        // ========================================
-        // تحميل الرسائل (مقارب للواتساب)
-        // ========================================
-        const messagesRef = ref(database, 'messages');
-        let messagesList = [];
-        let messageCount = 0;
-
-        // تحميل آخر 50 رسالة
-        const recentMessagesQuery = query(messagesRef, orderByChild('timestamp'), limitToLast(50));
-        
-        onChildAdded(messagesRef, (snapshot) => {
-            const data = snapshot.val();
-            const messageId = snapshot.key;
-            
-            messagesList.push({ id: messageId, ...data });
-            messageCount++;
-            
-            // تحديث عدد الرسائل
-            document.getElementById('totalMessages').textContent = messageCount;
-            
-            // عرض الرسالة
-            displayMessage(messageId, data);
-        });
-
-        // ========================================
-        // دالة عرض الرسالة (مقاربة للواتساب)
-        // ========================================
-        function displayMessage(messageId, data) {
-            const messageDiv = document.createElement('div');
-            const isOwn = data.sender === username || (isAdmin && data.sender === 'المسؤول');
-            messageDiv.className = `message-wrapper ${isOwn ? 'sent' : 'received'}`;
-            messageDiv.dataset.messageId = messageId;
-            messageDiv.dataset.sender = data.sender;
-            
-            const isAdminSender = data.isAdmin || false;
-            const senderDisplay = isAdminSender ? `🛡️ ${data.sender}` : data.sender;
-            
-            // تنسيق الوقت
-            const time = new Date(data.timestamp);
-            const timeStr = time.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-            
-            messageDiv.innerHTML = `
-                <div class="message-bubble">
-                    <div class="message-sender">${senderDisplay}</div>
-                    <div class="message-text">${escapeHtml(data.text)}</div>
-                    <div class="message-time">
-                        ${timeStr}
-                        ${isOwn ? ' ✅' : ''}
-                        ${data.edited ? ' ✏️' : ''}
+            <div class="chat-header">
+                <div class="status-bar">
+                    <span id="statusTime">12:00</span>
+                    <span class="version">v2.3</span>
+                </div>
+                <div class="header-left">
+                    <div class="header-avatar" id="headerAvatar" title="الملف الشخصي">
+                        <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
+                    </div>
+                    <div class="brand">
+                        <span class="brand-text" id="headerUsername">المستخدم</span>
+                        <span class="admin-badge" id="adminBadge">👑 مسؤول</span>
                     </div>
                 </div>
-                ${isAdmin ? `
-                    <div class="message-actions">
-                        <button onclick="editMessage('${messageId}')" class="action-btn edit" title="تعديل">✏️</button>
-                        <button onclick="deleteMessage('${messageId}')" class="action-btn delete" title="حذف">🗑️</button>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggle" title="تبديل الثيم">
+                        <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
+                    </button>
+                    <button class="rules-btn" id="rulesBtn" title="القوانين"><span class="material-symbols-outlined">gavel</span></button>
+                    <button class="admin-btn hidden" id="adminBtn" title="لوحة المسؤول"><span class="material-symbols-outlined">shield_person</span></button>
+                    <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج"><span class="material-symbols-outlined">logout</span></button>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="messages">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon"><span class="material-symbols-outlined">chat</span></div>
+                    <div class="empty-title">لا توجد رسائل</div>
+                    <div class="empty-sub">كن أول من يكتب ✨</div>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span><span></span><span></span>
+            </div>
+
+            <div class="muted-notice" id="mutedNotice">⛔ أنت ممنوع من الكتابة مؤقتاً</div>
+
+            <div class="emoji-rail" id="emojiRail">
+                <button class="emoji-item">😊</button><button class="emoji-item">😂</button>
+                <button class="emoji-item">❤️</button><button class="emoji-item">🔥</button>
+                <button class="emoji-item">👍</button><button class="emoji-item">👏</button>
+                <button class="emoji-item">😍</button><button class="emoji-item">🤩</button>
+                <button class="emoji-item">💯</button><button class="emoji-item">🎉</button>
+                <button class="emoji-item">✨</button><button class="emoji-item">💪</button>
+                <button class="emoji-item">🤔</button><button class="emoji-item">😎</button>
+                <button class="emoji-item">🥰</button><button class="emoji-item">😭</button>
+                <button class="emoji-item">🤣</button><button class="emoji-item">😱</button>
+                <button class="emoji-item">🙏</button><button class="emoji-item">💀</button>
+                <button class="emoji-item">🫡</button><button class="emoji-item">👀</button>
+                <button class="emoji-item">🤝</button><button class="emoji-item">🫶</button>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <button class="emoji-toggle" id="emojiToggle"><span class="material-symbols-outlined">mood</span></button>
+                        <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
                     </div>
-                ` : ''}
-            `;
-            
-            // إزالة placeholder
-            const placeholder = messagesArea.querySelector('.chat-placeholder');
-            if (placeholder) placeholder.remove();
-            
-            messagesArea.appendChild(messageDiv);
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-        }
+                    <button class="send-btn" id="sendBtn" disabled><span class="material-symbols-outlined">send</span></button>
+                </div>
+            </div>
 
-        // ========================================
-        // دالة تنسيق النص
-        // ========================================
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+            <div class="app-footer show" id="appFooter">
+                نيزك v2.3 • جميع الحقوق محفوظة
+            </div>
+        </div>
 
-        // ========================================
-        // دالة إرسال رسالة
-        // ========================================
-        window.sendMessage = function() {
-            const text = messageInput.value.trim();
-            
-            if (!text) return;
-            
-            push(messagesRef, {
-                sender: username,
-                text: text,
-                timestamp: Date.now(),
-                isAdmin: isAdmin && adminCode === 'slx23m',
-                userRole: userRole,
-                edited: false
-            });
-            
-            messageInput.value = '';
-            messageInput.focus();
-        };
+        <!-- ========== الملف الشخصي ========== -->
+        <div class="modal-overlay profile-modal" id="profileModal">
+            <div class="modal-box">
+                <div class="modal-title">
+                    <span class="material-symbols-outlined" style="color:var(--accent);">account_circle</span>
+                    الملف الشخصي
+                </div>
+                <p class="modal-desc">تعديل اسمك وصورتك الشخصية</p>
 
-        // ========================================
-        // دوال المسؤول
-        // ========================================
-        
-        // حذف رسالة
-        window.deleteMessage = function(messageId) {
-            if (!isAdmin) return;
-            if (confirm('هل تريد حذف هذه الرسالة؟')) {
-                const messageRef = ref(database, `messages/${messageId}`);
-                remove(messageRef);
-                const msgElement = document.querySelector(`[data-message-id="${messageId}"]`);
-                if (msgElement) msgElement.remove();
-                messageCount--;
-                document.getElementById('totalMessages').textContent = messageCount;
-            }
-        };
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-preview" id="profileAvatarPreview">
+                        <span class="avatar-placeholder" id="profileAvatarPlaceholder">👤</span>
+                    </div>
+                    <button class="profile-avatar-btn" id="profileAvatarBtn">
+                        <span class="material-symbols-outlined" style="font-size:16px;">photo_camera</span>
+                        تغيير الصورة
+                    </button>
+                    <input type="file" id="profileAvatarInput" class="file-input-hidden" accept="image/*">
+                </div>
 
-        // تعديل رسالة
-        window.editMessage = function(messageId) {
-            if (!isAdmin) return;
-            
-            const msgData = messagesList.find(msg => msg.id === messageId);
-            if (!msgData) return;
-            
-            const newText = prompt('تعديل الرسالة:', msgData.text);
-            if (newText && newText.trim() !== '') {
-                const messageRef = ref(database, `messages/${messageId}`);
-                update(messageRef, {
-                    text: newText.trim(),
-                    edited: true,
-                    editedAt: Date.now()
-                });
-            }
-        };
+                <input type="text" class="profile-name-input" id="profileNameInput" placeholder="اسم المستخدم..." maxlength="20">
 
-        // حذف جميع الرسائل
-        window.clearAllMessages = function() {
-            if (!isAdmin) return;
-            if (confirm('⚠️ حذف جميع الرسائل؟')) {
-                const password = prompt('أدخل كلمة المرور للتأكيد:');
-                if (password === '1442') {
-                    set(messagesRef, null);
-                    messagesList = [];
-                    messageCount = 0;
-                    document.getElementById('totalMessages').textContent = '0';
-                    messagesArea.innerHTML = `
-                        <div class="chat-placeholder">
-                            <span class="placeholder-icon">🗑️</span>
-                            <p>تم حذف جميع الرسائل</p>
+                <button class="profile-save-btn" id="profileSaveBtn">
+                    <span class="material-symbols-outlined">save</span> حفظ التغييرات
+                </button>
+
+                <button class="close-modal" id="closeProfileModal">
+                    <span class="material-symbols-outlined">close</span> إغلاق
+                </button>
+            </div>
+        </div>
+
+        <!-- ========== القوانين ========== -->
+        <div class="modal-overlay" id="rulesModal">
+            <div class="modal-box">
+                <div class="modal-title"><span class="material-symbols-outlined">gavel</span> قوانين الغروب</div>
+                <p class="modal-desc">اقرأ القوانين جيداً قبل المشاركة</p>
+                <div class="modal-rules">
+                    <div class="rule-item"><span class="num">1</span> احترام جميع الأعضاء</div>
+                    <div class="rule-item"><span class="num">2</span> لا للسب أو الشتم</div>
+                    <div class="rule-item"><span class="num">3</span> لا للمضايقات أو التحرش</div>
+                    <div class="rule-item"><span class="num">4</span> لا للمحتوى غير اللائق</div>
+                    <div class="rule-item"><span class="num">5</span> الالتزام بالموضوعية</div>
+                    <div class="rule-item"><span class="num">6</span> لا للإعلانات دون إذن</div>
+                    <div class="rule-item"><span class="num">7</span> احترام قرارات المسؤول</div>
+                </div>
+                <button class="close-modal" id="closeRulesModal"><span class="material-symbols-outlined">check</span> تم القراءة</button>
+            </div>
+        </div>
+
+        <!-- ========== لوحة المسؤول ========== -->
+        <div class="modal-overlay" id="adminModal">
+            <div class="modal-box">
+                <div class="modal-title"><span class="material-symbols-outlined">shield_person</span> لوحة المسؤول</div>
+                <p class="modal-desc">أدخل كلمة المرور للوصول إلى لوحة التحكم</p>
+
+                <div class="admin-password-box" id="adminPasswordBox">
+                    <input type="password" id="adminPasswordInput" placeholder="كلمة المرور..." maxlength="20">
+                    <div class="error-msg" id="adminPasswordError">❌ كلمة المرور غير صحيحة</div>
+                    <button class="login-btn" id="adminPasswordBtn" style="margin-bottom:10px;">
+                        <span class="material-symbols-outlined">lock_open</span> تأكيد
+                    </button>
+                </div>
+
+                <div class="admin-panel" id="adminPanel" style="display:none;">
+                    <div class="admin-title">
+                        <span class="title-left"><span class="material-symbols-outlined" style="font-size:16px;">people</span> المستخدمون</span>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <button class="clear-chat-btn" id="clearChatBtn" title="حذف جميع الرسائل">
+                                <span class="material-symbols-outlined">delete_sweep</span> حذف
+                            </button>
+                            <button class="force-logout-btn" id="forceLogoutBtn" title="تسجيل خروج جميع المستخدمين">
+                                <span class="material-symbols-outlined">logout</span> خروج
+                            </button>
                         </div>
-                    `;
-                    showToast('✅ تم حذف جميع الرسائل');
-                }
-            }
-        };
-
-        // تصدير المحادثة
-        window.exportChat = function() {
-            if (!isAdmin) return;
-            
-            let chatText = '📝 محادثة NeZak Chat\n';
-            chatText += `📅 ${new Date().toLocaleString()}\n`;
-            chatText += '='.repeat(50) + '\n\n';
-            
-            messagesList.forEach(msg => {
-                const sender = msg.isAdmin ? `🛡️ ${msg.sender}` : msg.sender;
-                const time = new Date(msg.timestamp).toLocaleTimeString();
-                chatText += `[${time}] ${sender}: ${msg.text}\n`;
-                if (msg.edited) chatText += `  (تم التعديل)\n`;
-            });
-            
-            const blob = new Blob([chatText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `chat-${new Date().toISOString().slice(0,10)}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('📥 تم تصدير المحادثة');
-        };
-
-        // طرد مستخدم
-        window.kickUser = function() {
-            if (!isAdmin) return;
-            const user = prompt('أدخل اسم المستخدم للطرد:');
-            if (user) {
-                showToast(`🚫 تم طرد المستخدم: ${user}`);
-                // يمكن إضافة منطق الطرد هنا
-            }
-        };
-
-        // كتم مستخدم
-        window.muteUser = function() {
-            if (!isAdmin) return;
-            const user = prompt('أدخل اسم المستخدم للكتم:');
-            if (user) {
-                showToast(`🔇 تم كتم المستخدم: ${user}`);
-                // يمكن إضافة منطق الكتم هنا
-            }
-        };
-
-        // مسح المحادثة
-        window.clearAllChat = function() {
-            if (!isAdmin) return;
-            if (confirm('⚠️ مسح جميع الرسائل؟')) {
-                set(messagesRef, null);
-                messagesList = [];
-                messageCount = 0;
-                document.getElementById('totalMessages').textContent = '0';
-                messagesArea.innerHTML = `
-                    <div class="chat-placeholder">
-                        <span class="placeholder-icon">🧹</span>
-                        <p>تم مسح المحادثة</p>
                     </div>
-                `;
-                showToast('🧹 تم مسح المحادثة');
+                    <div class="admin-users" id="adminUsersList">
+                        <div style="color:var(--text-muted);font-size:12px;">جاري التحميل...</div>
+                    </div>
+
+                    <div class="theme-settings">
+                        <div class="theme-title"><span class="material-symbols-outlined" style="font-size:16px;">palette</span> تخصيص الثيم</div>
+                        <div class="theme-options" id="themeOptions">
+                            <button class="theme-btn active" data-theme="dark"><span class="material-symbols-outlined">dark_mode</span> داكن</button>
+                            <button class="theme-btn" data-theme="light"><span class="material-symbols-outlined">light_mode</span> نهاري</button>
+                            <button class="theme-btn" data-theme="admin-dark"><span class="material-symbols-outlined">gradient</span> بنفسجي</button>
+                            <button class="theme-btn" data-theme="admin-forest"><span class="material-symbols-outlined">grass</span> غابة</button>
+                            <button class="theme-btn" data-theme="admin-rose"><span class="material-symbols-outlined">flower</span> وردي</button>
+                        </div>
+                    </div>
+
+                    <div class="badwords-section">
+                        <div class="badwords-title"><span class="material-symbols-outlined" style="font-size:16px;">block</span> الكلمات المحظورة</div>
+                        <div class="badwords-input-row">
+                            <input type="text" id="badwordInput" placeholder="أدخل كلمة ممنوعة..." maxlength="30">
+                            <button id="addBadwordBtn"><span class="material-symbols-outlined" style="font-size:16px;">add</span> إضافة</button>
+                        </div>
+                        <div class="badwords-list" id="badwordsList">
+                            <span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="close-modal" id="closeAdminModal"><span class="material-symbols-outlined">close</span> إغلاق</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // ============================================================
+        // استيراد Firebase (باستخدام الإعدادات الخاصة بك)
+        // ============================================================
+        import { database, ref, push, onChildAdded, set, remove, update, get, child, query, orderByChild, limitToLast, onValue } from './scripts/firebase-config.js';
+
+        // ============================================================
+        // 👑 ADMIN CONFIG
+        // ============================================================
+        const ADMIN_NAME = "slx23m";
+        const ADMIN_PASSWORD = "1442";
+        const VERSION = "v2.3";
+
+        // ============================================================
+        // 🚫 DEFAULT BAD WORDS
+        // ============================================================
+        const DEFAULT_BAD_WORDS = [
+            'كس', 'قحب', 'عاهر', 'زاني', 'زنا', 'خنا', 'لوط',
+            'منيوك', 'شرموط', 'قحبة', 'عاهرة', 'زانية', 'خنيث',
+            'مخنث', 'لاطي', 'لوطي', 'شاذ', 'منيوكة', 'شرموطة',
+            'مومس', 'داعر', 'داعرة', 'فاجر', 'فاجرة'
+        ];
+
+        // ============================================================
+        // 📦 STATE
+        // ============================================================
+        let currentUser = '',
+            userColor = '#2b6ef0',
+            isLoggedIn = false,
+            isAdmin = false,
+            isAdminVerified = false,
+            replyTo = null,
+            editingMessage = null,
+            unsubscribe = null,
+            blockedUsers = [],
+            badWords = [],
+            userIP = '',
+            lastSender = '',
+            isMuted = false,
+            muteTimeout = null,
+            muteCount = 0,
+            currentTheme = 'dark',
+            userAvatarURL = '',
+            userAvatarFile = null,
+            tempAvatarFile = null;
+
+        // ============================================================
+        // 📄 DOM REFERENCES
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const loginOverlay = $('loginOverlay'),
+            chatContainer = $('chatContainer'),
+            usernameInput = $('usernameInput'),
+            loginBtn = $('loginBtn'),
+            loginError = $('loginError'),
+            infoMsg = $('infoMsg');
+        const messagesDiv = $('messages'),
+            msgInput = $('msgInput'),
+            sendBtn = $('sendBtn'),
+            emptyState = $('emptyState');
+        const logoutBtn = $('logoutBtn'),
+            adminBtn = $('adminBtn'),
+            adminBadge = $('adminBadge'),
+            adminModal = $('adminModal'),
+            adminPanel = $('adminPanel'),
+            adminPasswordBox = $('adminPasswordBox'),
+            adminPasswordInput = $('adminPasswordInput'),
+            adminPasswordBtn = $('adminPasswordBtn'),
+            adminPasswordError = $('adminPasswordError'),
+            adminUsersList = $('adminUsersList'),
+            closeAdminModal = $('closeAdminModal'),
+            forceLogoutBtn = $('forceLogoutBtn'),
+            clearChatBtn = $('clearChatBtn');
+        const rulesBtn = $('rulesBtn'),
+            rulesModal = $('rulesModal'),
+            closeRulesModal = $('closeRulesModal');
+        const emojiToggle = $('emojiToggle'),
+            emojiRail = $('emojiRail'),
+            typingIndicator = $('typingIndicator'),
+            loadingOverlay = $('loadingOverlay'),
+            mutedNotice = $('mutedNotice');
+        const badwordInput = $('badwordInput'),
+            addBadwordBtn = $('addBadwordBtn'),
+            badwordsList = $('badwordsList');
+        const themeToggle = $('themeToggle'),
+            themeIcon = $('themeIcon'),
+            themeOptions = $('themeOptions');
+
+        const headerAvatar = $('headerAvatar');
+        const headerAvatarPlaceholder = $('headerAvatarPlaceholder');
+        const headerUsername = $('headerUsername');
+        const profileModal = $('profileModal');
+        const closeProfileModal = $('closeProfileModal');
+        const profileAvatarPreview = $('profileAvatarPreview');
+        const profileAvatarPlaceholder = $('profileAvatarPlaceholder');
+        const profileAvatarBtn = $('profileAvatarBtn');
+        const profileAvatarInput = $('profileAvatarInput');
+        const profileNameInput = $('profileNameInput');
+        const profileSaveBtn = $('profileSaveBtn');
+
+        const loginAvatarPreview = $('loginAvatarPreview');
+        const loginAvatarPlaceholder = $('loginAvatarPlaceholder');
+        const loginAvatarBtn = $('loginAvatarBtn');
+        const loginAvatarInput = $('loginAvatarInput');
+
+        // ============================================================
+        // 📸 AVATAR FUNCTIONS
+        // ============================================================
+        function getInitials(name) {
+            if (!name) return '👤';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+
+        function getAvatarColor(name) {
+            const colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6', '#60a5fa', '#34d399'];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
             }
-        };
+            return colors[Math.abs(hash) % colors.length];
+        }
 
-        // ========================================
-        // عرض المستخدمين النشطين
-        // ========================================
-        function loadUsers() {
-            const usersRef = ref(database, 'users');
-            onValue(usersRef, (snapshot) => {
-                const users = snapshot.val() || {};
-                const userList = document.getElementById('usersList');
-                userList.innerHTML = '';
+        function updateAvatarUI(element, placeholder, avatarURL, name) {
+            if (!element) return;
+            if (avatarURL && avatarURL.startsWith('http')) {
+                element.innerHTML = `<img src="${avatarURL}" alt="صورة شخصية">`;
+                if (placeholder) placeholder.textContent = '';
+            } else {
+                const initials = getInitials(name);
+                const color = getAvatarColor(name);
+                const fontSize = element === loginAvatarPreview ? '28px' :
+                    element === profileAvatarPreview ? '32px' : '16px';
+                element.innerHTML =
+                    `<span class="avatar-placeholder" style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${fontSize};font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">${initials}</span>`;
+                if (placeholder) placeholder.textContent = '';
+            }
+        }
+
+        function updateAllAvatars(avatarURL, name) {
+            updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarURL, name);
+            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarURL, name);
+            updateAvatarUI(loginAvatarPreview, loginAvatarPlaceholder, avatarURL, name);
+            if (headerUsername) headerUsername.textContent = name;
+        }
+
+        // ============================================================
+        // 📤 UPLOAD AVATAR TO FIREBASE (باستخدام Realtime Database)
+        // ============================================================
+        function uploadAvatar(file, username) {
+            return new Promise((resolve, reject) => {
+                if (!file) return resolve(null);
                 
-                let onlineCount = 0;
-                Object.keys(users).forEach(key => {
-                    const user = users[key];
-                    if (user.isOnline) onlineCount++;
-                    
-                    const userItem = document.createElement('div');
-                    userItem.className = 'user-item';
-                    userItem.innerHTML = `
-                        <span class="user-status ${user.isOnline ? 'online' : 'offline'}">${user.isOnline ? '🟢' : '⚪'}</span>
-                        <span class="username">${user.username}</span>
-                        ${user.isAdmin ? '<span class="admin-badge-small">🛡️</span>' : ''}
-                        ${user.isOnline ? '<span class="online-badge">●</span>' : ''}
-                    `;
-                    userList.appendChild(userItem);
+                // تخزين الصورة كـ base64 في Realtime Database
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    const avatarRef = ref(database, `avatars/${username}`);
+                    set(avatarRef, {
+                        data: base64,
+                        timestamp: Date.now()
+                    }).then(() => {
+                        resolve(base64);
+                    }).catch(reject);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function getAvatarFromDB(username) {
+            return new Promise((resolve) => {
+                const avatarRef = ref(database, `avatars/${username}`);
+                get(avatarRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        resolve(snapshot.val().data);
+                    } else {
+                        resolve(null);
+                    }
+                }).catch(() => resolve(null));
+            });
+        }
+
+        // ============================================================
+        // 👤 PROFILE FUNCTIONS
+        // ============================================================
+        function openProfileModal() {
+            if (!isLoggedIn) return;
+            profileNameInput.value = currentUser;
+            profileModal.classList.add('active');
+            updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, userAvatarURL, currentUser);
+        }
+
+        async function saveProfile() {
+            const newName = profileNameInput.value.trim();
+            if (!newName || newName.length < 2) {
+                alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                let newAvatarURL = userAvatarURL;
+
+                if (tempAvatarFile) {
+                    const url = await uploadAvatar(tempAvatarFile, currentUser);
+                    if (url) newAvatarURL = url;
+                    tempAvatarFile = null;
+                }
+
+                // تحديث اسم المستخدم في قاعدة البيانات
+                const userRef = ref(database, `users/${currentUser}`);
+                await set(userRef, {
+                    username: newName,
+                    avatar: newAvatarURL,
+                    color: userColor,
+                    isAdmin: isAdmin
                 });
-                
-                document.getElementById('totalUsers').textContent = Object.keys(users).length;
-                document.getElementById('onlineUsers').textContent = onlineCount;
-            });
+
+                // تحديث الرسائل القديمة
+                const messagesRef = ref(database, 'messages');
+                const snapshot = await get(messagesRef);
+                if (snapshot.exists()) {
+                    const messages = snapshot.val();
+                    const updates = {};
+                    Object.keys(messages).forEach(key => {
+                        if (messages[key].sender === currentUser) {
+                            updates[`${key}/sender`] = newName;
+                            if (newAvatarURL) updates[`${key}/avatar`] = newAvatarURL;
+                        }
+                    });
+                    if (Object.keys(updates).length > 0) {
+                        await update(ref(database, 'messages'), updates);
+                    }
+                }
+
+                currentUser = newName;
+                userAvatarURL = newAvatarURL;
+                updateAllAvatars(newAvatarURL, newName);
+
+                addSystemMessage(`✅ تم تحديث الملف الشخصي لـ ${newName}`, 'success');
+                profileModal.classList.remove('active');
+
+            } catch (error) {
+                console.error('❌ خطأ في حفظ الملف الشخصي:', error);
+                alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي');
+            }
+
+            showLoading(false);
         }
 
-        // ========================================
-        // تحديث حالة المستخدم
-        // ========================================
-        function updateUserStatus() {
-            const userRef = ref(database, `users/${username}`);
-            set(userRef, {
-                username: username,
-                isAdmin: isAdmin,
-                isOnline: true,
-                lastSeen: Date.now(),
-                userData: userData
+        // ============================================================
+        // 🌓 THEME SYSTEM
+        // ============================================================
+        function applyTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+
+            if (theme === 'light') {
+                themeIcon.textContent = 'light_mode';
+            } else {
+                themeIcon.textContent = 'dark_mode';
+            }
+
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
             });
-            
-            // تحديث عند الخروج
-            window.addEventListener('beforeunload', () => {
-                set(userRef, {
-                    username: username,
-                    isAdmin: isAdmin,
-                    isOnline: false,
-                    lastSeen: Date.now()
-                });
-            });
+
+            try {
+                localStorage.setItem('chat_theme', theme);
+            } catch (e) {}
         }
 
-        // ========================================
-        // دالة Toast (إشعارات)
-        // ========================================
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast-notification ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+        function toggleTheme() {
+            if (currentTheme === 'dark') {
+                applyTheme('light');
+            } else if (currentTheme === 'light') {
+                applyTheme('dark');
+            } else {
+                applyTheme('dark');
+            }
         }
 
-        // ========================================
-        // دعم Enter
-        // ========================================
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                window.sendMessage();
+        function loadSavedTheme() {
+            try {
+                const saved = localStorage.getItem('chat_theme');
+                if (saved) {
+                    applyTheme(saved);
+                    return;
+                }
+            } catch (e) {}
+            applyTheme('dark');
+        }
+
+        // ============================================================
+        // 🔒 GENERATE HASHED IP
+        // ============================================================
+        function getHashedIP() {
+            const h = Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+            try { return btoa(h).substring(0, 20); } catch { return h.substring(0, 20); }
+        }
+
+        // ============================================================
+        // 🛠️ UTILITY
+        // ============================================================
+        function sanitizeInput(t) { return t.replace(/[<>]/g, '').trim(); }
+
+        function isEmojiOnly(t) {
+            return /^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2700}-\u{27BF}\s]+$/u
+                .test(t.trim());
+        }
+
+        function showLoading(s) { s ? loadingOverlay.classList.add('active') : loadingOverlay.classList.remove('active'); }
+
+        // ============================================================
+        // ⏰ CLOCK
+        // ============================================================
+        function updateClock() {
+            const n = new Date();
+            $('statusTime').textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2,
+                '0');
+        }
+        updateClock();
+        setInterval(updateClock, 30000);
+
+        // ============================================================
+        // 🎨 COLOR PICKER
+        // ============================================================
+        document.querySelectorAll('.color-circle').forEach(el => {
+            el.addEventListener('click', function() {
+                document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                userColor = this.dataset.color;
+            });
+        });
+
+        // ============================================================
+        // 😊 EMOJI
+        // ============================================================
+        emojiToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            emojiRail.classList.toggle('active');
+            emojiToggle.classList.toggle('active');
+        });
+        document.addEventListener('click', function(e) {
+            if (!emojiRail.contains(e.target) && e.target !== emojiToggle && !emojiToggle.contains(e.target)) {
+                emojiRail.classList.remove('active');
+                emojiToggle.classList.remove('active');
+            }
+        });
+        document.querySelectorAll('.emoji-item').forEach(el => {
+            el.addEventListener('click', function() {
+                msgInput.value += this.textContent;
+                msgInput.focus();
+                emojiRail.classList.remove('active');
+                emojiToggle.classList.remove('active');
+            });
+        });
+
+        // ============================================================
+        // 📸 AVATAR EVENTS - Login
+        // ============================================================
+        loginAvatarBtn.addEventListener('click', function() {
+            loginAvatarInput.click();
+        });
+
+        loginAvatarPreview.addEventListener('click', function() {
+            loginAvatarInput.click();
+        });
+
+        loginAvatarInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    loginAvatarPreview.innerHTML = `<img src="${ev.target.result}" alt="صورة شخصية">`;
+                    loginAvatarPlaceholder.textContent = '';
+                    tempAvatarFile = file;
+                };
+                reader.readAsDataURL(file);
             }
         });
 
-        // ========================================
-        // التحقق من تسجيل الدخول
-        // ========================================
-        if (!localStorage.getItem('chatUsername')) {
-            window.location.href = 'pages/login.html';
+        // ============================================================
+        // 📸 AVATAR EVENTS - Profile
+        // ============================================================
+        profileAvatarBtn.addEventListener('click', function() {
+            profileAvatarInput.click();
+        });
+
+        profileAvatarPreview.addEventListener('click', function() {
+            profileAvatarInput.click();
+        });
+
+        profileAvatarInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    profileAvatarPreview.innerHTML = `<img src="${ev.target.result}" alt="صورة شخصية">`;
+                    profileAvatarPlaceholder.textContent = '';
+                    tempAvatarFile = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ============================================================
+        // 👤 PROFILE EVENTS
+        // ============================================================
+        headerAvatar.addEventListener('click', function() {
+            if (isLoggedIn) openProfileModal();
+        });
+
+        closeProfileModal.addEventListener('click', function() {
+            profileModal.classList.remove('active');
+            tempAvatarFile = null;
+        });
+
+        profileModal.addEventListener('click', function(e) {
+            if (e.target === profileModal) {
+                profileModal.classList.remove('active');
+                tempAvatarFile = null;
+            }
+        });
+
+        profileSaveBtn.addEventListener('click', saveProfile);
+
+        profileNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') saveProfile();
+        });
+
+        // ============================================================
+        // 📋 MODALS
+        // ============================================================
+        rulesBtn.addEventListener('click', function() { rulesModal.classList.toggle('active'); });
+        closeRulesModal.addEventListener('click', function() { rulesModal.classList.remove('active'); });
+        rulesModal.addEventListener('click', function(e) { if (e.target === rulesModal) rulesModal.classList.remove(
+                'active'); });
+
+        adminBtn.addEventListener('click', function() {
+            isAdminVerified = false;
+            adminPanel.style.display = 'none';
+            adminPasswordBox.style.display = 'block';
+            adminPasswordInput.value = '';
+            adminPasswordError.classList.remove('show');
+            adminModal.classList.toggle('active');
+            if (adminModal.classList.contains('active')) adminPasswordInput.focus();
+        });
+
+        adminPasswordBtn.addEventListener('click', function() {
+            if (adminPasswordInput.value.trim() === ADMIN_PASSWORD) {
+                isAdminVerified = true;
+                adminPasswordBox.style.display = 'none';
+                adminPanel.style.display = 'block';
+                loadAdminUsers();
+                loadBadWords();
+            } else {
+                adminPasswordError.classList.add('show');
+                adminPasswordInput.value = '';
+                adminPasswordInput.focus();
+            }
+        });
+        adminPasswordInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') adminPasswordBtn.click(); });
+
+        closeAdminModal.addEventListener('click', function() {
+            adminModal.classList.remove('active');
+            isAdminVerified = false;
+            adminPanel.style.display = 'none';
+            adminPasswordBox.style.display = 'block';
+            adminPasswordInput.value = '';
+            adminPasswordError.classList.remove('show');
+        });
+        adminModal.addEventListener('click', function(e) {
+            if (e.target === adminModal) {
+                adminModal.classList.remove('active');
+                isAdminVerified = false;
+                adminPanel.style.display = 'none';
+                adminPasswordBox.style.display = 'block';
+                adminPasswordInput.value = '';
+                adminPasswordError.classList.remove('show');
+            }
+        });
+
+        // ============================================================
+        // 🚫 BAD WORDS
+        // ============================================================
+        function loadBadWords() {
+            const badwordsRef = ref(database, 'settings/badwords');
+            get(badwordsRef).then(function(snapshot) {
+                badWords = snapshot.exists() ? snapshot.val() : DEFAULT_BAD_WORDS;
+                if (!snapshot.exists()) saveBadWords();
+                renderBadWords();
+            }).catch(function() { badWords = DEFAULT_BAD_WORDS;
+                renderBadWords(); });
         }
 
-        // ========================================
-        // دالة تسجيل الخروج
-        // ========================================
-        window.logout = function() {
-            if (confirm('هل تريد تسجيل الخروج؟')) {
-                // تحديث حالة المستخدم
-                const userRef = ref(database, `users/${username}`);
-                set(userRef, {
-                    username: username,
-                    isAdmin: isAdmin,
-                    isOnline: false,
-                    lastSeen: Date.now()
-                });
-                
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'pages/login.html';
-            }
-        };
+        function saveBadWords() {
+            const badwordsRef = ref(database, 'settings/badwords');
+            set(badwordsRef, badWords);
+        }
 
-        // ========================================
-        // تهيئة التطبيق
-        // ========================================
-        updateUserStatus();
-        loadUsers();
-        
-        console.log(`✅ تم تسجيل الدخول كـ: ${username} (${isAdmin ? '🛡️ مسؤول' : '👤 مستخدم'})`);
+        function renderBadWords() {
+            if (!badwordsList) return;
+            if (!badWords.length) { badwordsList.innerHTML =
+                    '<span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>'; return; }
+            let h = '';
+            badWords.forEach(function(w) {
+                h +=
+                    `<span class="badword-tag">${w}<button class="remove-badword" data-word="${w}"><span class="material-symbols-outlined" style="font-size:12px;">close</span></button></span>`;
+            });
+            badwordsList.innerHTML = h;
+            document.querySelectorAll('.remove-badword').forEach(function(b) {
+                b.addEventListener('click', function() { removeBadWord(this.dataset.word); });
+            });
+        }
+
+        function addBadWord() {
+            const w = badwordInput.value.trim();
+            if (!w) return;
+            if (badWords.includes(w)) { alert('⚠️ هذه الكلمة موجودة بالفعل'); return; }
+            badWords.push(w);
+            saveBadWords();
+            renderBadWords();
+            badwordInput.value = '';
+            badwordInput.focus();
+        }
+
+        function removeBadWord(w) {
+            const i = badWords.indexOf(w);
+            if (i > -1) { badWords.splice(i, 1);
+                saveBadWords();
+                renderBadWords(); }
+        }
+        addBadwordBtn.addEventListener('click', addBadWord);
+        badwordInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') addBadWord(); });
+
+        // ============================================================
+        // 🔍 BAD WORD DETECTION
+        // ============================================================
+        function containsBadWord(t) {
+            const l = t.toLowerCase();
+            for (var i = 0; i < badWords.length; i++) { if (l.includes(badWords[i].toLowerCase())) return badWords[i]; }
+            return null;
+        }
+
+        function applyMute(sec) {
+            isMuted = true;
+            msgInput.disabled = true;
+            sendBtn.disabled = true;
+            mutedNotice.classList.add('active');
+            mutedNotice.textContent = '⛔ ممنوع من الكتابة لمدة ' + Math.ceil(sec / 60) + ' دقيقة';
+            if (muteTimeout) clearTimeout(muteTimeout);
+            muteTimeout = setTimeout(function() {
+                isMuted = false;
+                msgInput.disabled = false;
+                sendBtn.disabled = false;
+                mutedNotice.classList.remove('active');
+                msgInput.focus();
+            }, sec * 1000);
+        }
+
+        function handleBadWord(t, s) {
+            var f = containsBadWord(t);
+            if (f) {
+                muteCount++;
+                var d = muteCount * 60;
+                addSystemMessage('⚠️ تنبيه: @' + s + ' استخدم كلمة ممنوعة "' + f + '" (المخالفة رقم ' + muteCount + ')',
+                    'warning');
+                applyMute(d);
+                return true;
+            }
+            return false;
+        }
+
+        // ============================================================
+        // 💬 MESSAGE
+        // ============================================================
+        function createMessage(id, d, self) {
+            if (blockedUsers.includes(d.sender) && !self) return null;
+
+            var g = document.createElement('div');
+            var grouped = (d.sender === lastSender && lastSender !== '');
+            g.className = 'msg-group ' + (self ? 'self' : 'other') + (grouped ? ' grouped' : '');
+            g.dataset.id = id;
+            g.dataset.sender = d.sender;
+            lastSender = d.sender;
+
+            var avatar = document.createElement('div');
+            avatar.className = 'msg-avatar';
+            if (d.avatar && d.avatar.startsWith('http') || d.avatar && d.avatar.startsWith('data:image')) {
+                avatar.innerHTML = `<img src="${d.avatar}" alt="${d.sender}">`;
+            } else {
+                const initials = getInitials(d.sender);
+                const color = getAvatarColor(d.sender);
+                avatar.style.background = color;
+                avatar.textContent = initials;
+                avatar.style.display = 'flex';
+                avatar.style.alignItems = 'center';
+                avatar.style.justifyContent = 'center';
+                avatar.style.fontSize = '11px';
+                avatar.style.fontWeight = '600';
+                avatar.style.color = '#fff';
+            }
+
+            var content = document.createElement('div');
+            content.className = 'msg-content';
+
+            var sender = document.createElement('div');
+            sender.className = 'msg-sender';
+            sender.textContent = d.sender;
+            if (d.sender === ADMIN_NAME || d.isAdmin) {
+                var tag = document.createElement('span');
+                tag.className = 'admin-tag';
+                tag.textContent = '👑 مسؤول';
+                sender.appendChild(tag);
+            }
+
+            var b = document.createElement('div');
+            b.className = 'msg-bubble';
+
+            if (d.replyTo) {
+                var r = document.createElement('div');
+                r.className = 'reply-box';
+                r.innerHTML = '<span class="r-sender">@' + d.replyTo.sender + '</span> ' + d.replyTo.text.substring(0, 50) + (
+                    d.replyTo.text.length > 50 ? '...' : '');
+                b.appendChild(r);
+            }
+
+            var tx = document.createElement('div');
+            tx.className = 'msg-text';
+            if (d.deleted) {
+                tx.innerHTML = '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>';
+            } else {
+                if (isEmojiOnly(d.text)) tx.classList.add('emoji-big');
+                tx.textContent = d.text;
+                if (d.edited) { var ed = document.createElement('span');
+                    ed.className = 'edited-badge';
+                    ed.textContent = '(معدّل)';
+                    tx.appendChild(ed); }
+                if (d.warning) { var wb = document.createElement('span');
+                    wb.className = 'warning-badge';
+                    wb.textContent = '⚠️ كلمة ممنوعة';
+                    tx.appendChild(wb); }
+            }
+            b.appendChild(tx);
+
+            var tm = document.createElement('div');
+            tm.className = 'msg-time';
+            if (d.timestamp) {
+                var dt = new Date(d.timestamp);
+                tm.textContent = dt.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+                if (self && !d.deleted) tm.innerHTML +=
+                    ' <span class="read-status"><span class="material-symbols-outlined" style="font-size:10px;">done_all</span></span>';
+            }
+
+            var a = document.createElement('div');
+            a.className = 'msg-actions';
+            var ah =
+                '<button class="reply" title="رد"><span class="material-symbols-outlined">reply</span></button><button class="report" title="إبلاغ"><span class="material-symbols-outlined">flag</span></button>';
+            if (isAdmin && !d.deleted) ah +=
+                '<button class="delete" title="حذف نهائي"><span class="material-symbols-outlined">delete_forever</span></button>';
+            if (isAdmin && d.sender !== ADMIN_NAME) ah +=
+                '<button class="block" title="حظر"><span class="material-symbols-outlined">block</span></button>';
+            a.innerHTML = ah;
+
+            a.querySelector('.reply').addEventListener('click', function(e) { e.stopPropagation();
+                setReply(id, d.sender, d.text);
+                hideAllActions(); });
+            a.querySelector('.report').addEventListener('click', function(e) { e.stopPropagation();
+                reportMsg(id, d.sender);
+                hideAllActions(); });
+            var del = a.querySelector('.delete');
+            if (del) del.addEventListener('click', function(e) { e.stopPropagation();
+                deleteMsg(id);
+                hideAllActions(); });
+            var blk = a.querySelector('.block');
+            if (blk) blk.addEventListener('click', function(e) { e.stopPropagation();
+                blockUser(d.sender);
+                hideAllActions(); });
+
+            content.appendChild(sender);
+            content.appendChild(b);
+            content.appendChild(tm);
+            content.appendChild(a);
+
+            if (self) {
+                g.appendChild(content);
+                g.appendChild(avatar);
+            } else {
+                g.appendChild(avatar);
+                g.appendChild(content);
+            }
+
+            var timer = null,
+                pressed = false;
+            g.addEventListener('mousedown', function() { pressed = true;
+                timer = setTimeout(function() { if (pressed) { hideAllActions();
+                        a.classList.add('active'); } }, 500); });
+            g.addEventListener('mouseup', function() { pressed = false;
+                clearTimeout(timer); });
+            g.addEventListener('mouseleave', function() { pressed = false;
+                clearTimeout(timer); });
+            g.addEventListener('touchstart', function() { pressed = true;
+                timer = setTimeout(function() { if (pressed) { hideAllActions();
+                        a.classList.add('active'); } }, 500); }, { passive: true });
+            g.addEventListener('touchend', function() { pressed = false;
+                clearTimeout(timer); });
+            g.addEventListener('touchmove', function() { pressed = false;
+                clearTimeout(timer); });
+
+            return g;
+        }
+
+        function hideAllActions() { document.querySelectorAll('.msg-actions.active').forEach(function(e) { e.classList
+                    .remove('active'); }); }
+        document.addEventListener('click', hideAllActions);
+
+        // ============================================================
+        // 📨 ADD MESSAGE
+        // ============================================================
+        function addMessage(id, d, self) {
+            if (emptyState) emptyState.style.display = 'none';
+            var el = createMessage(id, d, self);
+            if (el) { messagesDiv.appendChild(el);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight; }
+        }
+
+        function addSystemMessage(t, type) {
+            type = type || '';
+            if (emptyState) emptyState.style.display = 'none';
+            var d = document.createElement('div');
+            d.className = 'system-msg' + (type ? ' ' + type : '');
+            d.innerHTML = t;
+            messagesDiv.appendChild(d);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showRules() {
+            addSystemMessage(
+                '<div class="rule-title">📜 قوانين الغروب</div><div class="rule-item">1. احترام جميع الأعضاء</div><div class="rule-item">2. لا للسب أو الشتم</div><div class="rule-item">3. لا للمضايقات أو التحرش</div><div class="rule-item">4. لا للمحتوى غير اللائق</div><div class="rule-item">5. الالتزام بالموضوعية</div><div class="rule-item">6. لا للإعلانات دون إذن</div><div class="rule-item">7. احترام قرارات المسؤول</div>',
+                'rules');
+        }
+
+        // ============================================================
+        // 📥 LOAD & LISTEN
+        // ============================================================
+        function loadMessages() {
+            if (emptyState) emptyState.style.display = 'flex';
+            lastSender = '';
+            const messagesRef = ref(database, 'messages');
+            const recentQuery = query(messagesRef, orderByChild('timestamp'), limitToLast(100));
+            
+            get(recentQuery).then(function(snapshot) {
+                if (emptyState) emptyState.style.display = 'none';
+                if (snapshot.exists()) {
+                    const messages = snapshot.val();
+                    const sortedKeys = Object.keys(messages).sort((a, b) => messages[a].timestamp - messages[b].timestamp);
+                    sortedKeys.forEach(function(key) {
+                        const dt = messages[key];
+                        if (blockedUsers.includes(dt.sender)) return;
+                        addMessage(key, dt, dt.sender === currentUser);
+                    });
+                }
+                if (!snapshot.exists() || snapshot.val() === null) {
+                    if (emptyState) emptyState.style.display = 'flex';
+                }
+                showRules();
+            });
+        }
+
+        function listenMessages() {
+            if (unsubscribe) unsubscribe();
+            lastSender = '';
+            const messagesRef = ref(database, 'messages');
+            const recentQuery = query(messagesRef, orderByChild('timestamp'), limitToLast(100));
+            
+            unsubscribe = onChildAdded(recentQuery, function(snapshot) {
+                const d = snapshot.val();
+                const id = snapshot.key;
+                if (blockedUsers.includes(d.sender)) return;
+                const ex = messagesDiv.querySelector('[data-id="' + id + '"]');
+                if (!ex) addMessage(id, d, d.sender === currentUser);
+                if (emptyState) emptyState.style.display = 'none';
+            });
+        }
+
+        // ============================================================
+        // 📤 SEND
+        // ============================================================
+        function sendMessage() {
+            var raw = msgInput.value.trim();
+            if (!raw || !isLoggedIn) return;
+            if (isMuted) { alert('⛔ أنت ممنوع من الكتابة حالياً'); return; }
+            var text = sanitizeInput(raw);
+            if (!text) return;
+            if (handleBadWord(text, currentUser)) { msgInput.value = ''; return; }
+            if (editingMessage) { updateMsg(editingMessage.id, text); return; }
+            sendBtn.disabled = true;
+            msgInput.disabled = true;
+            
+            const messagesRef = ref(database, 'messages');
+            var data = {
+                text: text,
+                sender: currentUser,
+                color: userColor,
+                timestamp: Date.now(),
+                avatar: userAvatarURL,
+                isAdmin: isAdmin
+            };
+            if (replyTo) { data.replyTo = { id: replyTo.id, sender: replyTo.sender, text: replyTo.text.substring(0,
+                        60) + (replyTo.text.length > 60 ? '...' : '') }; }
+            
+            push(messagesRef, data).then(function() { 
+                msgInput.value = '';
+                msgInput.focus();
+                clearReply();
+            }).catch(function() { alert('⚠️ فشل الإرسال'); }).finally(function() { 
+                sendBtn.disabled = false;
+                msgInput.disabled = false; 
+            });
+        }
+
+        // ============================================================
+        // ✏️ EDIT
+        // ============================================================
+        function startEdit(id, text) {
+            editingMessage = { id: id, text: text };
+            msgInput.value = text;
+            msgInput.focus();
+            sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
+            sendBtn.style.background = '#faa81a';
+        }
+
+        function updateMsg(id, newText) {
+            if (!editingMessage) return;
+            const messageRef = ref(database, `messages/${id}`);
+            update(messageRef, { text: newText, edited: true }).then(function() {
+                editingMessage = null;
+                sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+                sendBtn.style.background = '';
+                msgInput.value = '';
+            });
+        }
+
+        // ============================================================
+        // 🗑️ DELETE
+        // ============================================================
+        function deleteMsg(id) {
+            if (!isAdmin) return;
+            if (!confirm('🗑️ هل أنت متأكد من حذف هذه الرسالة نهائياً؟\nلا يمكن استعادتها بعد الحذف.')) return;
+            const messageRef = ref(database, `messages/${id}`);
+            remove(messageRef).then(function() {
+                addSystemMessage('🗑️ تم حذف رسالة نهائياً بواسطة المسؤول', 'success');
+            }).catch(function(err) {
+                console.error('❌ خطأ في الحذف:', err);
+                alert('⚠️ فشل حذف الرسالة');
+            });
+        }
+
+        // ============================================================
+        // 🗑️ CLEAR CHAT
+        // ============================================================
+        function clearChat() {
+            if (!isAdmin || !isAdminVerified) return;
+            if (!confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل نهائياً؟\nلا يمكن استعادتها بعد الحذف.')) return;
+            showLoading(true);
+            const messagesRef = ref(database, 'messages');
+            set(messagesRef, null).then(function() {
+                addSystemMessage('🗑️ تم حذف جميع الرسائل نهائياً بواسطة المسؤول', 'success');
+                messagesDiv.innerHTML =
+                    '<div class="empty-state" id="emptyState"><div class="empty-icon"><span class="material-symbols-outlined">chat</span></div><div class="empty-title">لا توجد رسائل</div><div class="empty-sub">تم حذف الدردشة بالكامل ✨</div></div>';
+                showLoading(false);
+            }).catch(function(err) {
+                console.error('❌ خطأ في حذف الدردشة:', err);
+                alert('⚠️ فشل حذف الدردشة');
+                showLoading(false);
+            });
+        }
+        clearChatBtn.addEventListener('click', clearChat);
+
+        // ============================================================
+        // 🚫 BLOCK
+        // ============================================================
+        function blockUser(username) {
+            if (!isAdmin || username === ADMIN_NAME) return;
+            if (!confirm('🚫 حظر @' + username + ' نهائياً؟')) return;
+            if (!blockedUsers.includes(username)) {
+                blockedUsers.push(username);
+                const blockedRef = ref(database, 'settings/blocked');
+                set(blockedRef, { users: blockedUsers }).then(function() {
+                    addSystemMessage('🚫 @' + username + ' تم حظره بواسطة المسؤول', 'warning');
+                    document.querySelectorAll('[data-sender="' + username + '"]').forEach(function(el) { el
+                        .remove(); });
+                    loadAdminUsers();
+                });
+            }
+        }
+
+        // ============================================================
+        // 🔓 UNBLOCK
+        // ============================================================
+        function unblockUser(username) {
+            if (!isAdmin) return;
+            if (!confirm('🔓 هل أنت متأكد من فك الحظر عن @' + username + '؟')) return;
+            var i = blockedUsers.indexOf(username);
+            if (i > -1) {
+                blockedUsers.splice(i, 1);
+                const blockedRef = ref(database, 'settings/blocked');
+                set(blockedRef, { users: blockedUsers }).then(function() {
+                    addSystemMessage('✅ @' + username + ' تم فك الحظر عنه بواسطة المسؤول', 'success');
+                    loadAdminUsers();
+                    loadMessages();
+                });
+            }
+        }
+
+        // ============================================================
+        // 🗑️ DELETE ACCOUNT
+        // ============================================================
+        function deleteUserAccount(username) {
+            if (!isAdmin || username === ADMIN_NAME) return;
+            if (!confirm('⚠️ هل أنت متأكد من حذف حساب @' + username + ' بالكامل؟\nسيتم حذف جميع رسائله وبياناته نهائياً.'))
+            return;
+            showLoading(true);
+            
+            const userRef = ref(database, `users/${username}`);
+            const messagesRef = ref(database, 'messages');
+            
+            remove(userRef).then(function() {
+                return get(messagesRef).then(function(snapshot) {
+                    if (snapshot.exists()) {
+                        const messages = snapshot.val();
+                        const updates = {};
+                        Object.keys(messages).forEach(key => {
+                            if (messages[key].sender === username) {
+                                updates[`${key}`] = null;
+                            }
+                        });
+                        if (Object.keys(updates).length > 0) {
+                            return update(messagesRef, updates);
+                        }
+                    }
+                    return Promise.resolve();
+                });
+            }).then(function() {
+                var i = blockedUsers.indexOf(username);
+                if (i > -1) { 
+                    blockedUsers.splice(i, 1); 
+                    const blockedRef = ref(database, 'settings/blocked');
+                    return set(blockedRef, { users: blockedUsers });
+                }
+                return Promise.resolve();
+            }).then(function() {
+                addSystemMessage('🗑️ تم حذف حساب @' + username + ' بالكامل نهائياً بواسطة المسؤول', 'success');
+                document.querySelectorAll('[data-sender="' + username + '"]').forEach(function(el) { el.remove(); });
+                loadAdminUsers();
+                showLoading(false);
+            }).catch(function() { alert('⚠️ حدث خطأ');
+                showLoading(false); });
+        }
+
+        // ============================================================
+        // 📋 LOAD BLOCKED
+        // ============================================================
+        function loadBlockedUsers() {
+            const blockedRef = ref(database, 'settings/blocked');
+            return get(blockedRef).then(function(snapshot) {
+                blockedUsers = snapshot.exists() ? snapshot.val().users || [] : [];
+                return blockedUsers;
+            }).catch(function() { blockedUsers = []; return blockedUsers; });
+        }
+
+        // ============================================================
+        // 📋 REPORT
+        // ============================================================
+        function reportMsg(id, sender) {
+            if (confirm('📋 الإبلاغ عن @' + sender + '؟')) {
+                const reportsRef = ref(database, 'reports');
+                push(reportsRef, {
+                    messageId: id,
+                    sender: sender,
+                    reportedBy: currentUser,
+                    reportedIP: userIP,
+                    timestamp: Date.now()
+                }).then(function() {
+                    addSystemMessage('📋 تم الإبلاغ عن @' + sender);
+                });
+            }
+        }
+
+        // ============================================================
+        // ↩️ REPLY
+        // ============================================================
+        function setReply(id, sender, text) {
+            replyTo = { id: id, sender: sender, text: text };
+            msgInput.placeholder = 'رد على @' + sender + '...';
+            msgInput.focus();
+        }
+
+        function clearReply() {
+            replyTo = null;
+            msgInput.placeholder = 'اكتب رسالة...';
+        }
+        msgInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (editingMessage) {
+                    editingMessage = null;
+                    sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+                    sendBtn.style.background = '';
+                    msgInput.value = '';
+                }
+                clearReply();
+            }
+        });
+
+        // ============================================================
+        // 👥 ADMIN USERS
+        // ============================================================
+        function loadAdminUsers() {
+            if (!isAdmin || !isAdminVerified) return;
+            adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">جاري التحميل...</div>';
+            
+            const usersRef = ref(database, 'users');
+            get(usersRef).then(function(snapshot) {
+                if (!snapshot.exists()) { 
+                    adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>'; 
+                    return; 
+                }
+                
+                const users = snapshot.val();
+                let h = '';
+                Object.keys(users).forEach(function(key) {
+                    const dt = users[key];
+                    const blocked = blockedUsers.includes(dt.username);
+                    const isAdminUser = dt.isAdmin || dt.username === ADMIN_NAME;
+                    const avatarHtml = (dt.avatar && dt.avatar.startsWith('http')) || (dt.avatar && dt.avatar.startsWith('data:image')) ?
+                        `<img src="${dt.avatar}" alt="${dt.username}">` : getInitials(dt.username);
+                    
+                    h += `<div class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar-small" style="display:flex;align-items:center;justify-content:center;background:${getAvatarColor(dt.username)};color:#fff;font-weight:600;">${avatarHtml}</div>
+                            <span>${dt.username} ${isAdminUser ? '👑' : ''} ${blocked ? '🚫' : ''}</span>
+                        </div>
+                        <div class="user-actions">
+                            ${!isAdminUser ? `
+                                ${blocked ? `<button class="unblock-user" onclick="unblockUser('${dt.username}')" title="فك الحظر"><span class="material-symbols-outlined">check_circle</span></button>` : `<button class="block-user" onclick="blockUser('${dt.username}')" title="حظر"><span class="material-symbols-outlined">block</span></button>`}
+                                <button class="delete-user" onclick="deleteUserAccount('${dt.username}')" title="حذف الحساب نهائياً"><span class="material-symbols-outlined">delete_forever</span></button>
+                            ` : ''}
+                        </div>
+                    </div>`;
+                });
+                adminUsersList.innerHTML = h;
+            }).catch(function() { adminUsersList.innerHTML = '<div style="color:var(--red);font-size:12px;">❌ خطأ في التحميل</div>'; });
+        }
+
+        // ============================================================
+        // 🚪 FORCE LOGOUT
+        // ============================================================
+        forceLogoutBtn.addEventListener('click', function() {
+            if (!isAdmin || !isAdminVerified) return;
+            if (!confirm('⚠️ هل أنت متأكد من تسجيل خروج جميع المستخدمين؟')) return;
+            showLoading(true);
+            const usersRef = ref(database, 'users');
+            get(usersRef).then(function(snapshot) {
+                if (!snapshot.exists()) return;
+                const users = snapshot.val();
+                const updates = {};
+                Object.keys(users).forEach(key => {
+                    updates[`${key}/forceLogout`] = true;
+                    updates[`${key}/online`] = false;
+                });
+                return update(usersRef, updates);
+            }).then(function() {
+                addSystemMessage('👑 المسؤول قام بتسجيل خروج جميع المستخدمين');
+                loadAdminUsers();
+                showLoading(false);
+            }).catch(function() { alert('⚠️ حدث خطأ');
+                showLoading(false); });
+        });
+
+        // ============================================================
+        // 🚪 LOGOUT
+        // ============================================================
+        function logout() {
+            if (!confirm('🚪 تسجيل الخروج؟\nسيتم حذف جلسة الدخول من هذا الجهاز.')) return;
+            localStorage.removeItem('chat_session');
+            performLogout();
+        }
+
+        function performLogout() {
+            if (currentUser) { setUserOffline(currentUser);
+                addSystemMessage('👋 ' + currentUser + ' غادر الدردشة'); }
+            isLoggedIn = false;
+            currentUser = '';
+            isAdmin = false;
+            isAdminVerified = false;
+            if (unsubscribe) unsubscribe();
+            chatContainer.style.display = 'none';
+            loginOverlay.classList.remove('hidden');
+            messagesDiv.innerHTML =
+                '<div class="empty-state" id="emptyState"><div class="empty-icon"><span class="material-symbols-outlined">chat</span></div><div class="empty-title">لا توجد رسائل</div><div class="empty-sub">كن أول من يكتب ✨</div></div>';
+            msgInput.disabled = true;
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+            sendBtn.style.background = '';
+            clearReply();
+            editingMessage = null;
+            infoMsg.textContent = '👋 تم تسجيل الخروج';
+            infoMsg.classList.add('show');
+            setTimeout(function() { infoMsg.classList.remove('show'); }, 2000);
+            usernameInput.value = '';
+        }
+        logoutBtn.addEventListener('click', logout);
+
+        // ============================================================
+        // 🔍 CHECK FORCE LOGOUT
+        // ============================================================
+        function checkForceLogout() {
+            if (currentUser) {
+                const userRef = ref(database, `users/${currentUser}`);
+                get(userRef).then(function(snapshot) {
+                    if (snapshot.exists() && snapshot.val().forceLogout === true) {
+                        const userRef2 = ref(database, `users/${currentUser}`);
+                        update(userRef2, { forceLogout: false });
+                        addSystemMessage('🔒 تم تسجيل خروجك قسراً بواسطة المسؤول');
+                        setTimeout(function() { performLogout(); }, 1000);
+                    }
+                }).catch(function() {});
+            }
+        }
+        setInterval(checkForceLogout, 5000);
+
+        // ============================================================
+        // 👤 USER STATUS
+        // ============================================================
+        function setUserOnline(name) {
+            const userRef = ref(database, `users/${name}`);
+            set(userRef, {
+                username: name,
+                color: userColor,
+                ip: userIP,
+                online: true,
+                forceLogout: false,
+                avatar: userAvatarURL || '',
+                isAdmin: isAdmin,
+                firstSeen: Date.now(),
+                lastSeen: Date.now()
+            });
+        }
+
+        function setUserOffline(name) {
+            const userRef = ref(database, `users/${name}`);
+            update(userRef, {
+                online: false,
+                lastSeen: Date.now()
+            });
+        }
+
+        // ============================================================
+        // 💾 SAVE SESSION
+        // ============================================================
+        function saveSession(username, color, avatar) {
+            try {
+                const session = {
+                    username: username,
+                    color: color,
+                    ip: userIP,
+                    avatar: avatar || '',
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('chat_session', JSON.stringify(session));
+                console.log('✅ تم حفظ الجلسة');
+            } catch (e) {
+                console.log('⚠️ لا يمكن حفظ الجلسة');
+            }
+        }
+
+        // ============================================================
+        // 🔍 CHECK SESSION
+        // ============================================================
+        function checkSession() {
+            try {
+                const sessionData = localStorage.getItem('chat_session');
+                if (!sessionData) return null;
+                const session = JSON.parse(sessionData);
+                const maxAge = 7 * 24 * 60 * 60 * 1000;
+                if (Date.now() - session.timestamp > maxAge) {
+                    localStorage.removeItem('chat_session');
+                    return null;
+                }
+                return session;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ============================================================
+        // 🚪 LOGIN
+        // ============================================================
+        async function login() {
+            var raw = usernameInput.value.trim();
+            if (!raw || raw.length < 2) { loginError.style.display = 'block'; return; }
+            var name = sanitizeInput(raw);
+            if (!name) { loginError.textContent = '⚠️ اسم غير صالح';
+                loginError.style.display = 'block'; return; }
+            loginError.style.display = 'none';
+            showLoading(true);
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
+            try {
+                userIP = getHashedIP();
+
+                // رفع الصورة إذا كانت موجودة
+                let avatarURL = '';
+                if (tempAvatarFile) {
+                    try {
+                        avatarURL = await uploadAvatar(tempAvatarFile, name);
+                    } catch (e) {
+                        console.warn('⚠️ فشل رفع الصورة:', e);
+                    }
+                    tempAvatarFile = null;
+                }
+
+                currentUser = name;
+                userAvatarURL = avatarURL;
+                isLoggedIn = true;
+                isAdmin = (name === ADMIN_NAME);
+                isMuted = false;
+                muteCount = 0;
+                if (muteTimeout) clearTimeout(muteTimeout);
+                mutedNotice.classList.remove('active');
+                if (isAdmin) { adminBtn.classList.remove('hidden');
+                    adminBadge.classList.add('show'); } else { adminBtn.classList.add('hidden');
+                    adminBadge.classList.remove('show'); }
+                await loadBlockedUsers();
+                loginOverlay.classList.add('hidden');
+                chatContainer.style.display = 'flex';
+                msgInput.disabled = false;
+                sendBtn.disabled = false;
+                msgInput.focus();
+
+                updateAllAvatars(avatarURL, name);
+
+                setUserOnline(name);
+                saveSession(name, userColor, avatarURL);
+
+                addSystemMessage('👋 مرحباً ' + name + '! انضم إلى الدردشة');
+                loadMessages();
+                listenMessages();
+                loadBadWords();
+                window.addEventListener('beforeunload', function() { setUserOffline(name); });
+            } catch (e) {
+                alert('❌ ' + e.message);
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
+            }
+            showLoading(false);
+        }
+
+        // ============================================================
+        // 🔄 AUTO LOGIN
+        // ============================================================
+        function autoLogin() {
+            const session = checkSession();
+            if (session && session.username) {
+                usernameInput.value = session.username;
+                if (session.color) {
+                    userColor = session.color;
+                    document.querySelectorAll('.color-circle').forEach(el => {
+                        el.classList.toggle('selected', el.dataset.color === session.color);
+                    });
+                }
+                if (session.avatar) {
+                    userAvatarURL = session.avatar;
+                    loginAvatarPreview.innerHTML = `<img src="${session.avatar}" alt="صورة شخصية">`;
+                    loginAvatarPlaceholder.textContent = '';
+                }
+                setTimeout(function() {
+                    login();
+                }, 500);
+                infoMsg.textContent = '🔄 جاري تسجيل الدخول التلقائي...';
+                infoMsg.classList.add('show');
+                setTimeout(function() { infoMsg.classList.remove('show'); }, 3000);
+            } else {
+                loadSavedTheme();
+            }
+        }
+
+        // ============================================================
+        // 🎯 EVENTS
+        // ============================================================
+        loginBtn.addEventListener('click', login);
+        usernameInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') login(); });
+        sendBtn.addEventListener('click', sendMessage);
+        msgInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMessage(); });
+
+        // ============================================================
+        // 🚀 START
+        // ============================================================
+        userIP = getHashedIP();
+        console.log('🚀 نيزك ' + VERSION + ' - تم التشغيل بنجاح');
+        console.log('👑 المسؤول: ' + ADMIN_NAME);
+        console.log('🔒 كلمة المرور: ' + ADMIN_PASSWORD);
+        console.log('🚫 عدد الكلمات المحظورة: ' + DEFAULT_BAD_WORDS.length);
+        console.log('💾 ميزة حفظ الجلسة مفعلة');
+        console.log('📱 تسجيل الدخول المتعدد من نفس الاسم مفعل');
+        console.log('🌓 نظام الثيمات مفعل');
+        console.log('📸 الصور الشخصية مفعلة');
+
+        autoLogin();
+
+        // جعل الدوال العالمية متاحة
+        window.blockUser = blockUser;
+        window.unblockUser = unblockUser;
+        window.deleteUserAccount = deleteUserAccount;
+        window.deleteMsg = deleteMsg;
+        window.reportMsg = reportMsg;
+        window.setReply = setReply;
+        window.startEdit = startEdit;
+        window.clearReply = clearReply;
+        window.hideAllActions = hideAllActions;
     </script>
 </body>
-</html>
+    </html>
