@@ -13,11 +13,12 @@ import {
     getDocs,
     doc,
     updateDoc,
+    deleteDoc,
     serverTimestamp,
     limit,
-    startAfter,
-    getCountFromServer
+    getDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { authManager } from './auth.js';
 
 // ============================================
 // مدير الدردشة
@@ -25,12 +26,13 @@ import {
 
 class ChatManager {
     constructor() {
-        this.currentChatId = null;
         this.currentUser = null;
+        this.currentChatId = null;
         this.unsubscribeMessages = null;
         this.unsubscribePresence = null;
         this.messageListeners = [];
-        this.presenceListeners = [];
+        this.replyTo = null;
+        this.editingMessage = null;
     }
 
     // تعيين المستخدم الحالي
@@ -43,17 +45,18 @@ class ChatManager {
         return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
     }
 
-    // بدء الدردشة مع مستخدم
+    // بدء الدردشة
     startChat(otherUid) {
         if (!this.currentUser) return;
-        
         const chatId = this.getChatId(this.currentUser.uid, otherUid);
         this.currentChatId = chatId;
+        this.replyTo = null;
+        this.editingMessage = null;
         return chatId;
     }
 
     // تحميل الرسائل
-    loadMessages(chatId, callback, limitCount = 50) {
+    loadMessages(chatId, callback, limitCount = 100) {
         if (this.unsubscribeMessages) {
             this.unsubscribeMessages();
         }
@@ -61,23 +64,21 @@ class ChatManager {
         const messagesRef = collection(db, 'messages', chatId, 'messages');
         const q = query(messagesRef, orderBy('timestamp', 'asc'), limit(limitCount));
 
-        this.unsubscribeMessages = onSnapshot(q, (snapshot) => {
+        this.unsubscribeMessages = onSnapshot(q, async (snapshot) => {
             const messages = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                messages.push({
-                    id: doc.id,
-                    text: data.text,
-                    sender: data.sender,
-                    receiver: data.receiver,
-                    timestamp: data.timestamp?.toDate() || new Date(),
-                    status: data.status || 'sent',
-                    type: data.type || 'text'
-                });
+                if (!data.isDeleted) {
+                    messages.push({
+                        id: doc.id,
+                        ...data,
+                        timestamp: data.timestamp?.toDate() || new Date()
+                    });
+                }
             });
             
-            // تحديث حالة الرسائل المقروءة
-            this.markMessagesAsRead(chatId);
+            // تعليم الرسائل كمقروءة
+            await this.markMessagesAsRead(chatId);
             
             callback(messages);
         }, (error) => {
@@ -90,19 +91,35 @@ class ChatManager {
     async sendMessage(chatId, text, type = 'text') {
         if (!this.currentUser || !text.trim()) return null;
 
+        const otherUid = this.getOtherUser(chatId);
+        const userData = await authManager.getUserData(otherUid);
+        
+        // التحقق من حظر المستخدم
+        if (userData && authManager.isUserBlocked(userData)) {
+            return { success: false, error: 'هذا المستخدم محظور', blocked: true };
+        }
+
         try {
             const messagesRef = collection(db, 'messages', chatId, 'messages');
-            const docRef = await addDoc(messagesRef, {
+            const messageData = {
                 text: text.trim(),
                 sender: this.currentUser.uid,
-                receiver: this.getOtherUser(chatId),
+                receiver: otherUid,
                 timestamp: serverTimestamp(),
                 status: 'sent',
-                type: type
-            });
+                type: type,
+                isDeleted: false,
+                isEdited: false,
+                replyTo: this.replyTo || null
+            };
 
-            // تحديث آخر رسالة في محادثات المستخدم
-            await this.updateLastMessage(chatId, text.trim());
+            const docRef = await addDoc(messagesRef, messageData);
+
+            // تحديث آخر رسالة
+            await this.updateChatLastMessage(chatId, text.trim(), this.currentUser.uid);
+
+            // إعادة تعيين الرد
+            this.replyTo = null;
 
             return { success: true, id: docRef.id };
         } catch (error) {
@@ -111,17 +128,32 @@ class ChatManager {
         }
     }
 
-    // تحديث آخر رسالة
-    async updateLastMessage(chatId, text) {
+    // تحديث آخر رسالة في المحادثة
+    async updateChatLastMessage(chatId, text, senderId) {
         try {
             const chatRef = doc(db, 'chats', chatId);
-            await updateDoc(chatRef, {
-                lastMessage: text,
-                lastMessageTime: serverTimestamp(),
-                lastMessageSender: this.currentUser.uid
-            });
+            const chatDoc = await getDoc(chatRef);
+            
+            if (chatDoc.exists()) {
+                await updateDoc(chatRef, {
+                    lastMessage: text,
+                    lastMessageTime: serverTimestamp(),
+                    lastMessageSender: senderId,
+                    updatedAt: serverTimestamp()
+                });
+            } else {
+                // إنشاء المحادثة إذا لم تكن موجودة
+                await setDoc(chatRef, {
+                    lastMessage: text,
+                    lastMessageTime: serverTimestamp(),
+                    lastMessageSender: senderId,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    participants: [this.currentUser.uid, this.getOtherUser(chatId)]
+                });
+            }
         } catch (error) {
-            console.error('خطأ في تحديث آخر رسالة:', error);
+            console.error('خطأ في تحديث المحادثة:', error);
         }
     }
 
@@ -148,19 +180,30 @@ class ChatManager {
         }
     }
 
-    // الحصول على المستخدم الآخر في المحادثة
-    getOtherUser(chatId) {
-        const uids = chatId.split('_');
-        return uids.find(uid => uid !== this.currentUser.uid);
+    // تعديل رسالة
+    async editMessage(chatId, messageId, newText) {
+        try {
+            const messageRef = doc(db, 'messages', chatId, 'messages', messageId);
+            await updateDoc(messageRef, {
+                text: newText.trim(),
+                isEdited: true,
+                editedAt: serverTimestamp()
+            });
+            this.editingMessage = null;
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
     }
 
-    // حذف رسالة
+    // حذف رسالة (للمسؤول فقط)
     async deleteMessage(chatId, messageId) {
         try {
             const messageRef = doc(db, 'messages', chatId, 'messages', messageId);
             await updateDoc(messageRef, {
                 isDeleted: true,
-                text: 'تم حذف هذه الرسالة'
+                text: 'تم حذف هذه الرسالة',
+                deletedAt: serverTimestamp()
             });
             return { success: true };
         } catch (error) {
@@ -168,55 +211,80 @@ class ChatManager {
         }
     }
 
-    // البحث في الرسائل
-    async searchMessages(chatId, searchText) {
+    // حذف الدردشة بالكامل
+    async clearChat(chatId) {
         try {
             const messagesRef = collection(db, 'messages', chatId, 'messages');
-            // ملاحظة: Firebase لا يدعم البحث النصي الكامل
-            // يجب استخدام Algolia أو Elasticsearch للبحث المتقدم
-            const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(100));
-            const snapshot = await getDocs(q);
+            const snapshot = await getDocs(messagesRef);
             
-            const results = [];
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.text?.toLowerCase().includes(searchText.toLowerCase())) {
-                    results.push({
-                        id: doc.id,
-                        ...data,
-                        timestamp: data.timestamp?.toDate() || new Date()
-                    });
-                }
-            });
-            
-            return results;
-        } catch (error) {
-            console.error('خطأ في البحث:', error);
-            return [];
-        }
-    }
-
-    // عدد الرسائل غير المقروءة
-    async getUnreadCount(chatId) {
-        if (!this.currentUser) return 0;
-
-        try {
-            const messagesRef = collection(db, 'messages', chatId, 'messages');
-            const q = query(
-                messagesRef,
-                where('receiver', '==', this.currentUser.uid),
-                where('status', '==', 'sent')
+            const deletions = snapshot.docs.map(doc => 
+                updateDoc(doc.ref, {
+                    isDeleted: true,
+                    text: 'تم حذف هذه الدردشة',
+                    deletedAt: serverTimestamp()
+                })
             );
             
-            const count = await getCountFromServer(q);
-            return count.data().count;
+            await Promise.all(deletions);
+            return { success: true };
         } catch (error) {
-            console.error('خطأ في حساب الرسائل غير المقروءة:', error);
-            return 0;
+            return { success: false, error: error.message };
         }
     }
 
-    // مراقبة حالة الاتصال بالمستخدم
+    // إضافة تفاعل على رسالة
+    async addReaction(chatId, messageId, reaction) {
+        try {
+            const messageRef = doc(db, 'messages', chatId, 'messages', messageId);
+            const messageDoc = await getDoc(messageRef);
+            
+            if (messageDoc.exists()) {
+                const data = messageDoc.data();
+                const reactions = data.reactions || {};
+                const userId = this.currentUser.uid;
+                
+                // إذا كان المستخدم قد تفاعل بنفس التفاعل، نزيله
+                if (reactions[userId] === reaction) {
+                    delete reactions[userId];
+                } else {
+                    reactions[userId] = reaction;
+                }
+                
+                await updateDoc(messageRef, { reactions });
+                return { success: true };
+            }
+            return { success: false, error: 'الرسالة غير موجودة' };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // الإبلاغ عن رسالة
+    async reportMessage(chatId, messageId, reason = 'مخالفة') {
+        try {
+            const reportRef = collection(db, 'reports');
+            await addDoc(reportRef, {
+                chatId,
+                messageId,
+                reporter: this.currentUser.uid,
+                reason: reason,
+                timestamp: serverTimestamp(),
+                status: 'pending'
+            });
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // الحصول على المستخدم الآخر في المحادثة
+    getOtherUser(chatId) {
+        if (!this.currentUser) return null;
+        const uids = chatId.split('_');
+        return uids.find(uid => uid !== this.currentUser.uid);
+    }
+
+    // مراقبة حالة المستخدم
     monitorUserPresence(uid, callback) {
         if (this.unsubscribePresence) {
             this.unsubscribePresence();
@@ -228,13 +296,34 @@ class ChatManager {
                 const data = doc.data();
                 callback({
                     status: data.status || 'offline',
-                    lastSeen: data.lastSeen?.toDate() || new Date()
+                    lastSeen: data.lastSeen?.toDate() || new Date(),
+                    isBlocked: data.isBlocked || false
                 });
             }
         });
     }
 
-    // إيقاف الاستماع للرسائل
+    // تعيين الرد على رسالة
+    setReplyTo(message) {
+        this.replyTo = message;
+    }
+
+    // إلغاء الرد
+    clearReplyTo() {
+        this.replyTo = null;
+    }
+
+    // تعيين رسالة للتعديل
+    setEditingMessage(message) {
+        this.editingMessage = message;
+    }
+
+    // إلغاء التعديل
+    clearEditingMessage() {
+        this.editingMessage = null;
+    }
+
+    // إيقاف الاستماع
     stopListening() {
         if (this.unsubscribeMessages) {
             this.unsubscribeMessages();
@@ -250,18 +339,9 @@ class ChatManager {
     cleanup() {
         this.stopListening();
         this.currentChatId = null;
-    }
-
-    // إضافة مستمع للرسائل
-    addMessageListener(callback) {
-        this.messageListeners.push(callback);
-    }
-
-    // إضافة مستمع للحالة
-    addPresenceListener(callback) {
-        this.presenceListeners.push(callback);
+        this.replyTo = null;
+        this.editingMessage = null;
     }
 }
 
-// تصدير نسخة واحدة
 export const chatManager = new ChatManager();
