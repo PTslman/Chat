@@ -17,18 +17,19 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+const storage = firebase.storage();
 
-// تمكين التخزين المؤقت
+// تمكين التخزين المؤقت دون اتصال
 db.enablePersistence({ synchronizeTabs: true })
-    .then(() => console.log('✅ التخزين المؤقت مفعل'))
-    .catch((err) => console.warn('⚠️ تعذر تفعيل التخزين المؤقت:', err));
+    .then(() => console.log('✅ تم تمكين التخزين المؤقت'))
+    .catch((err) => console.warn('⚠️ تعذر تمكين التخزين المؤقت:', err));
 
 // ============================================================
 // 👑 إعدادات المسؤول
 // ============================================================
 const ADMIN_NAME = "slx23m";
 const ADMIN_PASSWORD = "1442";
-const VERSION = "v5.0";
+const VERSION = "v5.0.0";
 
 // ============================================================
 // 🚫 الكلمات المحظورة الافتراضية
@@ -43,7 +44,7 @@ const DEFAULT_BAD_WORDS = [
 // ============================================================
 // 📦 حالة التطبيق
 // ============================================================
-const state = {
+let state = {
     currentUser: '',
     userColor: '#2b6ef0',
     isLoggedIn: false,
@@ -66,8 +67,7 @@ const state = {
     messageIds: new Set(),
     unreadCount: 0,
     onlineUsers: new Set(),
-    activeMessageId: null,
-    hideTimeout: null
+    activeMessageId: null
 };
 
 // ============================================================
@@ -75,7 +75,10 @@ const state = {
 // ============================================================
 const $ = id => document.getElementById(id);
 
-const el = {};
+// ============================================================
+// 📄 تعريف جميع العناصر
+// ============================================================
+const elements = {};
 
 function initElements() {
     const ids = [
@@ -97,30 +100,34 @@ function initElements() {
         'loginAdminPasswordBox', 'loginAdminPasswordInput', 'loginAdminPasswordError',
         'replyBar', 'replyBarSender', 'replyBarText', 'replyBarClose',
         'reactionPicker', 'searchBtn', 'searchBar', 'searchInput',
-        'searchResults', 'searchClose', 'msgActionsOverlay',
-        'statusTime', 'appFooter', 'colorPicker'
+        'searchResults', 'searchClose', 'fileViewer', 'fileViewerTitle',
+        'fileViewerBody', 'fileViewerImage', 'fileViewerFile',
+        'fileViewerFileName', 'fileViewerDownload', 'fileViewerAudio',
+        'fileViewerAudioPlayer', 'closeFileViewer', 'appFooter',
+        'statusTime', 'colorPicker', 'msgActionsOverlay'
     ];
     
     ids.forEach(id => {
-        el[id] = $(id);
-        if (!el[id] && !id.includes('Overlay')) {
+        elements[id] = $(id);
+        if (!elements[id] && !id.includes('Overlay')) {
             console.warn(`⚠️ عنصر مفقود: ${id}`);
         }
     });
 }
 
+// تهيئة العناصر
 initElements();
 
 // ============================================================
-// 🎯 خلفية الخيارات
+// 🎯 إنشاء overlay للخيارات
 // ============================================================
-let actionsOverlay = el.msgActionsOverlay;
+let actionsOverlay = document.getElementById('msgActionsOverlay');
 if (!actionsOverlay) {
     actionsOverlay = document.createElement('div');
     actionsOverlay.className = 'msg-actions-overlay';
     actionsOverlay.id = 'msgActionsOverlay';
     document.body.appendChild(actionsOverlay);
-    el.msgActionsOverlay = actionsOverlay;
+    elements.msgActionsOverlay = actionsOverlay;
 }
 
 // ============================================================
@@ -150,7 +157,7 @@ function updateAvatarUI(element, placeholder, avatarBase64, name) {
     } else {
         const initials = getInitials(name);
         const color = getAvatarColor(name);
-        const fontSize = element === el.profileAvatarPreview ? '34px' : '16px';
+        const fontSize = element === elements.profileAvatarPreview ? '34px' : '16px';
         element.innerHTML = `
             <span style="background:${color};display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:${fontSize};font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">
                 ${initials}
@@ -161,9 +168,9 @@ function updateAvatarUI(element, placeholder, avatarBase64, name) {
 }
 
 function updateAllAvatars(avatarBase64, name) {
-    updateAvatarUI(el.headerAvatar, el.headerAvatarPlaceholder, avatarBase64, name);
-    updateAvatarUI(el.profileAvatarPreview, el.profileAvatarPlaceholder, avatarBase64, name);
-    if (el.headerUsername) el.headerUsername.textContent = name;
+    updateAvatarUI(elements.headerAvatar, elements.headerAvatarPlaceholder, avatarBase64, name);
+    updateAvatarUI(elements.profileAvatarPreview, elements.profileAvatarPlaceholder, avatarBase64, name);
+    if (elements.headerUsername) elements.headerUsername.textContent = name;
 }
 
 // ============================================================
@@ -265,17 +272,17 @@ function compressImageToBase64(file, maxWidth, maxHeight, quality, statusElement
 // ============================================================
 function openProfileModal() {
     if (!state.isLoggedIn) return;
-    if (el.profileNameInput) el.profileNameInput.value = state.currentUser;
-    if (el.profileModal) el.profileModal.classList.add('active');
-    updateAvatarUI(el.profileAvatarPreview, el.profileAvatarPlaceholder, state.userAvatarBase64, state.currentUser);
-    if (el.profileUploadStatus) {
-        el.profileUploadStatus.className = 'upload-status';
-        el.profileUploadStatus.textContent = '';
+    if (elements.profileNameInput) elements.profileNameInput.value = state.currentUser;
+    if (elements.profileModal) elements.profileModal.classList.add('active');
+    updateAvatarUI(elements.profileAvatarPreview, elements.profileAvatarPlaceholder, state.userAvatarBase64, state.currentUser);
+    if (elements.profileUploadStatus) {
+        elements.profileUploadStatus.className = 'upload-status';
+        elements.profileUploadStatus.textContent = '';
     }
 }
 
 async function saveProfile() {
-    const newName = el.profileNameInput ? el.profileNameInput.value.trim() : '';
+    const newName = elements.profileNameInput ? elements.profileNameInput.value.trim() : '';
     if (!newName || newName.length < 2) {
         alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
         return;
@@ -315,7 +322,7 @@ async function saveProfile() {
         }
 
         addSystemMessage(`✅ تم تحديث الملف الشخصي لـ ${newName}`, 'success');
-        if (el.profileModal) el.profileModal.classList.remove('active');
+        if (elements.profileModal) elements.profileModal.classList.remove('active');
 
     } catch (error) {
         console.error('❌ خطأ في حفظ الملف الشخصي:', error);
@@ -332,8 +339,8 @@ function applyTheme(theme) {
     state.currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
 
-    if (el.themeIcon) {
-        el.themeIcon.textContent = theme === 'light' ? 'light_mode' : 'dark_mode';
+    if (elements.themeIcon) {
+        elements.themeIcon.textContent = theme === 'light' ? 'light_mode' : 'dark_mode';
     }
 
     document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -398,19 +405,19 @@ function isEmojiOnly(text) {
 }
 
 function showLoading(show) {
-    if (el.loadingOverlay) {
+    if (elements.loadingOverlay) {
         if (show) {
-            el.loadingOverlay.classList.add('active');
+            elements.loadingOverlay.classList.add('active');
         } else {
-            el.loadingOverlay.classList.remove('active');
+            elements.loadingOverlay.classList.remove('active');
         }
     }
 }
 
 function updateClock() {
     const now = new Date();
-    if (el.statusTime) {
-        el.statusTime.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    if (elements.statusTime) {
+        elements.statusTime.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
     }
 }
 updateClock();
@@ -436,42 +443,42 @@ document.querySelectorAll('.color-circle').forEach(el => {
 // ============================================================
 // 😊 الإيموجي
 // ============================================================
-if (el.emojiToggle) {
-    el.emojiToggle.addEventListener('click', function(e) {
+if (elements.emojiToggle) {
+    elements.emojiToggle.addEventListener('click', function(e) {
         e.stopPropagation();
-        if (el.emojiRail) {
-            el.emojiRail.classList.toggle('active');
+        if (elements.emojiRail) {
+            elements.emojiRail.classList.toggle('active');
         }
         this.classList.toggle('active');
     });
 }
 
 document.addEventListener('click', function(e) {
-    if (el.emojiRail && !el.emojiRail.contains(e.target) && e.target !== el.emojiToggle && !el.emojiToggle?.contains(e.target)) {
-        el.emojiRail.classList.remove('active');
-        el.emojiToggle?.classList.remove('active');
+    if (elements.emojiRail && !elements.emojiRail.contains(e.target) && e.target !== elements.emojiToggle && !elements.emojiToggle?.contains(e.target)) {
+        elements.emojiRail.classList.remove('active');
+        elements.emojiToggle?.classList.remove('active');
     }
-    if (el.reactionPicker && !el.reactionPicker.contains(e.target)) {
-        el.reactionPicker.classList.remove('active');
+    if (elements.reactionPicker && !elements.reactionPicker.contains(e.target)) {
+        elements.reactionPicker.classList.remove('active');
     }
 });
 
 document.querySelectorAll('.emoji-item').forEach(el => {
     el.addEventListener('click', function() {
-        if (el.msgInput) {
-            el.msgInput.value += this.textContent;
-            el.msgInput.focus();
+        if (elements.msgInput) {
+            elements.msgInput.value += this.textContent;
+            elements.msgInput.focus();
         }
-        if (el.emojiRail) el.emojiRail.classList.remove('active');
-        if (el.emojiToggle) el.emojiToggle.classList.remove('active');
+        if (elements.emojiRail) elements.emojiRail.classList.remove('active');
+        if (elements.emojiToggle) elements.emojiToggle.classList.remove('active');
     });
 });
 
 // ============================================================
 // 🌓 أحداث الثيم
 // ============================================================
-if (el.themeToggle) {
-    el.themeToggle.addEventListener('click', toggleTheme);
+if (elements.themeToggle) {
+    elements.themeToggle.addEventListener('click', toggleTheme);
 }
 
 document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -484,24 +491,24 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
 // ============================================================
 // 👑 كشف المسؤول
 // ============================================================
-if (el.usernameInput) {
-    el.usernameInput.addEventListener('input', function() {
+if (elements.usernameInput) {
+    elements.usernameInput.addEventListener('input', function() {
         const val = this.value.trim();
         
         if (val === ADMIN_NAME) {
-            if (el.loginAdminPasswordBox) {
-                el.loginAdminPasswordBox.style.display = 'block';
+            if (elements.loginAdminPasswordBox) {
+                elements.loginAdminPasswordBox.style.display = 'block';
             }
-            if (el.loginAdminPasswordInput) {
-                el.loginAdminPasswordInput.value = '';
+            if (elements.loginAdminPasswordInput) {
+                elements.loginAdminPasswordInput.value = '';
             }
-            if (el.loginAdminPasswordError) {
-                el.loginAdminPasswordError.classList.remove('show');
+            if (elements.loginAdminPasswordError) {
+                elements.loginAdminPasswordError.classList.remove('show');
             }
             state.isAdminLoginAttempt = true;
         } else {
-            if (el.loginAdminPasswordBox) {
-                el.loginAdminPasswordBox.style.display = 'none';
+            if (elements.loginAdminPasswordBox) {
+                elements.loginAdminPasswordBox.style.display = 'none';
             }
             state.isAdminLoginAttempt = false;
         }
@@ -511,19 +518,19 @@ if (el.usernameInput) {
 // ============================================================
 // 📸 أحداث الصورة الشخصية
 // ============================================================
-if (el.profileAvatarBtn) {
-    el.profileAvatarBtn.addEventListener('click', () => {
-        if (el.profileAvatarInput) el.profileAvatarInput.click();
+if (elements.profileAvatarBtn) {
+    elements.profileAvatarBtn.addEventListener('click', () => {
+        if (elements.profileAvatarInput) elements.profileAvatarInput.click();
     });
 }
-if (el.profileAvatarPreview) {
-    el.profileAvatarPreview.addEventListener('click', () => {
-        if (el.profileAvatarInput) el.profileAvatarInput.click();
+if (elements.profileAvatarPreview) {
+    elements.profileAvatarPreview.addEventListener('click', () => {
+        if (elements.profileAvatarInput) elements.profileAvatarInput.click();
     });
 }
 
-if (el.profileAvatarInput) {
-    el.profileAvatarInput.addEventListener('change', function() {
+if (elements.profileAvatarInput) {
+    elements.profileAvatarInput.addEventListener('change', function() {
         if (this.files && this.files[0]) {
             const file = this.files[0];
             if (file.size > 5 * 1024 * 1024) {
@@ -532,18 +539,18 @@ if (el.profileAvatarInput) {
                 return;
             }
 
-            compressImageToBase64(file, 300, 300, 0.6, el.profileUploadStatus)
+            compressImageToBase64(file, 300, 300, 0.6, elements.profileUploadStatus)
                 .then(base64 => {
-                    if (el.profileAvatarPreview) {
-                        el.profileAvatarPreview.innerHTML = `<img src="${base64}" alt="صورة شخصية">`;
+                    if (elements.profileAvatarPreview) {
+                        elements.profileAvatarPreview.innerHTML = `<img src="${base64}" alt="صورة شخصية">`;
                     }
-                    if (el.profileAvatarPlaceholder) {
-                        el.profileAvatarPlaceholder.textContent = '';
+                    if (elements.profileAvatarPlaceholder) {
+                        elements.profileAvatarPlaceholder.textContent = '';
                     }
                     state.tempAvatarBase64 = base64;
-                    if (el.profileUploadStatus) {
-                        el.profileUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط حفظ للتحديث';
-                        el.profileUploadStatus.className = 'upload-status show success';
+                    if (elements.profileUploadStatus) {
+                        elements.profileUploadStatus.textContent = '📸 تم اختيار الصورة، اضغط حفظ للتحديث';
+                        elements.profileUploadStatus.className = 'upload-status show success';
                     }
                 })
                 .catch(err => {
@@ -557,40 +564,40 @@ if (el.profileAvatarInput) {
 // ============================================================
 // 👤 أحداث الملف الشخصي
 // ============================================================
-if (el.headerAvatar) {
-    el.headerAvatar.addEventListener('click', () => state.isLoggedIn && openProfileModal());
+if (elements.headerAvatar) {
+    elements.headerAvatar.addEventListener('click', () => state.isLoggedIn && openProfileModal());
 }
 
-if (el.closeProfileModal) {
-    el.closeProfileModal.addEventListener('click', () => {
-        if (el.profileModal) el.profileModal.classList.remove('active');
+if (elements.closeProfileModal) {
+    elements.closeProfileModal.addEventListener('click', () => {
+        if (elements.profileModal) elements.profileModal.classList.remove('active');
         state.tempAvatarBase64 = '';
-        if (el.profileUploadStatus) {
-            el.profileUploadStatus.className = 'upload-status';
-            el.profileUploadStatus.textContent = '';
+        if (elements.profileUploadStatus) {
+            elements.profileUploadStatus.className = 'upload-status';
+            elements.profileUploadStatus.textContent = '';
         }
     });
 }
 
-if (el.profileModal) {
-    el.profileModal.addEventListener('click', function(e) {
+if (elements.profileModal) {
+    elements.profileModal.addEventListener('click', function(e) {
         if (e.target === this) {
             this.classList.remove('active');
             state.tempAvatarBase64 = '';
-            if (el.profileUploadStatus) {
-                el.profileUploadStatus.className = 'upload-status';
-                el.profileUploadStatus.textContent = '';
+            if (elements.profileUploadStatus) {
+                elements.profileUploadStatus.className = 'upload-status';
+                elements.profileUploadStatus.textContent = '';
             }
         }
     });
 }
 
-if (el.profileSaveBtn) {
-    el.profileSaveBtn.addEventListener('click', saveProfile);
+if (elements.profileSaveBtn) {
+    elements.profileSaveBtn.addEventListener('click', saveProfile);
 }
 
-if (el.profileNameInput) {
-    el.profileNameInput.addEventListener('keypress', function(e) {
+if (elements.profileNameInput) {
+    elements.profileNameInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') saveProfile();
     });
 }
@@ -598,76 +605,76 @@ if (el.profileNameInput) {
 // ============================================================
 // 📋 النوافذ المنبثقة
 // ============================================================
-if (el.rulesBtn) {
-    el.rulesBtn.addEventListener('click', () => {
-        if (el.rulesModal) el.rulesModal.classList.toggle('active');
+if (elements.rulesBtn) {
+    elements.rulesBtn.addEventListener('click', () => {
+        if (elements.rulesModal) elements.rulesModal.classList.toggle('active');
     });
 }
-if (el.closeRulesModal) {
-    el.closeRulesModal.addEventListener('click', () => {
-        if (el.rulesModal) el.rulesModal.classList.remove('active');
+if (elements.closeRulesModal) {
+    elements.closeRulesModal.addEventListener('click', () => {
+        if (elements.rulesModal) elements.rulesModal.classList.remove('active');
     });
 }
-if (el.rulesModal) {
-    el.rulesModal.addEventListener('click', function(e) {
+if (elements.rulesModal) {
+    elements.rulesModal.addEventListener('click', function(e) {
         if (e.target === this) this.classList.remove('active');
     });
 }
 
-if (el.adminBtn) {
-    el.adminBtn.addEventListener('click', function() {
+if (elements.adminBtn) {
+    elements.adminBtn.addEventListener('click', function() {
         state.isAdminVerified = false;
-        if (el.adminPanel) el.adminPanel.style.display = 'none';
-        if (el.adminPasswordBox) el.adminPasswordBox.style.display = 'block';
-        if (el.adminPasswordInput) {
-            el.adminPasswordInput.value = '';
+        if (elements.adminPanel) elements.adminPanel.style.display = 'none';
+        if (elements.adminPasswordBox) elements.adminPasswordBox.style.display = 'block';
+        if (elements.adminPasswordInput) {
+            elements.adminPasswordInput.value = '';
         }
-        if (el.adminPasswordError) {
-            el.adminPasswordError.classList.remove('show');
+        if (elements.adminPasswordError) {
+            elements.adminPasswordError.classList.remove('show');
         }
-        if (el.adminModal) el.adminModal.classList.toggle('active');
-        if (el.adminModal?.classList.contains('active') && el.adminPasswordInput) {
-            el.adminPasswordInput.focus();
+        if (elements.adminModal) elements.adminModal.classList.toggle('active');
+        if (elements.adminModal?.classList.contains('active') && elements.adminPasswordInput) {
+            elements.adminPasswordInput.focus();
         }
     });
 }
 
-if (el.adminPasswordBtn) {
-    el.adminPasswordBtn.addEventListener('click', function() {
-        const pass = el.adminPasswordInput ? el.adminPasswordInput.value.trim() : '';
+if (elements.adminPasswordBtn) {
+    elements.adminPasswordBtn.addEventListener('click', function() {
+        const pass = elements.adminPasswordInput ? elements.adminPasswordInput.value.trim() : '';
         if (pass === ADMIN_PASSWORD) {
             state.isAdminVerified = true;
-            if (el.adminPasswordBox) el.adminPasswordBox.style.display = 'none';
-            if (el.adminPanel) el.adminPanel.style.display = 'block';
+            if (elements.adminPasswordBox) elements.adminPasswordBox.style.display = 'none';
+            if (elements.adminPanel) elements.adminPanel.style.display = 'block';
             loadAdminUsers();
             loadBadWords();
         } else {
-            if (el.adminPasswordError) el.adminPasswordError.classList.add('show');
-            if (el.adminPasswordInput) {
-                el.adminPasswordInput.value = '';
-                el.adminPasswordInput.focus();
+            if (elements.adminPasswordError) elements.adminPasswordError.classList.add('show');
+            if (elements.adminPasswordInput) {
+                elements.adminPasswordInput.value = '';
+                elements.adminPasswordInput.focus();
             }
         }
     });
 }
 
-if (el.adminPasswordInput) {
-    el.adminPasswordInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && el.adminPasswordBtn) {
-            el.adminPasswordBtn.click();
+if (elements.adminPasswordInput) {
+    elements.adminPasswordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && elements.adminPasswordBtn) {
+            elements.adminPasswordBtn.click();
         }
     });
 }
 
-if (el.closeAdminModal) {
-    el.closeAdminModal.addEventListener('click', function() {
-        if (el.adminModal) el.adminModal.classList.remove('active');
+if (elements.closeAdminModal) {
+    elements.closeAdminModal.addEventListener('click', function() {
+        if (elements.adminModal) elements.adminModal.classList.remove('active');
         state.isAdminVerified = false;
     });
 }
 
-if (el.adminModal) {
-    el.adminModal.addEventListener('click', function(e) {
+if (elements.adminModal) {
+    elements.adminModal.addEventListener('click', function(e) {
         if (e.target === this) {
             this.classList.remove('active');
             state.isAdminVerified = false;
@@ -694,9 +701,9 @@ function saveBadWords() {
 }
 
 function renderBadWords() {
-    if (!el.badwordsList) return;
+    if (!elements.badwordsList) return;
     if (!state.badWords.length) {
-        el.badwordsList.innerHTML = '<span style="color:var(--whatsapp-text-muted);font-size:11px;">لا توجد كلمات محظورة</span>';
+        elements.badwordsList.innerHTML = '<span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>';
         return;
     }
     let html = '';
@@ -710,7 +717,7 @@ function renderBadWords() {
             </span>
         `;
     });
-    el.badwordsList.innerHTML = html;
+    elements.badwordsList.innerHTML = html;
     document.querySelectorAll('.remove-badword').forEach(btn => {
         btn.addEventListener('click', function() {
             removeBadWord(this.dataset.word);
@@ -719,7 +726,7 @@ function renderBadWords() {
 }
 
 function addBadWord() {
-    const word = el.badwordInput ? el.badwordInput.value.trim() : '';
+    const word = elements.badwordInput ? elements.badwordInput.value.trim() : '';
     if (!word) return;
     if (state.badWords.includes(word)) {
         alert('⚠️ هذه الكلمة موجودة بالفعل');
@@ -728,9 +735,9 @@ function addBadWord() {
     state.badWords.push(word);
     saveBadWords();
     renderBadWords();
-    if (el.badwordInput) {
-        el.badwordInput.value = '';
-        el.badwordInput.focus();
+    if (elements.badwordInput) {
+        elements.badwordInput.value = '';
+        elements.badwordInput.focus();
     }
 }
 
@@ -743,11 +750,11 @@ function removeBadWord(word) {
     }
 }
 
-if (el.addBadwordBtn) {
-    el.addBadwordBtn.addEventListener('click', addBadWord);
+if (elements.addBadwordBtn) {
+    elements.addBadwordBtn.addEventListener('click', addBadWord);
 }
-if (el.badwordInput) {
-    el.badwordInput.addEventListener('keypress', function(e) {
+if (elements.badwordInput) {
+    elements.badwordInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') addBadWord();
     });
 }
@@ -765,19 +772,19 @@ function containsBadWord(text) {
 
 function applyMute(seconds) {
     state.isMuted = true;
-    if (el.msgInput) el.msgInput.disabled = true;
-    if (el.sendBtn) el.sendBtn.disabled = true;
-    if (el.mutedNotice) {
-        el.mutedNotice.classList.add('active');
-        el.mutedNotice.textContent = `⛔ ممنوع من الكتابة لمدة ${Math.ceil(seconds / 60)} دقيقة`;
+    if (elements.msgInput) elements.msgInput.disabled = true;
+    if (elements.sendBtn) elements.sendBtn.disabled = true;
+    if (elements.mutedNotice) {
+        elements.mutedNotice.classList.add('active');
+        elements.mutedNotice.textContent = `⛔ ممنوع من الكتابة لمدة ${Math.ceil(seconds / 60)} دقيقة`;
     }
     if (state.muteTimeout) clearTimeout(state.muteTimeout);
     state.muteTimeout = setTimeout(() => {
         state.isMuted = false;
-        if (el.msgInput) el.msgInput.disabled = false;
-        if (el.sendBtn) el.sendBtn.disabled = false;
-        if (el.mutedNotice) el.mutedNotice.classList.remove('active');
-        if (el.msgInput) el.msgInput.focus();
+        if (elements.msgInput) elements.msgInput.disabled = false;
+        if (elements.sendBtn) elements.sendBtn.disabled = false;
+        if (elements.mutedNotice) elements.mutedNotice.classList.remove('active');
+        if (elements.msgInput) elements.msgInput.focus();
     }, seconds * 1000);
 }
 
@@ -803,48 +810,48 @@ function handleBadWord(text, sender) {
 // ============================================================
 // 🔍 البحث في الرسائل
 // ============================================================
-if (el.searchBtn) {
-    el.searchBtn.addEventListener('click', function() {
-        if (el.searchBar) {
-            el.searchBar.style.display = el.searchBar.style.display === 'none' ? 'block' : 'none';
+if (elements.searchBtn) {
+    elements.searchBtn.addEventListener('click', function() {
+        if (elements.searchBar) {
+            elements.searchBar.style.display = elements.searchBar.style.display === 'none' ? 'block' : 'none';
         }
-        if (el.searchBar?.style.display === 'block') {
-            if (el.searchInput) {
-                el.searchInput.focus();
+        if (elements.searchBar?.style.display === 'block') {
+            if (elements.searchInput) {
+                elements.searchInput.focus();
             }
-            if (el.searchResults) {
-                el.searchResults.innerHTML = '';
-                el.searchResults.classList.remove('active');
+            if (elements.searchResults) {
+                elements.searchResults.innerHTML = '';
+                elements.searchResults.classList.remove('active');
             }
         }
     });
 }
 
-if (el.searchClose) {
-    el.searchClose.addEventListener('click', function() {
-        if (el.searchBar) el.searchBar.style.display = 'none';
-        if (el.searchResults) {
-            el.searchResults.innerHTML = '';
-            el.searchResults.classList.remove('active');
+if (elements.searchClose) {
+    elements.searchClose.addEventListener('click', function() {
+        if (elements.searchBar) elements.searchBar.style.display = 'none';
+        if (elements.searchResults) {
+            elements.searchResults.innerHTML = '';
+            elements.searchResults.classList.remove('active');
         }
-        if (el.searchInput) el.searchInput.value = '';
+        if (elements.searchInput) elements.searchInput.value = '';
     });
 }
 
-if (el.searchInput) {
-    el.searchInput.addEventListener('input', function() {
+if (elements.searchInput) {
+    elements.searchInput.addEventListener('input', function() {
         const query = this.value.trim().toLowerCase();
         if (query.length < 2) {
-            if (el.searchResults) {
-                el.searchResults.innerHTML = '';
-                el.searchResults.classList.remove('active');
+            if (elements.searchResults) {
+                elements.searchResults.innerHTML = '';
+                elements.searchResults.classList.remove('active');
             }
             return;
         }
 
         const results = [];
-        if (el.messages) {
-            const messages = el.messages.querySelectorAll('.msg-group');
+        if (elements.messages) {
+            const messages = elements.messages.querySelectorAll('.msg-group');
             messages.forEach(msg => {
                 const textEl = msg.querySelector('.msg-text');
                 if (textEl && !textEl.querySelector('.deleted-badge')) {
@@ -863,11 +870,11 @@ if (el.searchInput) {
             });
         }
 
-        if (!el.searchResults) return;
+        if (!elements.searchResults) return;
         
         if (results.length === 0) {
-            el.searchResults.innerHTML = '<div style="padding:8px;color:var(--whatsapp-text-muted);font-size:13px;text-align:center;">🔍 لا توجد نتائج</div>';
-            el.searchResults.classList.add('active');
+            elements.searchResults.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:13px;text-align:center;">🔍 لا توجد نتائج</div>';
+            elements.searchResults.classList.add('active');
             return;
         }
 
@@ -881,8 +888,8 @@ if (el.searchInput) {
                 </div>
             `;
         });
-        el.searchResults.innerHTML = html;
-        el.searchResults.classList.add('active');
+        elements.searchResults.innerHTML = html;
+        elements.searchResults.classList.add('active');
 
         document.querySelectorAll('.search-result-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -890,18 +897,16 @@ if (el.searchInput) {
                 const result = results[index];
                 if (result && result.element) {
                     result.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    result.element.style.background = 'var(--whatsapp-teal)';
-                    result.element.style.opacity = '0.5';
+                    result.element.style.background = 'var(--accent-glow)';
                     setTimeout(() => {
                         result.element.style.background = '';
-                        result.element.style.opacity = '';
                     }, 2000);
-                    if (el.searchBar) el.searchBar.style.display = 'none';
-                    if (el.searchResults) {
-                        el.searchResults.classList.remove('active');
-                        el.searchResults.innerHTML = '';
+                    if (elements.searchBar) elements.searchBar.style.display = 'none';
+                    if (elements.searchResults) {
+                        elements.searchResults.classList.remove('active');
+                        elements.searchResults.innerHTML = '';
                     }
-                    if (el.searchInput) el.searchInput.value = '';
+                    if (elements.searchInput) elements.searchInput.value = '';
                 }
             });
         });
@@ -909,7 +914,7 @@ if (el.searchInput) {
 }
 
 // ============================================================
-// 💬 إنشاء الرسائل
+// 💬 إنشاء الرسائل - مع دعم الضغط المطول وشريط الرجعة
 // ============================================================
 let lastSender = '';
 
@@ -976,15 +981,67 @@ function createMessage(id, data, self) {
     if (data.deleted) {
         text.innerHTML = '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>';
     } else {
-        if (isEmojiOnly(data.text)) text.classList.add('emoji-big');
-        text.textContent = data.text;
-        if (data.edited) {
-            const ed = document.createElement('span');
-            ed.className = 'edited-badge';
-            ed.textContent = '(معدّل)';
-            text.appendChild(ed);
+        if (data.file) {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'msg-file';
+            fileDiv.innerHTML = `
+                <span class="file-icon material-symbols-outlined">${data.file.icon || 'attach_file'}</span>
+                <div class="file-info">
+                    <div class="file-name">${data.file.name}</div>
+                    <div class="file-size">${formatFileSize(data.file.size)}</div>
+                </div>
+                <button class="file-download material-symbols-outlined">download</button>
+            `;
+            
+            if (data.file.type === 'image') {
+                const img = document.createElement('img');
+                img.src = data.file.url;
+                img.className = 'msg-image';
+                img.loading = 'lazy';
+                img.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openFileViewer(data.file, data.sender);
+                });
+                bubble.appendChild(img);
+            } else if (data.file.type === 'audio') {
+                const audioDiv = document.createElement('div');
+                audioDiv.className = 'msg-audio';
+                audioDiv.innerHTML = `<audio controls><source src="${data.file.url}" type="${data.file.mimeType || 'audio/webm'}"></audio>`;
+                bubble.appendChild(audioDiv);
+            } else {
+                bubble.appendChild(fileDiv);
+                fileDiv.querySelector('.file-download').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    window.open(data.file.url, '_blank');
+                });
+                fileDiv.addEventListener('click', function(e) {
+                    if (!e.target.closest('.file-download')) {
+                        openFileViewer(data.file, data.sender);
+                    }
+                });
+            }
+        } else if (data.audio) {
+            const audioDiv = document.createElement('div');
+            audioDiv.className = 'msg-audio';
+            const duration = data.audioDuration ? ` (${data.audioDuration}ث)` : '';
+            audioDiv.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <span style="font-size:12px;color:var(--text-muted);">🎤 رسالة صوتية${duration}</span>
+                </div>
+                <audio controls><source src="${data.audio}" type="audio/webm"></audio>
+            `;
+            bubble.appendChild(audioDiv);
+        } else {
+            if (isEmojiOnly(data.text)) text.classList.add('emoji-big');
+            text.textContent = data.text;
+            if (data.edited) {
+                const ed = document.createElement('span');
+                ed.className = 'edited-badge';
+                ed.textContent = '(معدّل)';
+                text.appendChild(ed);
+            }
+            bubble.appendChild(text);
         }
-        bubble.appendChild(text);
     }
 
     // الوقت
@@ -1017,7 +1074,9 @@ function createMessage(id, data, self) {
         });
     }
 
-    // قائمة الإجراءات
+    // ============================================================
+    // 🎯 قائمة الإجراءات - تصميم تلجرام
+    // ============================================================
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
     actions.id = `actions-${id}`;
@@ -1037,7 +1096,7 @@ function createMessage(id, data, self) {
         </button>
     `;
     
-    if (data.sender === state.currentUser && !data.deleted) {
+    if (data.sender === state.currentUser && !data.deleted && !data.file && !data.audio) {
         actionsHTML += `
             <button class="edit" data-action="edit" title="تعديل">
                 <span class="material-symbols-outlined">edit</span>
@@ -1076,68 +1135,43 @@ function createMessage(id, data, self) {
     // ربط أحداث الأزرار
     actions.querySelector('.reply')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        e.preventDefault();
-        hideAllMessageActions(200);
-        setTimeout(() => {
-            setReply(id, data.sender, data.text);
-        }, 250);
+        setReply(id, data.sender, data.text || 'ملف');
+        hideAllMessageActions();
     });
-    
     actions.querySelector('.react')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        e.preventDefault();
-        hideAllMessageActions(200);
-        setTimeout(() => {
-            showReactionPicker(id);
-        }, 250);
+        showReactionPicker(id);
+        hideAllMessageActions();
     });
-    
     actions.querySelector('.copy')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        e.preventDefault();
-        const textToCopy = data.text;
+        const textToCopy = data.text || data.file?.name || 'رسالة';
         navigator.clipboard.writeText(textToCopy).then(() => {
             addSystemMessage('📋 تم نسخ النص', 'info');
         }).catch(() => {});
-        hideAllMessageActions(200);
+        hideAllMessageActions();
     });
-    
     actions.querySelector('.edit')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        e.preventDefault();
-        if (data.text) {
-            hideAllMessageActions(300);
-            setTimeout(() => {
-                startEdit(id, data.text);
-            }, 350);
+        if (data.text && !data.file && !data.audio) {
+            startEdit(id, data.text);
         }
+        hideAllMessageActions();
     });
-    
     actions.querySelector('.report')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        e.preventDefault();
-        hideAllMessageActions(200);
-        setTimeout(() => {
-            reportMsg(id, data.sender);
-        }, 250);
+        reportMsg(id, data.sender);
+        hideAllMessageActions();
     });
-    
     actions.querySelector('.delete')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        e.preventDefault();
-        hideAllMessageActions(0);
-        setTimeout(() => {
-            deleteMsg(id);
-        }, 200);
+        deleteMsg(id);
+        hideAllMessageActions();
     });
-    
     actions.querySelector('.block')?.addEventListener('click', function(e) {
         e.stopPropagation();
-        e.preventDefault();
-        hideAllMessageActions(200);
-        setTimeout(() => {
-            blockUser(data.sender);
-        }, 250);
+        blockUser(data.sender);
+        hideAllMessageActions();
     });
 
     // إضافة العناصر
@@ -1157,7 +1191,9 @@ function createMessage(id, data, self) {
         group.appendChild(content);
     }
 
-    // الضغط المطول
+    // ============================================================
+    // 🖱️ الضغط المطول على الرسالة - مثل تليجرام
+    // ============================================================
     let longPressTimer = null;
     let isLongPress = false;
 
@@ -1202,67 +1238,33 @@ function showMessageActions(actionsElement, messageElement) {
     actionsElement.addEventListener('click', function(e) {
         e.stopPropagation();
     });
-    
-    if (messageElement) {
-        state.activeMessageId = messageElement.dataset.id;
-    }
 }
 
-function hideAllMessageActions(delay = 0) {
-    if (state.hideTimeout) {
-        clearTimeout(state.hideTimeout);
-        state.hideTimeout = null;
+function hideAllMessageActions() {
+    document.querySelectorAll('.msg-actions.active').forEach(el => {
+        el.classList.remove('active');
+    });
+    if (actionsOverlay) {
+        actionsOverlay.classList.remove('active');
     }
-    
-    if (delay > 0) {
-        state.hideTimeout = setTimeout(() => {
-            document.querySelectorAll('.msg-actions.active').forEach(el => {
-                el.classList.remove('active');
-            });
-            if (actionsOverlay) {
-                actionsOverlay.classList.remove('active');
-            }
-            state.activeMessageId = null;
-            state.hideTimeout = null;
-        }, delay);
-    } else {
-        document.querySelectorAll('.msg-actions.active').forEach(el => {
-            el.classList.remove('active');
-        });
-        if (actionsOverlay) {
-            actionsOverlay.classList.remove('active');
-        }
-        state.activeMessageId = null;
-    }
+    state.activeMessageId = null;
 }
 
 if (actionsOverlay) {
     actionsOverlay.addEventListener('click', function() {
-        hideAllMessageActions(100);
+        hideAllMessageActions();
     });
 }
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        hideAllMessageActions(100);
+        hideAllMessageActions();
     }
 });
 
-document.addEventListener('mousedown', function(e) {
-    if (e.target.closest('.msg-actions')) {
-        e.stopPropagation();
-    }
-});
-
-document.addEventListener('touchstart', function(e) {
-    if (e.target.closest('.msg-actions')) {
-        e.stopPropagation();
-    }
-}, { passive: true });
-
-if (el.messages) {
-    el.messages.addEventListener('scroll', function() {
-        hideAllMessageActions(100);
+if (elements.messages) {
+    elements.messages.addEventListener('scroll', function() {
+        hideAllMessageActions();
     }, { passive: true });
 }
 
@@ -1273,16 +1275,16 @@ let currentReactionMessageId = null;
 
 function showReactionPicker(messageId) {
     currentReactionMessageId = messageId;
-    if (el.reactionPicker) {
-        el.reactionPicker.classList.toggle('active');
+    if (elements.reactionPicker) {
+        elements.reactionPicker.classList.toggle('active');
     }
     const msgEl = document.querySelector(`[data-id="${messageId}"]`);
-    if (msgEl && el.reactionPicker) {
+    if (msgEl && elements.reactionPicker) {
         const rect = msgEl.getBoundingClientRect();
         const containerRect = document.querySelector('.chat-container')?.getBoundingClientRect();
         if (containerRect) {
             const top = rect.top - containerRect.top - 60;
-            el.reactionPicker.style.top = Math.max(10, top) + 'px';
+            elements.reactionPicker.style.top = Math.max(10, top) + 'px';
         }
     }
 }
@@ -1291,7 +1293,7 @@ document.querySelectorAll('.reaction-option').forEach(btn => {
     btn.addEventListener('click', function() {
         if (currentReactionMessageId) {
             toggleReaction(currentReactionMessageId, this.dataset.reaction);
-            if (el.reactionPicker) el.reactionPicker.classList.remove('active');
+            if (elements.reactionPicker) elements.reactionPicker.classList.remove('active');
             currentReactionMessageId = null;
         }
     });
@@ -1327,17 +1329,17 @@ function addMessage(id, data, self) {
     if (state.messageIds.has(id)) return;
     state.messageIds.add(id);
 
-    if (el.emptyState) el.emptyState.style.display = 'none';
-    const elMsg = createMessage(id, data, self);
-    if (elMsg && el.messages) {
-        el.messages.appendChild(elMsg);
+    if (elements.emptyState) elements.emptyState.style.display = 'none';
+    const el = createMessage(id, data, self);
+    if (el && elements.messages) {
+        elements.messages.appendChild(el);
         if (!isScrolledToBottom()) {
             state.unreadCount++;
             updateNewMsgBadge();
         }
         setTimeout(() => {
-            if (el.messages) {
-                el.messages.scrollTop = el.messages.scrollHeight;
+            if (elements.messages) {
+                elements.messages.scrollTop = elements.messages.scrollHeight;
             }
         }, 100);
         updateMessageCount();
@@ -1345,30 +1347,30 @@ function addMessage(id, data, self) {
 }
 
 function isScrolledToBottom() {
-    if (!el.messages) return true;
-    return el.messages.scrollTop + el.messages.clientHeight >= el.messages.scrollHeight - 50;
+    if (!elements.messages) return true;
+    return elements.messages.scrollTop + elements.messages.clientHeight >= elements.messages.scrollHeight - 50;
 }
 
 function updateNewMsgBadge() {
-    if (el.newMsgBadge) {
+    if (elements.newMsgBadge) {
         if (state.unreadCount > 0) {
-            el.newMsgBadge.textContent = state.unreadCount;
-            el.newMsgBadge.classList.add('show');
+            elements.newMsgBadge.textContent = state.unreadCount;
+            elements.newMsgBadge.classList.add('show');
         } else {
-            el.newMsgBadge.classList.remove('show');
+            elements.newMsgBadge.classList.remove('show');
         }
     }
 }
 
 function addSystemMessage(text, type) {
     type = type || '';
-    if (el.emptyState) el.emptyState.style.display = 'none';
+    if (elements.emptyState) elements.emptyState.style.display = 'none';
     const div = document.createElement('div');
     div.className = `system-msg${type ? ' ' + type : ''}`;
     div.textContent = text;
-    if (el.messages) {
-        el.messages.appendChild(div);
-        el.messages.scrollTop = el.messages.scrollHeight;
+    if (elements.messages) {
+        elements.messages.appendChild(div);
+        elements.messages.scrollTop = elements.messages.scrollHeight;
     }
     updateMessageCount();
 }
@@ -1387,9 +1389,9 @@ function showRules() {
     const div = document.createElement('div');
     div.className = 'system-msg rules';
     div.innerHTML = rulesHTML;
-    if (el.messages) {
-        el.messages.appendChild(div);
-        el.messages.scrollTop = el.messages.scrollHeight;
+    if (elements.messages) {
+        elements.messages.appendChild(div);
+        elements.messages.scrollTop = elements.messages.scrollHeight;
     }
     updateMessageCount();
 }
@@ -1398,22 +1400,22 @@ function showRules() {
 // 📊 عدد الرسائل والمستخدمين
 // ============================================================
 function updateMessageCount() {
-    if (!el.messages) return;
-    const count = el.messages.querySelectorAll('.msg-group, .system-msg').length;
-    const existing = el.messages.querySelector('.msg-count');
+    if (!elements.messages) return;
+    const count = elements.messages.querySelectorAll('.msg-group, .system-msg').length;
+    const existing = elements.messages.querySelector('.msg-count');
     if (existing) existing.remove();
 
     if (count > 0) {
         const div = document.createElement('div');
         div.className = 'msg-count';
         div.innerHTML = `📬 <span>${count}</span> رسالة`;
-        el.messages.insertBefore(div, el.messages.firstChild);
+        elements.messages.insertBefore(div, elements.messages.firstChild);
     }
 }
 
 function updateOnlineCount() {
-    if (el.onlineCount) {
-        el.onlineCount.textContent = `🟢 ${state.onlineUsers.size}`;
+    if (elements.onlineCount) {
+        elements.onlineCount.textContent = `🟢 ${state.onlineUsers.size}`;
     }
 }
 
@@ -1421,7 +1423,7 @@ function updateOnlineCount() {
 // 📥 تحميل الرسائل
 // ============================================================
 function loadMessages() {
-    if (el.emptyState) el.emptyState.style.display = 'flex';
+    if (elements.emptyState) elements.emptyState.style.display = 'flex';
     lastSender = '';
     state.messageIds.clear();
 
@@ -1429,7 +1431,7 @@ function loadMessages() {
         .orderBy('timestamp', 'asc')
         .get()
         .then(snapshot => {
-            if (el.emptyState) el.emptyState.style.display = 'none';
+            if (elements.emptyState) elements.emptyState.style.display = 'none';
 
             const promises = [];
             const tempMessages = [];
@@ -1460,13 +1462,13 @@ function loadMessages() {
                     addMessage(id, data, data.sender === state.currentUser);
                 });
 
-                if (snapshot.empty && el.emptyState) el.emptyState.style.display = 'flex';
+                if (snapshot.empty && elements.emptyState) elements.emptyState.style.display = 'flex';
                 showRules();
                 updateMessageCount();
 
                 setTimeout(() => {
-                    if (el.messages) {
-                        el.messages.scrollTop = el.messages.scrollHeight;
+                    if (elements.messages) {
+                        elements.messages.scrollTop = elements.messages.scrollHeight;
                     }
                 }, 100);
             });
@@ -1507,12 +1509,13 @@ function listenMessages() {
                 }
 
                 if (change.type === 'modified') {
-                    const existing = el.messages?.querySelector(`[data-id="${change.doc.id}"]`);
+                    const existing = elements.messages?.querySelector(`[data-id="${change.doc.id}"]`);
                     if (existing) {
                         const text = existing.querySelector('.msg-text');
                         if (text) {
                             if (data.deleted) {
                                 text.innerHTML = '<span class="deleted-badge">🗑️ تم حذف هذه الرسالة نهائياً</span>';
+                            } else if (data.file || data.audio) {
                             } else {
                                 text.innerHTML = data.text + (data.edited ? ' <span class="edited-badge">(معدّل)</span>' : '');
                                 if (isEmojiOnly(data.text)) text.classList.add('emoji-big');
@@ -1542,7 +1545,7 @@ function listenMessages() {
                 }
 
                 if (change.type === 'removed') {
-                    const existing = el.messages?.querySelector(`[data-id="${change.doc.id}"]`);
+                    const existing = elements.messages?.querySelector(`[data-id="${change.doc.id}"]`);
                     if (existing) existing.remove();
                     state.messageIds.delete(change.doc.id);
                     updateMessageCount();
@@ -1550,9 +1553,9 @@ function listenMessages() {
             });
 
             if (snapshot.empty) {
-                if (el.emptyState) el.emptyState.style.display = 'flex';
+                if (elements.emptyState) elements.emptyState.style.display = 'flex';
             } else {
-                if (el.emptyState) el.emptyState.style.display = 'none';
+                if (elements.emptyState) elements.emptyState.style.display = 'none';
             }
         }, error => {
             console.error('❌ خطأ في الاستماع للرسائل:', error);
@@ -1563,7 +1566,7 @@ function listenMessages() {
 // 📤 إرسال الرسالة
 // ============================================================
 function sendMessage() {
-    const raw = el.msgInput ? el.msgInput.value.trim() : '';
+    const raw = elements.msgInput ? elements.msgInput.value.trim() : '';
     if (!raw || !state.isLoggedIn) {
         return;
     }
@@ -1575,7 +1578,7 @@ function sendMessage() {
     const text = sanitizeInput(raw);
     if (!text) return;
     if (handleBadWord(text, state.currentUser)) {
-        if (el.msgInput) el.msgInput.value = '';
+        if (elements.msgInput) elements.msgInput.value = '';
         return;
     }
     if (state.editingMessage) {
@@ -1583,8 +1586,8 @@ function sendMessage() {
         return;
     }
 
-    if (el.sendBtn) el.sendBtn.disabled = true;
-    if (el.msgInput) el.msgInput.disabled = true;
+    if (elements.sendBtn) elements.sendBtn.disabled = true;
+    if (elements.msgInput) elements.msgInput.disabled = true;
 
     const data = {
         text: text,
@@ -1606,8 +1609,8 @@ function sendMessage() {
 
     db.collection('messages').add(data)
         .then(() => {
-            if (el.msgInput) el.msgInput.value = '';
-            if (el.msgInput) el.msgInput.focus();
+            if (elements.msgInput) elements.msgInput.value = '';
+            if (elements.msgInput) elements.msgInput.focus();
             clearReply();
             state.unreadCount = 0;
             updateNewMsgBadge();
@@ -1617,8 +1620,8 @@ function sendMessage() {
             alert('⚠️ فشل الإرسال: ' + error.message);
         })
         .finally(() => {
-            if (el.sendBtn) el.sendBtn.disabled = false;
-            if (el.msgInput) el.msgInput.disabled = false;
+            if (elements.sendBtn) elements.sendBtn.disabled = false;
+            if (elements.msgInput) elements.msgInput.disabled = false;
         });
 }
 
@@ -1627,11 +1630,11 @@ function sendMessage() {
 // ============================================================
 function startEdit(id, text) {
     state.editingMessage = { id, text };
-    if (el.msgInput) el.msgInput.value = text;
-    if (el.msgInput) el.msgInput.focus();
-    if (el.sendBtn) {
-        el.sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
-        el.sendBtn.style.background = 'var(--orange)';
+    if (elements.msgInput) elements.msgInput.value = text;
+    if (elements.msgInput) elements.msgInput.focus();
+    if (elements.sendBtn) {
+        elements.sendBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
+        elements.sendBtn.style.background = 'var(--orange)';
     }
 }
 
@@ -1641,11 +1644,11 @@ function updateMsg(id, newText) {
     db.collection('messages').doc(id).update({ text: newText, edited: true })
         .then(() => {
             state.editingMessage = null;
-            if (el.sendBtn) {
-                el.sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
-                el.sendBtn.style.background = '';
+            if (elements.sendBtn) {
+                elements.sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+                elements.sendBtn.style.background = '';
             }
-            if (el.msgInput) el.msgInput.value = '';
+            if (elements.msgInput) elements.msgInput.value = '';
         })
         .catch(err => console.error('❌ خطأ في التعديل:', err));
 }
@@ -1685,10 +1688,10 @@ function clearChat() {
         })
         .then(() => {
             addSystemMessage('🗑️ تم حذف جميع الرسائل نهائياً بواسطة المسؤول', 'success');
-            if (el.messages) {
-                el.messages.querySelectorAll('.msg-group, .system-msg, .msg-count').forEach(el => el.remove());
+            if (elements.messages) {
+                elements.messages.querySelectorAll('.msg-group, .system-msg, .msg-count').forEach(el => el.remove());
             }
-            if (el.emptyState) el.emptyState.style.display = 'flex';
+            if (elements.emptyState) elements.emptyState.style.display = 'flex';
             state.messageIds.clear();
             updateMessageCount();
             showLoading(false);
@@ -1700,8 +1703,8 @@ function clearChat() {
         });
 }
 
-if (el.clearChatBtn) {
-    el.clearChatBtn.addEventListener('click', clearChat);
+if (elements.clearChatBtn) {
+    elements.clearChatBtn.addEventListener('click', clearChat);
 }
 
 // ============================================================
@@ -1716,8 +1719,8 @@ function blockUser(username) {
         db.collection('blocked').doc('list').set({ users: state.blockedUsers })
             .then(() => {
                 addSystemMessage(`🚫 @${username} تم حظره بواسطة المسؤول`, 'warning');
-                if (el.messages) {
-                    el.messages.querySelectorAll(`[data-sender="${username}"]`).forEach(el => el.remove());
+                if (elements.messages) {
+                    elements.messages.querySelectorAll(`[data-sender="${username}"]`).forEach(el => el.remove());
                 }
                 loadAdminUsers();
                 updateMessageCount();
@@ -1768,8 +1771,8 @@ function deleteUserAccount(username) {
         })
         .then(() => {
             addSystemMessage(`🗑️ تم حذف حساب @${username} بالكامل نهائياً بواسطة المسؤول`, 'success');
-            if (el.messages) {
-                el.messages.querySelectorAll(`[data-sender="${username}"]`).forEach(el => el.remove());
+            if (elements.messages) {
+                elements.messages.querySelectorAll(`[data-sender="${username}"]`).forEach(el => el.remove());
             }
             loadAdminUsers();
             showLoading(false);
@@ -1815,40 +1818,43 @@ function reportMsg(id, sender) {
 }
 
 // ============================================================
-// 📌 شريط الرجعة
+// ============================================================
+// 📌 شريط الرجعة - مثل واتساب
 // ============================================================
 function setReply(id, sender, text) {
     state.replyTo = { id, sender, text };
     
-    if (el.replyBarSender) {
-        el.replyBarSender.textContent = `@${sender}`;
+    // تحديث شريط الرجعة
+    if (elements.replyBarSender) {
+        elements.replyBarSender.textContent = `@${sender}`;
     }
-    if (el.replyBarText) {
-        el.replyBarText.textContent = text.substring(0, 80) + (text.length > 80 ? '...' : '');
+    if (elements.replyBarText) {
+        elements.replyBarText.textContent = text.substring(0, 80) + (text.length > 80 ? '...' : '');
     }
-    if (el.replyBar) {
-        el.replyBar.style.display = 'flex';
-        el.replyBar.style.animation = 'slideDown 0.2s ease';
+    if (elements.replyBar) {
+        elements.replyBar.style.display = 'flex';
+        elements.replyBar.style.animation = 'slideDown 0.2s ease';
     }
     
-    if (el.msgInput) {
-        el.msgInput.placeholder = 'اكتب ردك...';
-        el.msgInput.focus();
+    if (elements.msgInput) {
+        elements.msgInput.placeholder = 'اكتب ردك...';
+        elements.msgInput.focus();
     }
 }
 
 function clearReply() {
     state.replyTo = null;
-    if (el.replyBar) {
-        el.replyBar.style.display = 'none';
+    if (elements.replyBar) {
+        elements.replyBar.style.display = 'none';
     }
-    if (el.msgInput) {
-        el.msgInput.placeholder = 'اكتب رسالة...';
+    if (elements.msgInput) {
+        elements.msgInput.placeholder = 'اكتب رسالة...';
     }
 }
 
-if (el.replyBarClose) {
-    el.replyBarClose.addEventListener('click', clearReply);
+// إغلاق شريط الرجعة
+if (elements.replyBarClose) {
+    elements.replyBarClose.addEventListener('click', clearReply);
 }
 
 // ============================================================
@@ -1856,14 +1862,24 @@ if (el.replyBarClose) {
 // ============================================================
 function loadAdminUsers() {
     if (!state.isAdmin || !state.isAdminVerified) return;
-    if (!el.adminUsersList) return;
+    if (!db) {
+        if (elements.adminUsersList) {
+            elements.adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">جاري الاتصال...</div>';
+        }
+        setTimeout(loadAdminUsers, 2000);
+        return;
+    }
     
-    el.adminUsersList.innerHTML = '<div style="color:var(--whatsapp-text-muted);font-size:12px;">جاري التحميل...</div>';
+    if (elements.adminUsersList) {
+        elements.adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">جاري التحميل...</div>';
+    }
 
     db.collection('users').get()
         .then(snapshot => {
             if (snapshot.empty) {
-                el.adminUsersList.innerHTML = '<div style="color:var(--whatsapp-text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>';
+                if (elements.adminUsersList) {
+                    elements.adminUsersList.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">لا يوجد مستخدمون مسجلون</div>';
+                }
                 return;
             }
 
@@ -1903,7 +1919,7 @@ function loadAdminUsers() {
                                                 ${avatarHtml}
                                             </div>
                                             <span>${data.username}${data.username === ADMIN_NAME ? ' 👑' : ''}${blocked ? ' 🚫' : ''}${online ? ' 🟢' : ' ⚪'}</span>
-                                            ${vcount > 0 ? `<span style="font-size:9px;color:var(--orange);background:rgba(251,191,36,0.1);padding:0 5px;border-radius:4px;">⚠️ ${vcount}</span>` : ''}
+                                            ${vcount > 0 ? `<span style="font-size:9px;color:var(--orange);background:rgba(250,168,26,0.08);padding:0 5px;border-radius:4px;">⚠️ ${vcount}</span>` : ''}
                                         </div>
                                         <div class="user-actions">
                                             ${data.username !== ADMIN_NAME ? `
@@ -1917,20 +1933,24 @@ function loadAdminUsers() {
                                     </div>
                                 `;
                             });
-                            el.adminUsersList.innerHTML = html;
+                            if (elements.adminUsersList) {
+                                elements.adminUsersList.innerHTML = html;
+                            }
                         });
                 });
         })
         .catch(() => {
-            el.adminUsersList.innerHTML = '<div style="color:var(--red);font-size:12px;">❌ خطأ في التحميل</div>';
+            if (elements.adminUsersList) {
+                elements.adminUsersList.innerHTML = '<div style="color:var(--red);font-size:12px;">❌ خطأ في التحميل</div>';
+            }
         });
 }
 
 // ============================================================
 // 🚪 تسجيل الخروج القسري
 // ============================================================
-if (el.forceLogoutBtn) {
-    el.forceLogoutBtn.addEventListener('click', function() {
+if (elements.forceLogoutBtn) {
+    elements.forceLogoutBtn.addEventListener('click', function() {
         if (!state.isAdmin || !state.isAdminVerified) return;
         if (!confirm('⚠️ هل أنت متأكد من تسجيل خروج جميع المستخدمين؟')) return;
 
@@ -1963,7 +1983,7 @@ function logout() {
 }
 
 function performLogout() {
-    if (state.currentUser) {
+    if (state.currentUser && db) {
         db.collection('users').doc(state.currentUser).update({
             online: false,
             lastSeen: firebase.firestore.FieldValue.serverTimestamp()
@@ -1978,11 +1998,11 @@ function performLogout() {
 
     if (state.unsubscribe) state.unsubscribe();
 
-    if (el.chatContainer) el.chatContainer.style.display = 'none';
-    if (el.loginOverlay) el.loginOverlay.classList.remove('hidden');
+    if (elements.chatContainer) elements.chatContainer.style.display = 'none';
+    if (elements.loginOverlay) elements.loginOverlay.classList.remove('hidden');
 
-    if (el.messages) {
-        el.messages.innerHTML = `
+    if (elements.messages) {
+        elements.messages.innerHTML = `
             <div class="empty-state" id="emptyState">
                 <div class="empty-icon"><span class="material-symbols-outlined">chat</span></div>
                 <div class="empty-title">لا توجد رسائل</div>
@@ -1991,25 +2011,25 @@ function performLogout() {
         `;
     }
 
-    if (el.msgInput) el.msgInput.disabled = true;
-    if (el.sendBtn) {
-        el.sendBtn.disabled = true;
-        el.sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
-        el.sendBtn.style.background = '';
+    if (elements.msgInput) elements.msgInput.disabled = true;
+    if (elements.sendBtn) {
+        elements.sendBtn.disabled = true;
+        elements.sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+        elements.sendBtn.style.background = '';
     }
     clearReply();
     state.editingMessage = null;
 
-    if (el.infoMsg) {
-        el.infoMsg.textContent = '👋 تم تسجيل الخروج';
-        el.infoMsg.classList.add('show');
+    if (elements.infoMsg) {
+        elements.infoMsg.textContent = '👋 تم تسجيل الخروج';
+        elements.infoMsg.classList.add('show');
         setTimeout(() => {
-            if (el.infoMsg) el.infoMsg.classList.remove('show');
+            if (elements.infoMsg) elements.infoMsg.classList.remove('show');
         }, 2000);
     }
 
-    if (el.usernameInput) el.usernameInput.value = '';
-    if (el.loginAdminPasswordBox) el.loginAdminPasswordBox.style.display = 'none';
+    if (elements.usernameInput) elements.usernameInput.value = '';
+    if (elements.loginAdminPasswordBox) elements.loginAdminPasswordBox.style.display = 'none';
     state.isAdminLoginAttempt = false;
 
     state.userAvatarBase64 = '';
@@ -2021,15 +2041,15 @@ function performLogout() {
     updateOnlineCount();
 }
 
-if (el.logoutBtn) {
-    el.logoutBtn.addEventListener('click', logout);
+if (elements.logoutBtn) {
+    elements.logoutBtn.addEventListener('click', logout);
 }
 
 // ============================================================
 // 🔍 التحقق من الخروج القسري
 // ============================================================
 function checkForceLogout() {
-    if (state.currentUser) {
+    if (state.currentUser && db) {
         db.collection('users').doc(state.currentUser).get()
             .then(doc => {
                 if (doc.exists && doc.data().forceLogout === true) {
@@ -2047,6 +2067,7 @@ setInterval(checkForceLogout, 5000);
 // 👤 حالة المستخدم
 // ============================================================
 function setUserOnline(name) {
+    if (!db) return;
     db.collection('users').doc(name).set({
         username: name,
         color: state.userColor,
@@ -2103,50 +2124,60 @@ function checkSession() {
 async function login() {
     console.log('🟢 محاولة تسجيل الدخول...');
     
-    const raw = el.usernameInput ? el.usernameInput.value.trim() : '';
+    if (!db || !auth) {
+        console.error('❌ Firebase غير جاهز');
+        if (elements.connectionError) {
+            elements.connectionError.textContent = '⚠️ جاري تهيئة الاتصال... يرجى المحاولة مرة أخرى';
+            elements.connectionError.style.display = 'block';
+        }
+        setTimeout(() => login(), 2000);
+        return;
+    }
+    
+    const raw = elements.usernameInput ? elements.usernameInput.value.trim() : '';
     
     if (!raw || raw.length < 2) {
-        if (el.loginError) {
-            el.loginError.style.display = 'block';
-            el.loginError.textContent = '⚠️ الاسم يجب أن يكون حرفين على الأقل';
+        if (elements.loginError) {
+            elements.loginError.style.display = 'block';
+            elements.loginError.textContent = '⚠️ الاسم يجب أن يكون حرفين على الأقل';
         }
         return;
     }
 
     if (raw === ADMIN_NAME) {
-        const pass = el.loginAdminPasswordInput ? el.loginAdminPasswordInput.value.trim() : '';
+        const pass = elements.loginAdminPasswordInput ? elements.loginAdminPasswordInput.value.trim() : '';
         
         if (pass !== ADMIN_PASSWORD) {
-            if (el.loginAdminPasswordError) {
-                el.loginAdminPasswordError.classList.add('show');
+            if (elements.loginAdminPasswordError) {
+                elements.loginAdminPasswordError.classList.add('show');
             }
-            if (el.loginAdminPasswordInput) {
-                el.loginAdminPasswordInput.value = '';
-                el.loginAdminPasswordInput.focus();
+            if (elements.loginAdminPasswordInput) {
+                elements.loginAdminPasswordInput.value = '';
+                elements.loginAdminPasswordInput.focus();
             }
             return;
         }
-        if (el.loginAdminPasswordError) {
-            el.loginAdminPasswordError.classList.remove('show');
+        if (elements.loginAdminPasswordError) {
+            elements.loginAdminPasswordError.classList.remove('show');
         }
     }
 
     const name = sanitizeInput(raw);
     if (!name) {
-        if (el.loginError) {
-            el.loginError.textContent = '⚠️ اسم غير صالح';
-            el.loginError.style.display = 'block';
+        if (elements.loginError) {
+            elements.loginError.textContent = '⚠️ اسم غير صالح';
+            elements.loginError.style.display = 'block';
         }
         return;
     }
 
-    if (el.loginError) el.loginError.style.display = 'none';
-    if (el.connectionError) el.connectionError.style.display = 'none';
+    if (elements.loginError) elements.loginError.style.display = 'none';
+    if (elements.connectionError) elements.connectionError.style.display = 'none';
 
     showLoading(true);
-    if (el.loginBtn) {
-        el.loginBtn.disabled = true;
-        el.loginBtn.innerHTML = '⏳ جاري...';
+    if (elements.loginBtn) {
+        elements.loginBtn.disabled = true;
+        elements.loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span> جاري...';
     }
 
     try {
@@ -2168,35 +2199,35 @@ async function login() {
         state.muteCount = 0;
 
         if (state.muteTimeout) clearTimeout(state.muteTimeout);
-        if (el.mutedNotice) el.mutedNotice.classList.remove('active');
+        if (elements.mutedNotice) elements.mutedNotice.classList.remove('active');
 
         if (state.isAdmin) {
-            if (el.adminBtn) el.adminBtn.classList.remove('hidden');
-            if (el.adminBadge) el.adminBadge.classList.add('show');
+            if (elements.adminBtn) elements.adminBtn.classList.remove('hidden');
+            if (elements.adminBadge) elements.adminBadge.classList.add('show');
         } else {
-            if (el.adminBtn) el.adminBtn.classList.add('hidden');
-            if (el.adminBadge) el.adminBadge.classList.remove('show');
+            if (elements.adminBtn) elements.adminBtn.classList.add('hidden');
+            if (elements.adminBadge) elements.adminBadge.classList.remove('show');
         }
 
         await loadBlockedUsers();
 
-        if (el.loginOverlay) el.loginOverlay.classList.add('hidden');
-        if (el.chatContainer) el.chatContainer.style.display = 'flex';
+        if (elements.loginOverlay) elements.loginOverlay.classList.add('hidden');
+        if (elements.chatContainer) elements.chatContainer.style.display = 'flex';
 
-        if (el.msgInput) el.msgInput.disabled = false;
-        if (el.sendBtn) el.sendBtn.disabled = false;
-        if (el.msgInput) el.msgInput.focus();
+        if (elements.msgInput) elements.msgInput.disabled = false;
+        if (elements.sendBtn) elements.sendBtn.disabled = false;
+        if (elements.msgInput) elements.msgInput.focus();
 
         updateAllAvatars(avatarBase64, name);
 
-        if (state.isAdmin) {
+        if (state.isAdmin && db) {
             db.collection('users').doc(name).update({ forceLogout: false }).catch(() => {});
         }
 
         setUserOnline(name);
         saveSession(name, state.userColor, avatarBase64);
 
-        if (state.isAdmin) {
+        if (state.isAdmin && db) {
             db.collection('settings').doc('theme').get()
                 .then(doc => {
                     if (doc.exists && doc.data().theme) {
@@ -2218,56 +2249,58 @@ async function login() {
         listenMessages();
         loadBadWords();
 
-        db.collection('users').where('online', '==', true).onSnapshot(snapshot => {
-            state.onlineUsers.clear();
-            snapshot.forEach(doc => state.onlineUsers.add(doc.id));
-            updateOnlineCount();
-        });
+        if (db) {
+            db.collection('users').where('online', '==', true).onSnapshot(snapshot => {
+                state.onlineUsers.clear();
+                snapshot.forEach(doc => state.onlineUsers.add(doc.id));
+                updateOnlineCount();
+            });
+        }
 
         window.addEventListener('beforeunload', function() {
-            if (state.currentUser) {
+            if (state.currentUser && db) {
                 db.collection('users').doc(state.currentUser).update({ online: false });
             }
         });
 
     } catch (error) {
         console.error('❌ خطأ في تسجيل الدخول:', error);
-        if (el.connectionError) {
-            el.connectionError.textContent = `❌ ${error.message}`;
-            el.connectionError.style.display = 'block';
+        if (elements.connectionError) {
+            elements.connectionError.textContent = `❌ ${error.message}`;
+            elements.connectionError.style.display = 'block';
         }
-        if (el.loginBtn) {
-            el.loginBtn.disabled = false;
-            el.loginBtn.innerHTML = 'دخول';
+        if (elements.loginBtn) {
+            elements.loginBtn.disabled = false;
+            elements.loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
         }
         showLoading(false);
         return;
     }
 
     showLoading(false);
-    if (el.loginBtn) {
-        el.loginBtn.disabled = false;
-        el.loginBtn.innerHTML = 'دخول';
+    if (elements.loginBtn) {
+        elements.loginBtn.disabled = false;
+        elements.loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> دخول';
     }
 }
 
 // ============================================================
 // 🔄 أحداث الدخول
 // ============================================================
-if (el.loginBtn) {
-    el.loginBtn.addEventListener('click', function(e) {
+if (elements.loginBtn) {
+    elements.loginBtn.addEventListener('click', function(e) {
         e.preventDefault();
         login();
     });
 }
 
-if (el.usernameInput) {
-    el.usernameInput.addEventListener('keypress', function(e) {
+if (elements.usernameInput) {
+    elements.usernameInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             if (state.isAdminLoginAttempt) {
-                if (el.loginAdminPasswordInput) {
-                    el.loginAdminPasswordInput.focus();
+                if (elements.loginAdminPasswordInput) {
+                    elements.loginAdminPasswordInput.focus();
                 }
             } else {
                 login();
@@ -2276,8 +2309,8 @@ if (el.usernameInput) {
     });
 }
 
-if (el.loginAdminPasswordInput) {
-    el.loginAdminPasswordInput.addEventListener('keypress', function(e) {
+if (elements.loginAdminPasswordInput) {
+    elements.loginAdminPasswordInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             login();
@@ -2286,10 +2319,10 @@ if (el.loginAdminPasswordInput) {
 }
 
 // ============================================================
-// ⌨️ أحداث الإدخال
+// ⌨️ أحداث الإدخال - زر المسافة للشطر الجديد
 // ============================================================
-if (el.msgInput) {
-    el.msgInput.addEventListener('keydown', function(e) {
+if (elements.msgInput) {
+    elements.msgInput.addEventListener('keydown', function(e) {
         // Shift + Enter = سطر جديد
         if (e.key === 'Enter' && e.shiftKey) {
             e.preventDefault();
@@ -2301,27 +2334,27 @@ if (el.msgInput) {
             return;
         }
         
-        // Enter فقط = إرسال
+        // Enter فقط = إرسال (بدون Shift)
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (el.sendBtn && !el.sendBtn.disabled) {
-                el.sendBtn.click();
+            if (elements.sendBtn && !elements.sendBtn.disabled) {
+                elements.sendBtn.click();
             }
             return;
         }
         
-        // Escape = إلغاء
+        // Escape = إلغاء التعديل أو الرد
         if (e.key === 'Escape') {
             if (state.editingMessage) {
                 state.editingMessage = null;
-                if (el.sendBtn) {
-                    el.sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
-                    el.sendBtn.style.background = '';
+                if (elements.sendBtn) {
+                    elements.sendBtn.innerHTML = '<span class="material-symbols-outlined">send</span>';
+                    elements.sendBtn.style.background = '';
                 }
-                if (el.msgInput) el.msgInput.value = '';
+                if (elements.msgInput) elements.msgInput.value = '';
             }
             clearReply();
-            hideAllMessageActions(100);
+            hideAllMessageActions();
         }
     });
 }
@@ -2334,17 +2367,17 @@ function init() {
     
     loadSavedTheme();
     
-    if (el.infoMsg) {
-        el.infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
-        el.infoMsg.classList.add('show');
+    if (elements.infoMsg) {
+        elements.infoMsg.textContent = '👋 أدخل اسمك ثم اضغط دخول';
+        elements.infoMsg.classList.add('show');
         setTimeout(() => {
-            if (el.infoMsg) el.infoMsg.classList.remove('show');
+            if (elements.infoMsg) elements.infoMsg.classList.remove('show');
         }, 3000);
     }
 
     const session = checkSession();
     if (session) {
-        if (el.usernameInput) el.usernameInput.value = session.username || '';
+        if (elements.usernameInput) elements.usernameInput.value = session.username || '';
         state.userColor = session.color || '#2b6ef0';
         state.userAvatarBase64 = session.avatar || '';
         document.querySelectorAll('.color-circle').forEach(el => {
@@ -2357,11 +2390,11 @@ function init() {
 // ============================================================
 // 🖱️ زر التمرير للأسفل
 // ============================================================
-if (el.messages) {
-    el.messages.addEventListener('scroll', function() {
+if (elements.messages) {
+    elements.messages.addEventListener('scroll', function() {
         const atBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 50;
-        if (el.scrollBottomBtn) {
-            el.scrollBottomBtn.classList.toggle('show', !atBottom);
+        if (elements.scrollBottomBtn) {
+            elements.scrollBottomBtn.classList.toggle('show', !atBottom);
         }
         if (atBottom && state.unreadCount > 0) {
             state.unreadCount = 0;
@@ -2370,10 +2403,10 @@ if (el.messages) {
     });
 }
 
-if (el.scrollBottomBtn) {
-    el.scrollBottomBtn.addEventListener('click', function() {
-        if (el.messages) {
-            el.messages.scrollTo({ top: el.messages.scrollHeight, behavior: 'smooth' });
+if (elements.scrollBottomBtn) {
+    elements.scrollBottomBtn.addEventListener('click', function() {
+        if (elements.messages) {
+            elements.messages.scrollTo({ top: elements.messages.scrollHeight, behavior: 'smooth' });
         }
         if (state.unreadCount > 0) {
             state.unreadCount = 0;
@@ -2385,8 +2418,8 @@ if (el.scrollBottomBtn) {
 // ============================================================
 // 📤 أحداث الإرسال
 // ============================================================
-if (el.sendBtn) {
-    el.sendBtn.addEventListener('click', sendMessage);
+if (elements.sendBtn) {
+    elements.sendBtn.addEventListener('click', sendMessage);
 }
 
 // ============================================================
@@ -2394,20 +2427,22 @@ if (el.sendBtn) {
 // ============================================================
 state.userIP = getHashedIP();
 
-console.log(`🚀 نيزك ${VERSION} - دردشة متطورة`);
+console.log(`🚀 نيزك ${VERSION} - دردشة متطورة مع جميع الميزات`);
 console.log(`👑 المسؤول: ${ADMIN_NAME}`);
 console.log(`🔒 كلمة المرور: ${ADMIN_PASSWORD}`);
+console.log(`📱 الميزات: سحب للرد • تفاعلات • تعديل • بحث • شريط الرجعة`);
 console.log(`⌨️ Shift+Enter = سطر جديد, Enter = إرسال`);
 console.log(`🖱️ ضغط مطول = قائمة الخيارات`);
+console.log(`📌 شريط الرجعة = مثل واتساب`);
 
 // بدء التطبيق بعد تحميل الصفحة
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('📄 تم تحميل الصفحة');
+        console.log('📄 تم تحميل الصفحة بالكامل');
         init();
     });
 } else {
-    console.log('📄 الصفحة جاهزة');
+    console.log('📄 الصفحة جاهزة بالفعل');
     init();
 }
 
