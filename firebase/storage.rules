@@ -1,0 +1,33 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ===== الصور الشخصية =====
+    match /avatars/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.uid == userId &&
+        request.resource.size < 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && 
+        (request.auth.uid == userId ||
+         exists(/databases/nezak-b7284/documents/users/$(request.auth.uid)/isAdmin) == true);
+    }
+    
+    // ===== المرفقات =====
+    match /attachments/{chatId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.resource.size < 10 * 1024 * 1024;
+      allow delete: if request.auth != null &&
+        exists(/databases/nezak-b7284/documents/users/$(request.auth.uid)/isAdmin) == true;
+    }
+    
+    // ===== ملفات مؤقتة =====
+    match /temp/{userId}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
