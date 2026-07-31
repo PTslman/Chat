@@ -533,3 +533,28 @@ function blockUser(username) {
             });
     }
 }
+// ============================================================
+// جعل الدوال والمتغيرات عامة
+// ============================================================
+window.replyTo = replyTo;
+window.editingMessage = editingMessage;
+window.lastSender = lastSender;
+window.messageIds = messageIds;
+window.badWords = badWords;
+
+window.createMessage = createMessage;
+window.hideAllActions = hideAllActions;
+window.addMessage = addMessage;
+window.addSystemMessage = addSystemMessage;
+window.showRules = showRules;
+window.updateMessageCount = updateMessageCount;
+window.loadMessages = loadMessages;
+window.listenMessages = listenMessages;
+window.sendMessage = sendMessage;
+window.startEdit = startEdit;
+window.updateMsg = updateMsg;
+window.deleteMsg = deleteMsg;
+window.reportMsg = reportMsg;
+window.setReply = setReply;
+window.clearReply = clearReply;
+window.blockUser = blockUser;
