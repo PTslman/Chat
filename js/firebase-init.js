@@ -1,5 +1,5 @@
 // ============================================================
-// 🚀 FIREBASE INIT - نيزك v3.5.0 (الحل النهائي)
+// 🚀 FIREBASE INIT - نيزك v3.5.0
 // ============================================================
 
 console.log('🚀 بدء تهيئة Firebase...');
@@ -19,74 +19,39 @@ try {
     }
 }
 
-// ============================================================
-// 🔥 تمكين التخزين المؤقت (Persistence) بشكل قوي
-// ============================================================
+// تعطيل التخزين المؤقت مؤقتاً لتجنب المشاكل
 if (window.db) {
+    window.db.settings({ 
+        merge: true 
+    });
+    
+    // محاولة تفعيل التخزين المؤقت مع تجاهل الأخطاء
     window.db.enablePersistence({ synchronizeTabs: true })
         .then(() => {
-            console.log('✅ التخزين المؤقت مفعل بنجاح');
+            console.log('✅ التخزين المؤقت مفعل');
         })
         .catch((err) => {
-            console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
-            // نستمر بدون persistence
+            console.warn('⚠️ فشل تفعيل التخزين المؤقت، نستمر بدون:', err);
         });
-
-    // إعدادات إضافية لتحسين الأداء
-    window.db.settings({ merge: true });
 }
 
 // ============================================================
-// 📶 دالة التحقق من الاتصال - باستخدام onSnapshot
+// دالة التحقق من الاتصال
 // ============================================================
 window.checkConnection = function() {
     return new Promise((resolve) => {
         if (!window.db) return resolve(false);
         
-        // استخدام onSnapshot بدلاً من get() للاستماع الفوري
-        const unsub = window.db.collection('users').limit(1).onSnapshot(
-            () => {
-                unsub();
+        window.db.collection('users').limit(1).get()
+            .then(() => {
+                console.log('✅ الاتصال نشط');
                 resolve(true);
-            },
-            (error) => {
-                unsub();
-                console.warn('⚠️ فشل الاتصال:', error.message);
+            })
+            .catch((err) => {
+                console.warn('⚠️ فشل الاتصال:', err.message);
                 resolve(false);
-            }
-        );
-        
-        // مهلة 5 ثوانٍ
-        setTimeout(() => {
-            unsub();
-            resolve(false);
-        }, 5000);
+            });
     });
 };
 
-// ============================================================
-// 📡 مراقبة الاتصال المستمر
-// ============================================================
-window.startConnectionMonitor = function(callback) {
-    if (!window.db) return;
-    
-    let isOnline = true;
-    window.db.collection('users').limit(1).onSnapshot(
-        () => {
-            if (!isOnline) {
-                isOnline = true;
-                console.log('✅ الاتصال عاد');
-                if (callback) callback(true);
-            }
-        },
-        (error) => {
-            if (isOnline) {
-                isOnline = false;
-                console.warn('⚠️ فقدان الاتصال:', error.message);
-                if (callback) callback(false);
-            }
-        }
-    );
-};
-
-console.log('✅ تم تحميل firebase-init.js (الحل النهائي)');
+console.log('✅ تم تحميل firebase-init.js');
