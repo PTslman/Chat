@@ -1,3 +1,8 @@
+/* ========================================
+   NEZAK CHAT - STYLE BASE
+   ======================================== */
+
+/* ---------- إعدادات عامة ---------- */
 * {
     margin: 0;
     padding: 0;
@@ -13,6 +18,7 @@ body {
     align-items: center;
 }
 
+/* ---------- حاوية الدردشة ---------- */
 .chat-container {
     width: 100%;
     max-width: 400px;
@@ -25,7 +31,7 @@ body {
     overflow: hidden;
 }
 
-/* Login Page Styles */
+/* ---------- صفحة تسجيل الدخول ---------- */
 .login-container {
     background: white;
     padding: 40px;
@@ -73,7 +79,7 @@ body {
     transform: translateY(-2px);
 }
 
-/* Chat Header */
+/* ---------- رأس الدردشة ---------- */
 .chat-header {
     background: #667eea;
     color: white;
@@ -92,7 +98,7 @@ body {
     opacity: 0.9;
 }
 
-/* Messages Area */
+/* ---------- منطقة الرسائل ---------- */
 .messages-area {
     flex: 1;
     overflow-y: auto;
@@ -146,7 +152,7 @@ body {
     margin-top: 5px;
 }
 
-/* Input Area */
+/* ---------- منطقة الإدخال ---------- */
 .input-area {
     padding: 15px;
     background: white;
@@ -183,7 +189,7 @@ body {
     background: #5a67d8;
 }
 
-/* Admin Panel */
+/* ---------- لوحة التحكم ---------- */
 .admin-panel {
     background: white;
     border-radius: 20px;
@@ -219,11 +225,7 @@ body {
     background: #c53030;
 }
 
-.hidden {
-    display: none !important;
-}
-
-/* Admin Password Modal */
+/* ---------- المودال ---------- */
 .admin-modal {
     position: fixed;
     top: 0;
@@ -256,15 +258,12 @@ body {
     border-radius: 10px;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-    .chat-container, .login-container, .admin-panel {
-        border-radius: 0;
-        height: 100vh;
-        max-width: 100%;
-    }
+/* ---------- عناصر مخفية ---------- */
+.hidden {
+    display: none !important;
 }
-/* أنماط المدير المميز */
+
+/* ---------- شارات ---------- */
 .admin-badge {
     background: #e53e3e;
     color: white;
@@ -283,18 +282,6 @@ body {
     margin-left: 5px;
 }
 
-/* رسائل المدير مميزة */
-.message.sent .bubble {
-    background: #667eea;
-    color: white;
-}
-
-.message.sent .bubble.admin-message {
-    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
-}
-
-/* مؤشر المدير في قائمة الرسائل */
 .admin-indicator {
     display: inline-block;
     background: #e53e3e;
@@ -305,17 +292,26 @@ body {
     margin-left: 5px;
 }
 
-/* تحسينات للوحة التحكم */
-.admin-panel .message-item:hover {
-    background: #f7fafc;
-    transition: all 0.3s;
+/* ---------- استجابة للجوال ---------- */
+@media (max-width: 480px) {
+    .chat-container, .login-container, .admin-panel {
+        border-radius: 0;
+        height: 100vh;
+        max-width: 100%;
+    }
 }
 
-.admin-panel .message-item button:hover {
-    transform: scale(1.05);
-}
 
-/* تأثيرات خاصة للمدير */
+
+
+
+
+/* ========================================
+   ====== التطويرات والإضافات ======
+   ====== أضف أي تحديثات هنا فقط ======
+   ======================================== */
+
+/* ----- التطوير 1: أنماط المدير المميز ----- */
 .admin-mode .chat-header {
     background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
 }
@@ -328,7 +324,23 @@ body {
     background: #c53030;
 }
 
-/* تحسينات للجوال */
+/* رسائل المدير مميزة */
+.message.sent .bubble.admin-message {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+}
+
+/* ----- التطوير 2: تحسينات لوحة التحكم ----- */
+.admin-panel .message-item:hover {
+    background: #f7fafc;
+    transition: all 0.3s;
+}
+
+.admin-panel .message-item button:hover {
+    transform: scale(1.05);
+}
+
+/* ----- التطوير 3: أنماط إضافية للجوال ----- */
 @media (max-width: 480px) {
     .admin-panel {
         padding: 15px;
@@ -343,4 +355,224 @@ body {
     .admin-panel .message-item button {
         width: 100%;
     }
+}
+
+/* ----- التطوير 4: تأثيرات حركية ----- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ----- التطوير 5: ألوان مميزة للمدير ----- */
+.admin-panel .message-item .admin-tag {
+    color: #e53e3e;
+    font-weight: bold;
+}
+
+/* ----- التطوير 6: تحسينات نموذج المدير ----- */
+#adminLoginForm h3 {
+    color: #667eea;
+    text-align: center;
+}
+
+#adminLoginForm button:last-child {
+    background: #999;
+    margin-top: 10px;
+}
+
+#adminLoginForm button:last-child:hover {
+    background: #777;
+}
+
+/* ----- التطوير 7: إحصائيات المدير ----- */
+.admin-stats {
+    background: #f0f4ff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-stats p {
+    font-size: 14px;
+    color: #666;
+}
+
+/* ----- التطوير 8: أزرار المدير ----- */
+.admin-btn-danger {
+    background: #e53e3e !important;
+    color: white !important;
+}
+
+.admin-btn-danger:hover {
+    background: #c53030 !important;
+}
+
+.admin-btn-primary {
+    background: #667eea !important;
+    color: white !important;
+}
+
+.admin-btn-primary:hover {
+    background: #5a67d8 !important;
+}
+
+/* ----- التطوير 9: تنسيق الشريط العلوي ----- */
+.chat-header .user-role {
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+}
+
+.chat-header .admin-role {
+    background: #e53e3e;
+}
+
+.chat-header .user-role {
+    background: #4a5568;
+}
+
+/* ----- التطوير 10: تأثيرات خاصة ----- */
+.glow-effect {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+.admin-glow {
+    box-shadow: 0 0 20px rgba(229, 62, 62, 0.3);
+}
+
+/* ----- التطوير 11: تنسيق زر الخروج ----- */
+.logout-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.3s;
+}
+
+.logout-btn:hover {
+    transform: rotate(90deg);
+}
+
+/* ----- التطوير 12: تنسيق رسائل النظام ----- */
+.system-message {
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    padding: 10px;
+    font-style: italic;
+}
+
+/* ----- التطوير 13: أزرار الإجراءات السريعة ----- */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.quick-actions button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.quick-actions button:hover {
+    transform: translateY(-2px);
+}
+
+/* ----- التطوير 14: تنسيق الشارة ----- */
+.role-badge {
+    font-size: 12px;
+    padding: 2px 12px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.role-badge.admin {
+    background: #e53e3e;
+    color: white;
+}
+
+.role-badge.user {
+    background: #4a5568;
+    color: white;
+}
+
+/* ----- التطوير 15: تحسينات المودال ----- */
+.admin-modal .modal-content {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* ----- التطوير 16: تنسيق الحاوية ----- */
+.container-modern {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border-radius: 30px;
+}
+
+/* ----- التطوير 17: ألوان مخصصة ----- */
+.color-primary {
+    color: #667eea;
+}
+
+.color-danger {
+    color: #e53e3e;
+}
+
+.color-success {
+    color: #48bb78;
+}
+
+.bg-primary {
+    background: #667eea;
+}
+
+.bg-danger {
+    background: #e53e3e;
+}
+
+/* ----- التطوير 18: تنسيق الفوتر ----- */
+.chat-footer {
+    padding: 10px;
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    border-top: 1px solid #eee;
+}
+
+/* ----- التطوير 19: تحسينات المسؤول ----- */
+.admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* ----- التطوير 20: تنسيق المؤشرات ----- */
+.indicator-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.indicator-dot.online {
+    background: #48bb78;
+}
+
+.indicator-dot.offline {
+    background: #a0aec0;
 }
