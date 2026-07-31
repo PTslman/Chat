@@ -38,15 +38,10 @@ if (window.db) {
         console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
         console.log('📌 نستمر بدون تخزين مؤقت');
     });
-    
-    // إعدادات إضافية للاتصال
-    window.db.settings({
-        merge: true
-    });
 }
 
 // ============================================================
-// ✅ دالة التحقق من الاتصال - معرفة على window
+// ✅ دالة التحقق من الاتصال - باستخدام مسار صحيح
 // ============================================================
 window.checkConnection = function() {
     console.log('🔍 التحقق من الاتصال...');
@@ -57,8 +52,9 @@ window.checkConnection = function() {
             return;
         }
         
-        // محاولة قراءة مستند بسيط للتحقق
-        window.db.collection('_').doc('_').get()
+        // استخدام مسار موجود مثل users أو messages
+        // نستخدم users لأنها موجودة دائماً
+        window.db.collection('users').limit(1).get()
             .then(function() {
                 console.log('✅ الاتصال نشط');
                 resolve(true);
@@ -70,14 +66,28 @@ window.checkConnection = function() {
     });
 };
 
-// مراقبة حالة الاتصال
-if (window.db) {
-    window.db.collection('_').doc('_').onSnapshot(function() {
+// ============================================================
+// 📶 مراقبة حالة الاتصال - باستخدام مسار صحيح
+// ============================================================
+window.monitorConnection = function() {
+    if (!window.db) return;
+    
+    // استخدام مسار موجود
+    window.db.collection('users').limit(1).onSnapshot(function() {
         console.log('✅ الاتصال بقاعدة البيانات نشط');
+        var connectionError = document.getElementById('connectionError');
+        if (connectionError) {
+            connectionError.style.display = 'none';
+        }
     }, function(error) {
         console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error);
+        var connectionError = document.getElementById('connectionError');
+        if (connectionError) {
+            connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
+            connectionError.style.display = 'block';
+        }
     });
-}
+};
 
 console.log('✅ تم تحميل firebase-init.js');
 console.log('✅ window.checkConnection:', typeof window.checkConnection);
