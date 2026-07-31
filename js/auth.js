@@ -1,5 +1,5 @@
 // ============================================================
-// 🔐 AUTH MODULE - نيزك v3.5.0 (الحل النهائي)
+// 🔐 AUTH MODULE - نيزك v3.5.0
 // ============================================================
 
 window.currentUser = '';
@@ -36,45 +36,33 @@ const loginAdminPasswordError = document.getElementById('loginAdminPasswordError
 const headerUsername = document.getElementById('headerUsername');
 
 // ============================================================
-// ✅ التحقق من المستخدم - باستخدام onSnapshot (بدون get)
+// CHECK USER IN DB
 // ============================================================
 window.checkUserInDB = function(username) {
-    return new Promise((resolve) => {
-        if (!window.db) return resolve({ exists: false, isAdmin: false });
-        
-        // نستخدم onSnapshot بدلاً من get لقراءة البيانات المخزنة محلياً
-        const unsub = window.db.collection('users').doc(username).onSnapshot(
-            (doc) => {
-                unsub();
-                if (doc.exists) {
-                    const data = doc.data();
-                    const isAdmin = (username === window.ADMIN_NAME);
-                    resolve({ exists: true, isAdmin: isAdmin, data: data });
-                } else {
-                    resolve({ exists: false, isAdmin: false });
+    console.log('🔍 التحقق من المستخدم:', username);
+    return window.db.collection('users').doc(username).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (username === window.ADMIN_NAME) {
+                    return { exists: true, isAdmin: true, data: data };
                 }
-            },
-            (error) => {
-                unsub();
-                console.warn('⚠️ فشل التحقق من المستخدم:', error.message);
-                // في حال فشل، نعتبر المستخدم غير موجود (للسماح بالتسجيل)
-                resolve({ exists: false, isAdmin: false });
+                return { exists: true, isAdmin: false, data: data };
             }
-        );
-        
-        // مهلة 5 ثوان
-        setTimeout(() => {
-            unsub();
-            resolve({ exists: false, isAdmin: false });
-        }, 5000);
-    });
+            return { exists: false, isAdmin: false };
+        })
+        .catch((err) => {
+            console.warn('⚠️ فشل التحقق من المستخدم:', err.message);
+            return { exists: false, isAdmin: false };
+        });
 };
 
 // ============================================================
-// ✅ تعيين المستخدم متصل - بدون اعتماد على الرد
+// SET USER STATUS
 // ============================================================
 window.setUserOnline = function(name) {
     if (!window.db) return;
+    console.log('🟢 تعيين المستخدم متصل:', name);
     window.db.collection('users').doc(name).set({
         username: name,
         color: window.userColor,
@@ -83,53 +71,44 @@ window.setUserOnline = function(name) {
         forceLogout: false,
         avatar: window.userAvatarBase64 || '',
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).catch(() => {});
+    }, { merge: true })
+    .then(() => console.log('✅ تم تحديث حالة المستخدم'))
+    .catch((err) => console.warn('⚠️ فشل تحديث الحالة:', err.message));
 };
 
 window.setUserOffline = function(name) {
     if (!name || !window.db) return;
+    console.log('🔴 تعيين المستخدم غير متصل:', name);
     window.db.collection('users').doc(name).update({
         online: false,
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(() => {});
+    }).catch((err) => console.warn('⚠️ فشل تحديث الخروج:', err.message));
 };
 
 // ============================================================
-// ✅ تحميل المستخدمين المحظورين - باستخدام onSnapshot
+// LOAD BLOCKED USERS
 // ============================================================
 window.loadBlockedUsers = function() {
-    return new Promise((resolve) => {
-        if (!window.db) {
+    console.log('🔍 تحميل المستخدمين المحظورين...');
+    return window.db.collection('blocked').doc('list').get()
+        .then((doc) => {
+            window.blockedUsers = (doc.exists && doc.data().users) ? doc.data().users : [];
+            console.log('✅ تم تحميل ' + window.blockedUsers.length + ' مستخدم محظور');
+            return window.blockedUsers;
+        })
+        .catch((err) => {
+            console.warn('⚠️ فشل تحميل المحظورين:', err.message);
             window.blockedUsers = [];
-            return resolve([]);
-        }
-        
-        const unsub = window.db.collection('blocked').doc('list').onSnapshot(
-            (doc) => {
-                unsub();
-                window.blockedUsers = (doc.exists && doc.data().users) ? doc.data().users : [];
-                resolve(window.blockedUsers);
-            },
-            (error) => {
-                unsub();
-                console.warn('⚠️ فشل تحميل المحظورين:', error.message);
-                window.blockedUsers = [];
-                resolve(window.blockedUsers);
-            }
-        );
-        
-        setTimeout(() => {
-            unsub();
-            window.blockedUsers = [];
-            resolve(window.blockedUsers);
-        }, 5000);
-    });
+            return window.blockedUsers;
+        });
 };
 
 // ============================================================
-// 🚪 تسجيل الخروج
+// PERFORM LOGOUT
 // ============================================================
 window.performLogout = function() {
+    console.log('🚪 تسجيل الخروج...');
+    
     if (window.currentUser) {
         window.setUserOffline(window.currentUser);
         if (typeof window.addSystemMessage === 'function') {
@@ -192,7 +171,7 @@ window.logout = function() {
 };
 
 // ============================================================
-// 🚀 تسجيل الدخول - بدون استخدام get()
+// LOGIN
 // ============================================================
 window.login = async function() {
     console.log('🔄 محاولة تسجيل الدخول...');
@@ -237,16 +216,17 @@ window.login = async function() {
     try {
         window.userIP = window.getHashedIP();
 
-        // التحقق من المستخدم (onSnapshot)
+        // التحقق من المستخدم
         const check = await window.checkUserInDB(name);
         let avatarBase64 = '';
         if (check.exists && check.data && check.data.avatar) {
             avatarBase64 = check.data.avatar;
         }
 
-        // تسجيل الدخول المجهول (حتى لو فشل)
+        // تسجيل الدخول المجهول
         try {
             await window.auth.signInAnonymously();
+            console.log('✅ تم تسجيل الدخول المجهول');
         } catch (e) {
             console.warn('⚠️ فشل تسجيل الدخول المجهول:', e.message);
         }
@@ -342,12 +322,12 @@ window.login = async function() {
 };
 
 // ============================================================
-// 🔍 التحقق من force logout
+// CHECK FORCE LOGOUT
 // ============================================================
 window.checkForceLogout = function() {
     if (window.currentUser) {
-        window.db.collection('users').doc(window.currentUser).onSnapshot(
-            (doc) => {
+        window.db.collection('users').doc(window.currentUser).get()
+            .then((doc) => {
                 if (doc.exists && doc.data().forceLogout === true) {
                     window.db.collection('users').doc(window.currentUser).update({ forceLogout: false });
                     if (typeof window.addSystemMessage === 'function') {
@@ -355,10 +335,9 @@ window.checkForceLogout = function() {
                     }
                     setTimeout(() => window.performLogout(), 1000);
                 }
-            },
-            () => {}
-        );
+            })
+            .catch(() => {});
     }
 };
 
-console.log('✅ تم تحميل auth.js (الحل النهائي)');
+console.log('✅ تم تحميل auth.js');
