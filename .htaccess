@@ -1,0 +1,43 @@
+# تمكين إعادة الكتابة
+RewriteEngine On
+
+# إعادة توجيه HTTP إلى HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# تعيين الصفحة الرئيسية
+DirectoryIndex index.html
+
+# تمكين ضغط Gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
+</IfModule>
+
+# إعدادات الكاش
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 1 day"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>
+
+# حماية الملفات الحساسة
+<FilesMatch "^(firebase-config\.js|\.env|\.git|\.htaccess)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# حماية من الزيارات الضارة
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# إعادة توجيه للصفحة 404
+ErrorDocument 404 /index.html
