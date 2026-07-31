@@ -1,5 +1,5 @@
 // ============================================================
-// 🚀 APP MAIN - نيزك v3.5.0 (الحل النهائي)
+// 🚀 APP MAIN - نيزك v3.5.0
 // ============================================================
 
 console.log('🚀 نيزك ' + window.VERSION + ' - أقدم فوق، أحدث تحت');
@@ -17,6 +17,14 @@ const scrollBottomBtn = document.getElementById('scrollBottomBtn');
 const emojiToggle = document.getElementById('emojiToggle');
 const emojiRail = document.getElementById('emojiRail');
 const messagesDiv = document.getElementById('messages');
+const usernameInput = document.getElementById('usernameInput');
+const loginAdminPasswordBox = document.getElementById('loginAdminPasswordBox');
+const loginAdminPasswordInput = document.getElementById('loginAdminPasswordInput');
+const loginAdminPasswordError = document.getElementById('loginAdminPasswordError');
+const loginBtn = document.getElementById('loginBtn');
+const sendBtn = document.getElementById('sendBtn');
+const msgInput = document.getElementById('msgInput');
+const logoutBtn = document.getElementById('logoutBtn');
 
 // ============================================================
 // ⏰ CLOCK
@@ -25,45 +33,40 @@ function updateClock() {
     const n = new Date();
     const statusTime = document.getElementById('statusTime');
     if (statusTime) {
-        statusTime.textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getHours()).padStart(2, '0');
+        statusTime.textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
     }
 }
 updateClock();
 setInterval(updateClock, 30000);
 
 // ============================================================
-// 📶 مراقبة الاتصال (باستخدام onSnapshot)
+// 📶 مراقبة الاتصال
 // ============================================================
-if (typeof window.startConnectionMonitor === 'function') {
-    window.startConnectionMonitor((isOnline) => {
-        const connectionError = document.getElementById('connectionError');
-        if (connectionError) {
-            if (!isOnline) {
-                connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
-                connectionError.style.display = 'block';
-            } else {
+function monitorConnection() {
+    if (!window.db) return;
+    
+    // استخدام onSnapshot لمراقبة الاتصال
+    window.db.collection('users').limit(1).onSnapshot(
+        () => {
+            console.log('✅ الاتصال بقاعدة البيانات نشط');
+            const connectionError = document.getElementById('connectionError');
+            if (connectionError) {
                 connectionError.style.display = 'none';
             }
-        }
-    });
-} else {
-    // بديل يدوي
-    if (window.db) {
-        window.db.collection('users').limit(1).onSnapshot(
-            () => {
-                const connectionError = document.getElementById('connectionError');
-                if (connectionError) connectionError.style.display = 'none';
-            },
-            (error) => {
-                const connectionError = document.getElementById('connectionError');
-                if (connectionError) {
-                    connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
-                    connectionError.style.display = 'block';
-                }
+        },
+        (error) => {
+            console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error.message);
+            const connectionError = document.getElementById('connectionError');
+            if (connectionError) {
+                connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
+                connectionError.style.display = 'block';
             }
-        );
-    }
+        }
+    );
 }
+
+// بدء مراقبة الاتصال بعد 2 ثانية
+setTimeout(monitorConnection, 2000);
 
 // ============================================================
 // 🎨 COLOR PICKER
@@ -100,7 +103,6 @@ document.addEventListener('click', (e) => {
 
 document.querySelectorAll('.emoji-item').forEach((el) => {
     el.addEventListener('click', function() {
-        const msgInput = document.getElementById('msgInput');
         if (msgInput) {
             msgInput.value += this.textContent;
             msgInput.focus();
@@ -148,11 +150,6 @@ if (rulesModal) {
 // ============================================================
 // 👑 ADMIN LOGIN DETECTION
 // ============================================================
-const usernameInput = document.getElementById('usernameInput');
-const loginAdminPasswordBox = document.getElementById('loginAdminPasswordBox');
-const loginAdminPasswordInput = document.getElementById('loginAdminPasswordInput');
-const loginAdminPasswordError = document.getElementById('loginAdminPasswordError');
-
 if (usernameInput) {
     usernameInput.addEventListener('input', function() {
         const val = this.value.trim();
@@ -187,7 +184,6 @@ if (scrollBottomBtn) {
 // ============================================================
 // 🎯 EVENTS - LOGIN
 // ============================================================
-const loginBtn = document.getElementById('loginBtn');
 if (loginBtn) {
     loginBtn.addEventListener('click', window.login);
 }
@@ -215,9 +211,6 @@ if (loginAdminPasswordInput) {
 // ============================================================
 // 🎯 EVENTS - SEND
 // ============================================================
-const sendBtn = document.getElementById('sendBtn');
-const msgInput = document.getElementById('msgInput');
-
 if (sendBtn) {
     sendBtn.addEventListener('click', window.sendMessage);
 }
@@ -245,7 +238,6 @@ if (msgInput) {
 // ============================================================
 // 🎯 EVENTS - LOGOUT
 // ============================================================
-const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', window.logout);
 }
@@ -289,4 +281,5 @@ function autoLogin() {
 window.userIP = window.getHashedIP();
 autoLogin();
 
-console.log('✅ تم تحميل app.js (الحل النهائي)');
+console.log('✅ تم تحميل app.js');
+console.log('✅ جميع الملفات جاهزة!');
