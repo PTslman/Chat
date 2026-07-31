@@ -1,19 +1,35 @@
-// استيراد مكتبات Firebase
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, where, getDoc } from "firebase/firestore";
-import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { 
+    getFirestore, 
+    collection, doc, getDoc, getDocs, 
+    addDoc, updateDoc, deleteDoc, 
+    onSnapshot, query, orderBy, 
+    where, serverTimestamp, setDoc,
+    writeBatch, limit
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getAuth, 
+    signInAnonymously, 
+    onAuthStateChanged, 
+    signOut 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    getStorage, 
+    ref, 
+    uploadBytes, 
+    getDownloadURL, 
+    deleteObject 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// إعدادات Firebase الخاصة بك
 const firebaseConfig = {
-  apiKey: "AIzaSyAmEzziPwReETciyHcqUsThKmmwonH9FK0",
-  authDomain: "nezak-b7284.firebaseapp.com",
-  projectId: "nezak-b7284",
-  storageBucket: "nezak-b7284.firebasestorage.app",
-  messagingSenderId: "242982946613",
-  appId: "1:242982946613:web:b77d5f65b0204bff042e7c",
-  measurementId: "G-66MHWVRSQY"
+    apiKey: "AIzaSyAmEzziPwReETciyHcqUsThKmmwonH9FK0",
+    authDomain: "nezak-b7284.firebaseapp.com",
+    projectId: "nezak-b7284",
+    storageBucket: "nezak-b7284.firebasestorage.app",
+    messagingSenderId: "242982946613",
+    appId: "1:242982946613:web:b77d5f65b0204bff042e7c",
+    measurementId: "G-66MHWVRSQY"
 };
 
 // تهيئة Firebase
@@ -23,5 +39,14 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// تصدير الخدمات
-export { db, auth, storage, analytics, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, where, getDoc, ref, uploadBytes, getDownloadURL, deleteObject, signInAnonymously, onAuthStateChanged, signOut };
+// تصدير كل شيء
+export {
+    db, auth, storage, analytics,
+    collection, doc, getDoc, getDocs,
+    addDoc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy,
+    where, serverTimestamp, setDoc,
+    writeBatch, limit,
+    signInAnonymously, onAuthStateChanged, signOut,
+    ref, uploadBytes, getDownloadURL, deleteObject
+};
