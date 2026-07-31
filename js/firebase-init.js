@@ -4,21 +4,18 @@
 
 console.log('🚀 بدء تهيئة Firebase...');
 
-// جعل db و auth عامين (Global)
-let app;
-let db;
-let auth;
-
+// استخدام window.db و window.auth
 try {
-    app = firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    auth = firebase.auth();
+    // تهيئة Firebase
+    firebase.initializeApp(window.firebaseConfig);
     
-    // جعلهما عامين على window
-    window.db = db;
-    window.auth = auth;
+    // تعيين المتغيرات على window
+    window.db = firebase.firestore();
+    window.auth = firebase.auth();
     
     console.log('✅ تم تهيئة Firebase بنجاح');
+    console.log('✅ db:', window.db ? 'موجود' : 'غير موجود');
+    console.log('✅ auth:', window.auth ? 'موجود' : 'غير موجود');
 } catch (e) {
     console.error('❌ فشل تهيئة Firebase:', e);
     const connectionError = document.getElementById('connectionError');
@@ -28,11 +25,11 @@ try {
     }
 }
 
-// تفعيل وضع عدم الاتصال (Offline Persistence)
-if (db) {
-    db.enablePersistence({ synchronizeTabs: true })
+// تفعيل وضع عدم الاتصال
+if (window.db) {
+    window.db.enablePersistence({ synchronizeTabs: true })
         .then(function() {
-            console.log('✅ تم تفعيل التخزين المؤقت (Offline Persistence)');
+            console.log('✅ تم تفعيل التخزين المؤقت');
         })
         .catch(function(err) {
             console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
