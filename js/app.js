@@ -37,6 +37,31 @@ updateClock();
 setInterval(updateClock, 30000);
 
 // ============================================================
+// 📶 مراقبة حالة الاتصال
+// ============================================================
+function monitorConnection() {
+    if (!window.db) return;
+    
+    window.db.collection('_').doc('_').onSnapshot(function() {
+        console.log('✅ الاتصال بقاعدة البيانات نشط');
+        var connectionError = document.getElementById('connectionError');
+        if (connectionError) {
+            connectionError.style.display = 'none';
+        }
+    }, function(error) {
+        console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error);
+        var connectionError = document.getElementById('connectionError');
+        if (connectionError) {
+            connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
+            connectionError.style.display = 'block';
+        }
+    });
+}
+
+// بدء مراقبة الاتصال
+setTimeout(monitorConnection, 2000);
+
+// ============================================================
 // 🎨 COLOR PICKER
 // ============================================================
 document.querySelectorAll('.color-circle').forEach(function(el) {
