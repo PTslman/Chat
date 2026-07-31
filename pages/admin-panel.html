@@ -8,54 +8,128 @@
 </head>
 <body>
     <div class="admin-panel">
-        <h2>🛠️ لوحة تحكم المدير</h2>
-        <p style="color: #666; margin-bottom: 20px;">إدارة الرسائل وحذفها</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>🛠️ لوحة تحكم المدير</h2>
+            <button onclick="logout()" style="padding: 8px 15px; background: #e53e3e; color: white; border: none; border-radius: 10px; cursor: pointer;">🚪 خروج</button>
+        </div>
+        
+        <div style="background: #f0f4ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <p>👑 مرحباً أيها المدير!</p>
+            <p style="font-size: 14px; color: #666;">لديك صلاحية حذف أي رسالة وإدارة المحتوى</p>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button onclick="deleteAllMessages()" style="flex: 1; padding: 10px; background: #e53e3e; color: white; border: none; border-radius: 10px; cursor: pointer;">🗑️ حذف الكل</button>
+            <button onclick="refreshMessages()" style="flex: 1; padding: 10px; background: #667eea; color: white; border: none; border-radius: 10px; cursor: pointer;">🔄 تحديث</button>
+        </div>
+        
         <div id="messagesList"></div>
-        <button onclick="logout()" style="margin-top:20px; padding:10px 20px; background:#e53e3e; color:white; border:none; border-radius:10px; cursor:pointer;">تسجيل الخروج</button>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h4>📊 إحصائيات</h4>
+            <p id="stats" style="color: #666;">جاري التحميل...</p>
+        </div>
     </div>
 
     <script type="module">
-        import { database, ref, onChildAdded, remove } from '../scripts/firebase-config.js';
+        import { database, ref, onChildAdded, remove, get, set, child } from '../scripts/firebase-config.js';
         
-        // Check admin access
-        if (!localStorage.getItem('isAdmin')) {
-            window.location.href = '../pages/login.html';
+        // التحقق من صلاحيات المدير
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const adminCode = localStorage.getItem('adminCode');
+        
+        if (!isAdmin || adminCode !== 'slx23m') {
+            alert('❌ غير مصرح لك بالدخول!');
+            window.location.href = '../index.html';
         }
 
         const messagesList = document.getElementById('messagesList');
         const messagesRef = ref(database, 'messages');
+        let messageCount = 0;
 
+        // تحميل الرسائل
         onChildAdded(messagesRef, (snapshot) => {
             const data = snapshot.val();
             const messageId = snapshot.key;
+            messageCount++;
             
             const messageItem = document.createElement('div');
             messageItem.className = 'message-item';
+            messageItem.dataset.messageId = messageId;
+            
+            const isAdminSender = data.isAdmin ? '👑 ' : '';
+            const adminBadge = data.isAdmin ? ' <span style="color: #e53e3e; font-size: 12px;">[مدير]</span>' : '';
+            
             messageItem.innerHTML = `
-                <div>
-                    <strong>${data.sender}</strong>
-                    <p style="margin:5px 0;">${data.text}</p>
-                    <small style="color:#999;">${new Date(data.timestamp).toLocaleString()}</small>
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <strong>${isAdminSender}${data.sender}${adminBadge}</strong>
+                        <span style="font-size: 12px; color: #999;">${new Date(data.timestamp).toLocaleString()}</span>
+                    </div>
+                    <p style="margin: 5px 0; word-wrap: break-word;">${data.text}</p>
+                    <small style="color: #999;">الدور: ${data.userRole || 'مستخدم'}</small>
                 </div>
-                <button onclick="deleteMessage('${messageId}')">🗑️ حذف</button>
+                <button onclick="deleteMessage('${messageId}')" style="padding: 5px 15px; background: #e53e3e; color: white; border: none; border-radius: 5px; cursor: pointer;">🗑️</button>
             `;
             
-            messagesList.appendChild(messageItem);
+            messagesList.prepend(messageItem);
+            updateStats();
         });
 
         window.deleteMessage = function(messageId) {
             if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
                 const messageRef = ref(database, `messages/${messageId}`);
                 remove(messageRef);
-                // Refresh the list
-                location.reload();
+                // حذف العنصر من الواجهة
+                const item = document.querySelector(`[data-message-id="${messageId}"]`);
+                if (item) {
+                    item.remove();
+                    messageCount--;
+                    updateStats();
+                }
             }
+        };
+
+        window.deleteAllMessages = function() {
+            if (confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل؟ هذا الإجراء لا يمكن التراجع عنه!')) {
+                const adminConfirm = prompt('أدخل كلمة المرور للتأكيد:');
+                if (adminConfirm === '1442') {
+                    set(messagesRef, null);
+                    messagesList.innerHTML = '';
+                    messageCount = 0;
+                    updateStats();
+                    alert('✅ تم حذف جميع الرسائل بنجاح');
+                } else {
+                    alert('❌ كلمة المرور غير صحيحة');
+                }
+            }
+        };
+
+        window.refreshMessages = function() {
+            location.reload();
         };
 
         window.logout = function() {
             localStorage.clear();
             window.location.href = '../pages/login.html';
         };
+
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            stats.textContent = `📨 عدد الرسائل: ${messageCount} | 👥 المستخدمين: نشطاء`;
+        }
+
+        // تحديث الإحصائيات كل 5 ثواني
+        setInterval(() => {
+            get(messagesRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const count = Object.keys(data).length;
+                    messageCount = count;
+                    updateStats();
+                }
+            });
+        }, 5000);
     </script>
 </body>
 </html>
