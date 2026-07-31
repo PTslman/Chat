@@ -36,9 +36,10 @@ var loginAdminPasswordError = document.getElementById('loginAdminPasswordError')
 var headerUsername = document.getElementById('headerUsername');
 
 // ============================================================
-// CHECK USER IN DB
+// CHECK USER IN DB - مع إعادة المحاولة
 // ============================================================
-window.checkUserInDB = function(username) {
+window.checkUserInDB = function(username, retryCount) {
+    retryCount = retryCount || 0;
     return window.db.collection('users').doc(username).get()
         .then(function(d) {
             if (d.exists) {
@@ -49,13 +50,26 @@ window.checkUserInDB = function(username) {
                 return { exists: true, sameIP: true, isAdmin: false };
             }
             return { exists: false, sameIP: false, isAdmin: false };
+        })
+        .catch(function(err) {
+            console.warn('⚠️ فشل التحقق من المستخدم (محاولة ' + (retryCount + 1) + '):', err);
+            if (retryCount < 3) {
+                console.log('🔄 إعادة المحاولة بعد 1 ثانية...');
+                return new Promise(function(resolve) {
+                    setTimeout(function() {
+                        resolve(window.checkUserInDB(username, retryCount + 1));
+                    }, 1000);
+                });
+            }
+            throw err;
         });
 };
 
 // ============================================================
-// SET USER STATUS
+// SET USER STATUS - مع إعادة المحاولة
 // ============================================================
-window.setUserOnline = function(name) {
+window.setUserOnline = function(name, retryCount) {
+    retryCount = retryCount || 0;
     window.db.collection('users').doc(name).set({
         username: name,
         color: window.userColor,
@@ -66,55 +80,54 @@ window.setUserOnline = function(name) {
         firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(function(err) {
-        console.warn('⚠️ فشل تحديث حالة المستخدم:', err);
+        console.warn('⚠️ فشل تحديث حالة المستخدم (محاولة ' + (retryCount + 1) + '):', err);
+        if (retryCount < 3) {
+            setTimeout(function() {
+                window.setUserOnline(name, retryCount + 1);
+            }, 2000);
+        }
     });
 };
 
-window.setUserOffline = function(name) {
+window.setUserOffline = function(name, retryCount) {
+    retryCount = retryCount || 0;
     if (!name) return;
     window.db.collection('users').doc(name).update({
         online: false,
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(function(err) {
-        console.warn('⚠️ فشل تحديث حالة الخروج:', err);
+        console.warn('⚠️ فشل تحديث حالة الخروج (محاولة ' + (retryCount + 1) + '):', err);
+        if (retryCount < 3) {
+            setTimeout(function() {
+                window.setUserOffline(name, retryCount + 1);
+            }, 1000);
+        }
     });
 };
 
 // ============================================================
-// LOAD BLOCKED USERS
+// LOAD BLOCKED USERS - مع إعادة المحاولة
 // ============================================================
-window.loadBlockedUsers = function() {
+window.loadBlockedUsers = function(retryCount) {
+    retryCount = retryCount || 0;
     return window.db.collection('blocked').doc('list').get()
         .then(function(d) {
             window.blockedUsers = (d.exists && d.data().users) ? d.data().users : [];
             return window.blockedUsers;
         })
-        .catch(function() {
+        .catch(function(err) {
+            console.warn('⚠️ فشل تحميل المستخدمين المحظورين (محاولة ' + (retryCount + 1) + '):', err);
+            if (retryCount < 3) {
+                console.log('🔄 إعادة المحاولة بعد 1.5 ثانية...');
+                return new Promise(function(resolve) {
+                    setTimeout(function() {
+                        resolve(window.loadBlockedUsers(retryCount + 1));
+                    }, 1500);
+                });
+            }
             window.blockedUsers = [];
             return window.blockedUsers;
         });
-};
-
-// ============================================================
-// APPLY MUTE
-// ============================================================
-window.applyMute = function(sec) {
-    window.isMuted = true;
-    if (msgInput) msgInput.disabled = true;
-    if (sendBtn) sendBtn.disabled = true;
-    var mutedNotice = document.getElementById('mutedNotice');
-    if (mutedNotice) {
-        mutedNotice.classList.add('active');
-        mutedNotice.textContent = '⛔ ممنوع من الكتابة لمدة ' + Math.ceil(sec / 60) + ' دقيقة';
-    }
-    if (window.muteTimeout) clearTimeout(window.muteTimeout);
-    window.muteTimeout = setTimeout(function() {
-        window.isMuted = false;
-        if (msgInput) msgInput.disabled = false;
-        if (sendBtn) sendBtn.disabled = false;
-        if (mutedNotice) mutedNotice.classList.remove('active');
-        if (msgInput) msgInput.focus();
-    }, sec * 1000);
 };
 
 // ============================================================
@@ -190,7 +203,7 @@ window.logout = function() {
 };
 
 // ============================================================
-// LOGIN
+// LOGIN - مع معالجة الأخطاء
 // ============================================================
 window.login = async function() {
     console.log('🔄 محاولة تسجيل الدخول...');
@@ -235,18 +248,34 @@ window.login = async function() {
     try {
         window.userIP = window.getHashedIP();
 
+        // التحقق من الاتصال أولاً
+        var isConnected = await window.checkConnection();
+        if (!isConnected) {
+            console.log('📶 وضع عدم الاتصال - محاولة مع البيانات المخزنة');
+        }
+
         var check = await window.checkUserInDB(name);
 
         var avatarBase64 = '';
 
         if (check.exists) {
-            var userDoc = await window.db.collection('users').doc(name).get();
-            if (userDoc.exists && userDoc.data().avatar) {
-                avatarBase64 = userDoc.data().avatar;
+            try {
+                var userDoc = await window.db.collection('users').doc(name).get();
+                if (userDoc.exists && userDoc.data().avatar) {
+                    avatarBase64 = userDoc.data().avatar;
+                }
+            } catch (e) {
+                console.warn('⚠️ فشل تحميل بيانات المستخدم، استخدام البيانات المحلية:', e);
             }
         }
 
-        await window.auth.signInAnonymously();
+        // تسجيل الدخول المجهول
+        try {
+            await window.auth.signInAnonymously();
+        } catch (e) {
+            console.warn('⚠️ فشل تسجيل الدخول المجهول:', e);
+            // نستمر حتى بدون auth
+        }
 
         window.currentUser = name;
         window.userAvatarBase64 = avatarBase64;
@@ -339,7 +368,7 @@ window.login = async function() {
 };
 
 // ============================================================
-// CHECK FORCE LOGOUT
+// CHECK FORCE LOGOUT - مع إعادة المحاولة
 // ============================================================
 window.checkForceLogout = function() {
     if (window.currentUser) {
@@ -353,7 +382,9 @@ window.checkForceLogout = function() {
                     setTimeout(function() { window.performLogout(); }, 1000);
                 }
             })
-            .catch(function() {});
+            .catch(function(err) {
+                console.warn('⚠️ فشل التحقق من force logout:', err);
+            });
     }
 };
 
