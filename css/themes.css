@@ -2,67 +2,244 @@
    سمات الألوان - نيزك
    ============================================ */
 
-/* السمة الفاتحة (افتراضية) */
-:root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f0f2f5;
-    --bg-chat: #f8f9fa;
-    --text-primary: #111b21;
-    --text-secondary: #667781;
-    --border-color: #e9edef;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-/* السمة الداكنة */
+/* السمة الداكنة (افتراضي) */
 [data-theme="dark"] {
-    --bg-primary: #111b21;
-    --bg-secondary: #1c2b36;
+    --bg-main: #0a141a;
+    --bg-white: #111b21;
     --bg-chat: #0a141a;
     --text-primary: #e9edef;
     --text-secondary: #aebac1;
     --border-color: #2a3942;
     --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+    --bg-main: #1c2b36;
+    --primary-light: #1a2b3a;
 }
 
-/* السمة الزرقاء */
-[data-theme="blue"] {
-    --primary: #0088cc;
-    --primary-dark: #006699;
+[data-theme="dark"] .message.received {
+    background: #1c2b36;
+    color: #e9edef;
+}
+
+[data-theme="dark"] .input-group {
+    background: #1c2b36;
+}
+
+[data-theme="dark"] .input-group:focus-within {
+    background: #24343f;
+}
+
+[data-theme="dark"] .chat-input-wrapper {
+    background: #1c2b36;
+}
+
+[data-theme="dark"] .search-box {
+    background: #1c2b36;
+}
+
+[data-theme="dark"] .auth-tabs {
+    background: #1c2b36;
+}
+
+[data-theme="dark"] .auth-tab.active {
+    background: #111b21;
+}
+
+[data-theme="dark"] .btn-secondary {
+    background: #1c2b36;
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    background: #2a3942;
+}
+
+[data-theme="dark"] .contact-item:hover {
+    background: #1c2b36;
+}
+
+[data-theme="dark"] .contact-item.active {
+    background: #1a2b3a;
+}
+
+[data-theme="dark"] .emoji-picker {
+    background: #1c2b36;
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .options-menu {
+    background: #1c2b36;
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .option-item:hover {
+    background: #2a3942;
+}
+
+[data-theme="dark"] .message-reaction {
+    background: #1c2b36;
+}
+
+[data-theme="dark"] .modal-content {
+    background: #111b21;
+}
+
+[data-theme="dark"] .modal-header {
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .modal-body ul li {
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .modal-footer {
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .profile-modal-content {
+    background: #111b21;
+}
+
+[data-theme="dark"] .profile-modal-header {
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .profile-modal-footer {
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .reply-bar {
+    background: #1a2b3a;
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .online-count {
+    background: #1c2b36;
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .sidebar-footer {
+    border-color: #2a3942;
+}
+
+[data-theme="dark"] .auth-container {
+    background: #111b21;
+}
+
+[data-theme="dark"] .auth-hint,
+[data-theme="dark"] .admin-hint {
+    background: #1c2b36;
+}
+
+[data-theme="dark"] .typing-indicator {
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   السمة النهارية
+   ============================================ */
+
+[data-theme="light"] {
+    --bg-main: #f0f2f5;
+    --bg-white: #ffffff;
+    --bg-chat: #f8f9fa;
+    --text-primary: #111b21;
+    --text-secondary: #667781;
+    --border-color: #e9edef;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
     --primary-light: #e3f2fd;
-    --bg-primary: #ffffff;
-    --bg-secondary: #e8edf2;
-    --bg-chat: #f5f8fa;
 }
 
-/* السمة الخضراء */
-[data-theme="green"] {
-    --primary: #25d366;
-    --primary-dark: #128c7e;
-    --primary-light: #e8f5e9;
-    --bg-primary: #ffffff;
-    --bg-secondary: #f0f4f0;
-    --bg-chat: #f5faf5;
+[data-theme="light"] .message.received {
+    background: #ffffff;
+    color: #111b21;
 }
 
-/* تطبيق السمة */
-.theme-toggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--primary);
-    color: white;
+[data-theme="light"] .auth-container {
+    background: #ffffff;
+}
+
+/* ============================================
+   سمات المسؤول
+   ============================================ */
+
+/* بنفسجي */
+[data-theme="purple"] {
+    --primary: #6c5ce7;
+    --primary-dark: #5a4bd1;
+    --primary-light: #e8e5f9;
+}
+
+[data-theme="purple"] .admin-btn {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+}
+
+[data-theme="purple"] .admin-btn:hover {
+    background: linear-gradient(135deg, #5a4bd1, #8c84e8);
+}
+
+/* غابة */
+[data-theme="forest"] {
+    --primary: #00b894;
+    --primary-dark: #00a381;
+    --primary-light: #e0f2ed;
+}
+
+[data-theme="forest"] .admin-btn {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+}
+
+[data-theme="forest"] .admin-btn:hover {
+    background: linear-gradient(135deg, #00a381, #00b8b3);
+}
+
+/* وردي */
+[data-theme="pink"] {
+    --primary: #fd79a8;
+    --primary-dark: #e06d97;
+    --primary-light: #fde8ef;
+}
+
+[data-theme="pink"] .admin-btn {
+    background: linear-gradient(135deg, #fd79a8, #ff9ff3);
+}
+
+[data-theme="pink"] .admin-btn:hover {
+    background: linear-gradient(135deg, #e06d97, #e88ad8);
+}
+
+/* محيط */
+[data-theme="ocean"] {
+    --primary: #0984e3;
+    --primary-dark: #0873c4;
+    --primary-light: #e3f0fa;
+}
+
+[data-theme="ocean"] .admin-btn {
+    background: linear-gradient(135deg, #0984e3, #74b9ff);
+}
+
+[data-theme="ocean"] .admin-btn:hover {
+    background: linear-gradient(135deg, #0873c4, #5aa8f0);
+}
+
+/* ============================================
+   تبديل الثيم
+   ============================================ */
+
+.theme-toggle-btn {
+    background: none;
     border: none;
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+    transition: var(--transition);
+    color: var(--text-secondary);
 }
 
-.theme-toggle:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+.theme-toggle-btn:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
 }
