@@ -1,5 +1,5 @@
 // ============================================================
-// 🔐 AUTH MODULE - نيزك v3.5.0
+// 🔐 AUTH MODULE - نيزك v3.5.0 (مع get())
 // ============================================================
 
 window.currentUser = '';
@@ -36,7 +36,7 @@ const loginAdminPasswordError = document.getElementById('loginAdminPasswordError
 const headerUsername = document.getElementById('headerUsername');
 
 // ============================================================
-// CHECK USER IN DB
+// CHECK USER IN DB - مع get()
 // ============================================================
 window.checkUserInDB = function(username) {
     console.log('🔍 التحقق من المستخدم:', username);
@@ -58,7 +58,7 @@ window.checkUserInDB = function(username) {
 };
 
 // ============================================================
-// SET USER STATUS
+// SET USER STATUS - مع set()
 // ============================================================
 window.setUserOnline = function(name) {
     if (!window.db) return;
@@ -71,7 +71,7 @@ window.setUserOnline = function(name) {
         forceLogout: false,
         avatar: window.userAvatarBase64 || '',
         lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true })
+    })
     .then(() => console.log('✅ تم تحديث حالة المستخدم'))
     .catch((err) => console.warn('⚠️ فشل تحديث الحالة:', err.message));
 };
@@ -86,7 +86,7 @@ window.setUserOffline = function(name) {
 };
 
 // ============================================================
-// LOAD BLOCKED USERS
+// LOAD BLOCKED USERS - مع get()
 // ============================================================
 window.loadBlockedUsers = function() {
     console.log('🔍 تحميل المستخدمين المحظورين...');
@@ -171,7 +171,7 @@ window.logout = function() {
 };
 
 // ============================================================
-// LOGIN
+// LOGIN - مع get()
 // ============================================================
 window.login = async function() {
     console.log('🔄 محاولة تسجيل الدخول...');
@@ -322,7 +322,7 @@ window.login = async function() {
 };
 
 // ============================================================
-// CHECK FORCE LOGOUT
+// CHECK FORCE LOGOUT - مع get()
 // ============================================================
 window.checkForceLogout = function() {
     if (window.currentUser) {
@@ -340,4 +340,4 @@ window.checkForceLogout = function() {
     }
 };
 
-console.log('✅ تم تحميل auth.js');
+console.log('✅ تم تحميل auth.js (مع get())');
