@@ -576,3 +576,178 @@ body {
 .indicator-dot.offline {
     background: #a0aec0;
 }
+/* ----- التطوير 24: تنسيقات المسؤول الجديدة ----- */
+
+/* زر المسؤول */
+.admin-btn {
+    background: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-btn:hover {
+    transform: scale(1.1);
+    background: #c53030;
+}
+
+.admin-btn-danger {
+    background: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.admin-btn-danger:hover {
+    background: #c53030;
+    transform: translateY(-2px);
+}
+
+.admin-btn-primary {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.admin-btn-primary:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+/* لوحة المسؤول المصغرة */
+#adminMiniPanel {
+    background: #f8f9fa;
+    border-top: 3px solid #e53e3e;
+    padding: 10px 15px;
+    transition: all 0.3s;
+}
+
+#adminMiniPanel:hover {
+    background: #f0f0f0;
+}
+
+/* شارة المسؤول */
+.role-badge.admin {
+    background: #e53e3e;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* أيقونة الدرع للمسؤول */
+.admin-shield {
+    display: inline-block;
+    font-size: 20px;
+    margin-right: 5px;
+}
+
+/* رسائل المسؤول مميزة */
+.message.sent .bubble.admin-message {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%) !important;
+    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+}
+
+/* مؤشر المسؤول في الرسائل */
+.admin-indicator {
+    background: #e53e3e;
+    color: white;
+    font-size: 10px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-left: 5px;
+    display: inline-block;
+}
+
+/* أزرار التعديل والحذف */
+.delete-btn, .edit-btn {
+    opacity: 0.7;
+    transition: all 0.3s;
+}
+
+.delete-btn:hover, .edit-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* تنسيق لوحة التحكم المصغرة */
+.admin-controls {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+/* تأثير hover للرسائل للمسؤول */
+.message:hover .delete-btn,
+.message:hover .edit-btn {
+    opacity: 1;
+}
+
+/* تنسيق مودال المسؤول */
+.admin-modal .modal-content {
+    border-top: 4px solid #e53e3e;
+}
+
+/* أيقونة المسؤول في رأس الصفحة */
+.admin-header-icon {
+    font-size: 24px;
+    animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(229, 62, 62, 0.3)); }
+    50% { filter: drop-shadow(0 0 20px rgba(229, 62, 62, 0.6)); }
+}
+
+/* تنسيق المسؤول في قائمة المستخدمين */
+.admin-user-tag {
+    background: #e53e3e;
+    color: white;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+/* تأثيرات خاصة للمسؤول */
+.admin-glow-effect {
+    box-shadow: 0 0 30px rgba(229, 62, 62, 0.2);
+}
+
+/* تنسيق زر التصدير */
+.export-btn {
+    background: #48bb78;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.export-btn:hover {
+    background: #38a169;
+    transform: translateY(-2px);
+}
