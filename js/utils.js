@@ -5,30 +5,30 @@
 // ============================================================
 // 📸 AVATAR FUNCTIONS
 // ============================================================
-function getInitials(name) {
+window.getInitials = function(name) {
     if (!name) return '👤';
     var parts = name.trim().split(' ');
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-}
+};
 
-function getAvatarColor(name) {
+window.getAvatarColor = function(name) {
     var colors = ['#2b6ef0', '#ed4245', '#faa81a', '#23a55a', '#a78bfa', '#f472b6', '#60a5fa', '#34d399'];
     var hash = 0;
     for (var i = 0; i < name.length; i++) {
         hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
-}
+};
 
-function updateAvatarUI(element, placeholder, avatarBase64, name) {
+window.updateAvatarUI = function(element, placeholder, avatarBase64, name) {
     if (!element) return;
     if (avatarBase64 && avatarBase64.indexOf('data:image') === 0) {
         element.innerHTML = '<img src="' + avatarBase64 + '" alt="صورة شخصية" loading="lazy">';
         if (placeholder) placeholder.textContent = '';
     } else {
-        var initials = getInitials(name);
-        var color = getAvatarColor(name);
+        var initials = window.getInitials(name);
+        var color = window.getAvatarColor(name);
         var fontSize = element.id === 'profileAvatarPreview' ? '32px' : '16px';
         element.innerHTML =
             '<span class="avatar-placeholder" style="background:' + color + ';display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%;font-size:' +
@@ -36,24 +36,24 @@ function updateAvatarUI(element, placeholder, avatarBase64, name) {
             '</span>';
         if (placeholder) placeholder.textContent = '';
     }
-}
+};
 
-function updateAllAvatars(avatarBase64, name) {
+window.updateAllAvatars = function(avatarBase64, name) {
     var headerAvatar = document.getElementById('headerAvatar');
     var headerAvatarPlaceholder = document.getElementById('headerAvatarPlaceholder');
     var profileAvatarPreview = document.getElementById('profileAvatarPreview');
     var profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
     var headerUsername = document.getElementById('headerUsername');
     
-    updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarBase64, name);
-    updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarBase64, name);
+    window.updateAvatarUI(headerAvatar, headerAvatarPlaceholder, avatarBase64, name);
+    window.updateAvatarUI(profileAvatarPreview, profileAvatarPlaceholder, avatarBase64, name);
     if (headerUsername) headerUsername.textContent = name;
-}
+};
 
 // ============================================================
-// 🖼️ COMPRESS IMAGE TO BASE64
+// 🖼️ COMPRESS IMAGE
 // ============================================================
-function compressImageToBase64(file, maxWidth, maxHeight, quality, statusElement) {
+window.compressImageToBase64 = function(file, maxWidth, maxHeight, quality, statusElement) {
     return new Promise(function(resolve, reject) {
         try {
             if (statusElement) {
@@ -142,28 +142,28 @@ function compressImageToBase64(file, maxWidth, maxHeight, quality, statusElement
             reject(err);
         }
     });
-}
+};
 
 // ============================================================
 // 🔒 GENERATE HASHED IP
 // ============================================================
-function getHashedIP() {
+window.getHashedIP = function() {
     var h = Date.now().toString(36) + Math.random().toString(36).substr(2, 8) + navigator.userAgent.substring(0, 20)
         .replace(/[^a-zA-Z0-9]/g, '');
     try { return btoa(h).substring(0, 20); } catch (e) { return h.substring(0, 20); }
-}
+};
 
 // ============================================================
 // 🛠️ UTILITY
 // ============================================================
-function sanitizeInput(t) { return t.replace(/[<>]/g, '').trim(); }
+window.sanitizeInput = function(t) { return t.replace(/[<>]/g, '').trim(); };
 
-function isEmojiOnly(t) {
+window.isEmojiOnly = function(t) {
     return /^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2700}-\u{27BF}\s]+$/u
         .test(t.trim());
-}
+};
 
-function showLoading(s) {
+window.showLoading = function(s) {
     var overlay = document.getElementById('loadingOverlay');
     if (!overlay) return;
     if (s) {
@@ -171,28 +171,28 @@ function showLoading(s) {
     } else {
         overlay.classList.remove('active');
     }
-}
+};
 
 // ============================================================
 // 🔍 BAD WORD DETECTION
 // ============================================================
-function containsBadWord(t, badWords) {
+window.containsBadWord = function(t, badWords) {
     var l = t.toLowerCase();
     for (var i = 0; i < badWords.length; i++) {
         if (l.indexOf(badWords[i].toLowerCase()) !== -1) return badWords[i];
     }
     return null;
-}
+};
 
 // ============================================================
 // 💾 SESSION
 // ============================================================
-function saveSession(username, color, avatar) {
+window.saveSession = function(username, color, avatar) {
     try {
         var session = {
             username: username,
             color: color,
-            ip: getHashedIP(),
+            ip: window.getHashedIP(),
             avatar: avatar || '',
             timestamp: Date.now()
         };
@@ -201,9 +201,9 @@ function saveSession(username, color, avatar) {
     } catch (e) {
         console.log('⚠️ لا يمكن حفظ الجلسة');
     }
-}
+};
 
-function checkSession() {
+window.checkSession = function() {
     try {
         var sessionData = localStorage.getItem('chat_session');
         if (!sessionData) return null;
@@ -217,19 +217,6 @@ function checkSession() {
     } catch (e) {
         return null;
     }
-  }
-// ============================================================
-// جعل الدوال عامة
-// ============================================================
-window.getInitials = getInitials;
-window.getAvatarColor = getAvatarColor;
-window.updateAvatarUI = updateAvatarUI;
-window.updateAllAvatars = updateAllAvatars;
-window.compressImageToBase64 = compressImageToBase64;
-window.getHashedIP = getHashedIP;
-window.sanitizeInput = sanitizeInput;
-window.isEmojiOnly = isEmojiOnly;
-window.showLoading = showLoading;
-window.containsBadWord = containsBadWord;
-window.saveSession = saveSession;
-window.checkSession = checkSession;
+};
+
+console.log('✅ تم تحميل utils.js');
