@@ -36,7 +36,6 @@ if (window.db) {
     })
     .catch(function(err) {
         console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
-        // إذا فشل، نستمر بدون persistence
         console.log('📌 نستمر بدون تخزين مؤقت');
     });
     
@@ -46,30 +45,39 @@ if (window.db) {
     });
 }
 
-// مراقبة حالة الاتصال
-if (window.db) {
-    window.db.collection('_').doc('_').onSnapshot(function() {
-        // مجرد مراقبة الاتصال
-    }, function(error) {
-        console.warn('⚠️ مشكلة في الاتصال:', error);
-    });
-}
-
-// دالة للتحقق من الاتصال
+// ============================================================
+// ✅ دالة التحقق من الاتصال - معرفة على window
+// ============================================================
 window.checkConnection = function() {
+    console.log('🔍 التحقق من الاتصال...');
     return new Promise(function(resolve) {
         if (!window.db) {
+            console.log('❌ db غير موجود');
             resolve(false);
             return;
         }
+        
+        // محاولة قراءة مستند بسيط للتحقق
         window.db.collection('_').doc('_').get()
             .then(function() {
+                console.log('✅ الاتصال نشط');
                 resolve(true);
             })
-            .catch(function() {
+            .catch(function(err) {
+                console.warn('⚠️ فشل الاتصال:', err.message);
                 resolve(false);
             });
     });
 };
 
+// مراقبة حالة الاتصال
+if (window.db) {
+    window.db.collection('_').doc('_').onSnapshot(function() {
+        console.log('✅ الاتصال بقاعدة البيانات نشط');
+    }, function(error) {
+        console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error);
+    });
+}
+
 console.log('✅ تم تحميل firebase-init.js');
+console.log('✅ window.checkConnection:', typeof window.checkConnection);
