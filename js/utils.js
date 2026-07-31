@@ -218,3 +218,18 @@ function checkSession() {
         return null;
     }
   }
+// ============================================================
+// جعل الدوال عامة
+// ============================================================
+window.getInitials = getInitials;
+window.getAvatarColor = getAvatarColor;
+window.updateAvatarUI = updateAvatarUI;
+window.updateAllAvatars = updateAllAvatars;
+window.compressImageToBase64 = compressImageToBase64;
+window.getHashedIP = getHashedIP;
+window.sanitizeInput = sanitizeInput;
+window.isEmojiOnly = isEmojiOnly;
+window.showLoading = showLoading;
+window.containsBadWord = containsBadWord;
+window.saveSession = saveSession;
+window.checkSession = checkSession;
