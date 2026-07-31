@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===== المستخدمين =====
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        (request.auth.uid == userId || 
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true);
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true;
+    }
+    
+    // ===== الرسائل =====
+    match /messages/{messageId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && 
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)/banned) == true;
+      allow update: if request.auth != null && 
+        (resource.data.senderId == request.auth.uid ||
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true);
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true;
+    }
+    
+    // ===== الكلمات المحظورة =====
+    match /bannedWords/{wordId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true;
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true;
+    }
+    
+    // ===== البلاغات =====
+    match /reports/{reportId} {
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true;
+      allow delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/isAdmin) == true;
+    }
+    
+    // ===== المحادثات =====
+    match /chats/{chatId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
