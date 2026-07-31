@@ -54,7 +54,6 @@ window.saveProfile = async function() {
 
         const oldName = window.currentUser;
 
-        // تحديث بيانات المستخدم
         await window.db.collection('users').doc(oldName).set({
             username: newName,
             avatar: newAvatarBase64,
@@ -66,7 +65,6 @@ window.saveProfile = async function() {
         window.userAvatarBase64 = newAvatarBase64;
         window.updateAllAvatars(newAvatarBase64, newName);
 
-        // تحديث اسم المرسل في جميع الرسائل
         if (oldName !== newName) {
             const messagesSnap = await window.db.collection('messages')
                 .where('sender', '==', oldName)
