@@ -3,91 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - NeZak Chat</title>
-    <link rel="stylesheet" href="../styles/style.css">
+    <title>NeZak Chat</title>
+    <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2>💬 NeZak Chat</h2>
-        <p style="text-align: center; color: #666; margin-bottom: 20px;">أدخل اسم المستخدم الخاص بك</p>
-        
-        <div id="loginForm">
-            <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="20">
-            <button onclick="login()">دخول</button>
-            <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #999;">مرحباً بك في عالم المراسلة</p>
+    <div class="chat-container">
+        <div class="chat-header" id="chatHeader">
+            <div>
+                <h3>💬 NeZak Chat</h3>
+                <span id="userRoleBadge" style="font-size: 12px; background: #4a5568; padding: 2px 10px; border-radius: 10px;"></span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="online-users" id="onlineUsers">🟢 متصل</span>
+                <button onclick="logout()" style="background: none; border: none; color: white; cursor: pointer; font-size: 18px;">🚪</button>
+            </div>
         </div>
-
-        <!-- Admin Login Form (مخفي عن العاديين) -->
-        <div id="adminLoginForm" style="display: none;">
-            <h3 style="color: #667eea; text-align: center;">🔐 الدخول كمدير</h3>
-            <input type="text" id="adminUsernameInput" placeholder="اسم المستخدم" value="slx23m" readonly>
-            <input type="password" id="adminPasswordInput" placeholder="كلمة المرور">
-            <button onclick="adminLogin()">دخول كمدير</button>
-            <button onclick="backToUserLogin()" style="background: #999; margin-top: 10px;">رجوع</button>
+        
+        <div class="messages-area" id="messagesArea">
+            <!-- Messages appear here -->
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="اكتب رسالتك..." maxlength="500">
+            <button onclick="sendMessage()">إرسال</button>
+            <!-- زر حذف الكل يظهر فقط للمدير -->
+            <button id="clearAllBtn" onclick="clearAllMessages()" style="display: none; background: #e53e3e;">🗑️</button>
         </div>
     </div>
 
     <script type="module">
-        import { database, ref, push, onChildAdded, set, get, child } from '../scripts/firebase-config.js';
+        import { database, ref, push, onChildAdded, set, remove, get, child, query, orderByChild, limitToLast } from './scripts/firebase-config.js';
         
-        // Check if already logged in
-        if (localStorage.getItem('chatUsername')) {
-            window.location.href = '../index.html';
+        const username = localStorage.getItem('chatUsername') || 'زائر';
+        const userRole = localStorage.getItem('userRole') || 'user';
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        
+        const messagesArea = document.getElementById('messagesArea');
+        const messageInput = document.getElementById('messageInput');
+        const userRoleBadge = document.getElementById('userRoleBadge');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+
+        // Show user role
+        if (isAdmin) {
+            userRoleBadge.textContent = '👑 مدير';
+            userRoleBadge.style.background = '#e53e3e';
+            clearAllBtn.style.display = 'block';
+            document.getElementById('chatHeader').style.background = 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)';
+        } else {
+            userRoleBadge.textContent = '👤 مستخدم';
+            userRoleBadge.style.background = '#4a5568';
         }
 
-        window.login = function() {
-            const username = document.getElementById('usernameInput').value.trim();
+        // Load messages
+        const messagesRef = ref(database, 'messages');
+        
+        // تحميل آخر 50 رسالة فقط
+        const recentMessagesQuery = query(messagesRef, orderByChild('timestamp'), limitToLast(50));
+        
+        onChildAdded(messagesRef, (snapshot) => {
+            const data = snapshot.val();
+            const messageId = snapshot.key;
             
-            if (!username) {
-                alert('الرجاء إدخال اسم المستخدم');
-                return;
-            }
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${data.sender === username ? 'sent' : 'received'}`;
+            messageDiv.dataset.messageId = messageId;
+            
+            // إظهار شارة المدير بجانب اسمه
+            const senderDisplay = data.isAdmin ? `👑 ${data.sender}` : data.sender;
+            
+            messageDiv.innerHTML = `
+                <div class="sender">${senderDisplay} ${data.isAdmin ? '⭐' : ''}</div>
+                <div class="bubble">${data.text}</div>
+                <div class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</div>
+                ${isAdmin ? `<button onclick="deleteMessage('${messageId}')" style="background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 12px; margin-top: 5px;">🗑️ حذف</button>` : ''}
+            `;
+            
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        });
 
-            // Check for admin code - يظهر نموذج المدير
-            if (username === 'slx23m') {
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('adminLoginForm').style.display = 'block';
-                return;
-            }
-
-            // Regular login - تسجيل دخول عادي
-            localStorage.setItem('chatUsername', username);
-            localStorage.setItem('userRole', 'user');
-            localStorage.setItem('isAdmin', 'false');
-            window.location.href = '../index.html';
+        window.sendMessage = function() {
+            const text = messageInput.value.trim();
+            
+            if (!text) return;
+            
+            push(messagesRef, {
+                sender: username,
+                text: text,
+                timestamp: Date.now(),
+                isAdmin: isAdmin, // معرفة إذا كانت الرسالة من مدير
+                userRole: userRole
+            });
+            
+            messageInput.value = '';
+            messageInput.focus();
         };
 
-        window.adminLogin = function() {
-            const password = document.getElementById('adminPasswordInput').value;
-            
-            if (password === '1442') {
-                // تسجيل دخول المدير مع صلاحيات كاملة
-                localStorage.setItem('chatUsername', '👑 المدير');
-                localStorage.setItem('userRole', 'admin');
-                localStorage.setItem('isAdmin', 'true');
-                localStorage.setItem('adminCode', 'slx23m');
-                window.location.href = '../index.html';
-            } else {
-                alert('❌ كلمة المرور غير صحيحة');
-                document.getElementById('adminPasswordInput').value = '';
+        window.deleteMessage = function(messageId) {
+            if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+                const messageRef = ref(database, `messages/${messageId}`);
+                remove(messageRef);
             }
         };
 
-        window.backToUserLogin = function() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('adminLoginForm').style.display = 'none';
-            document.getElementById('usernameInput').value = '';
-            document.getElementById('adminPasswordInput').value = '';
+        window.clearAllMessages = function() {
+            if (confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل؟ هذا الإجراء لا يمكن التراجع عنه!')) {
+                const adminConfirm = prompt('أدخل كلمة المرور للتأكيد:');
+                if (adminConfirm === '1442') {
+                    const messagesRef = ref(database, 'messages');
+                    set(messagesRef, null);
+                    messagesArea.innerHTML = '';
+                    alert('✅ تم حذف جميع الرسائل بنجاح');
+                } else {
+                    alert('❌ كلمة المرور غير صحيحة');
+                }
+            }
+        };
+
+        window.logout = function() {
+            localStorage.clear();
+            window.location.href = 'pages/login.html';
         };
 
         // Enter key support
-        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') window.login();
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') window.sendMessage();
         });
 
-        document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') window.adminLogin();
-        });
+        // Check if logged in
+        if (!localStorage.getItem('chatUsername')) {
+            window.location.href = 'pages/login.html';
+        }
+
+        // منع المستخدم العادي من الوصول إلى لوحة المدير
+        if (isAdmin && window.location.pathname.includes('admin-panel.html')) {
+            // مسموح
+        } else if (!isAdmin && window.location.pathname.includes('admin-panel.html')) {
+            window.location.href = '../index.html';
+        }
     </script>
 </body>
 </html>
