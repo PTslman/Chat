@@ -4,6 +4,7 @@
 
 console.log('🚀 بدء تهيئة Firebase...');
 
+// جعل db و auth عامين (Global)
 let app;
 let db;
 let auth;
@@ -12,6 +13,11 @@ try {
     app = firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     auth = firebase.auth();
+    
+    // جعلهما عامين على window
+    window.db = db;
+    window.auth = auth;
+    
     console.log('✅ تم تهيئة Firebase بنجاح');
 } catch (e) {
     console.error('❌ فشل تهيئة Firebase:', e);
