@@ -2,355 +2,249 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>نيزك v5.0 - دردشة متطورة</title>
-    
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نيزك - منصة الدردشة</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
-
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
+    <!-- شاشة التحميل -->
+    <div id="loading-screen">
+        <div class="loader">
             <div class="spinner"></div>
-            <div class="loading-text">جاري التحميل...</div>
+            <h2>🚀 نيزك</h2>
+            <p>جاري التحميل...</p>
         </div>
     </div>
 
-    <div id="app">
-        <!-- ===== شاشة تسجيل الدخول ===== -->
-        <div class="login-overlay" id="loginOverlay">
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-screen" style="display:none;">
+        <div class="login-container">
             <div class="login-box">
-                <div class="login-logo">💬</div>
-                <h1>نيزك <span class="hl">دردشة</span></h1>
-                <p class="login-sub">آمنة • سريعة • متطورة • v5.0</p>
-                
-                <input type="text" id="usernameInput" placeholder="اسم المستخدم..." maxlength="20" autocomplete="off">
-                
-                <div class="color-options" id="colorPicker">
-                    <div class="color-circle selected" style="background:#2b6ef0;" data-color="#2b6ef0"></div>
-                    <div class="color-circle" style="background:#ed4245;" data-color="#ed4245"></div>
-                    <div class="color-circle" style="background:#faa81a;" data-color="#faa81a"></div>
-                    <div class="color-circle" style="background:#23a55a;" data-color="#23a55a"></div>
-                    <div class="color-circle" style="background:#a78bfa;" data-color="#a78bfa"></div>
-                    <div class="color-circle" style="background:#f472b6;" data-color="#f472b6"></div>
-                    <div class="color-circle" style="background:#60a5fa;" data-color="#60a5fa"></div>
-                    <div class="color-circle" style="background:#34d399;" data-color="#34d399"></div>
+                <div class="logo">
+                    <h1>🚀 نيزك</h1>
+                    <p>منصة الدردشة المتكاملة</p>
                 </div>
-
-                <div class="login-admin-password-box" id="loginAdminPasswordBox" style="display:none;">
-                    <input type="password" id="loginAdminPasswordInput" placeholder="كلمة المرور..." maxlength="20">
-                    <div class="error-msg" id="loginAdminPasswordError">❌ كلمة المرور غير صحيحة</div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">👤 اسم المستخدم</label>
+                        <input type="text" id="username" placeholder="أدخل اسم المستخدم" required>
+                    </div>
+                    <div class="form-group" id="password-group" style="display:none;">
+                        <label for="password">🔑 كلمة المرور</label>
+                        <input type="password" id="password" placeholder="أدخل كلمة المرور">
+                    </div>
+                    <button type="submit" class="login-btn">دخول</button>
+                </form>
+                <div class="login-footer">
+                    <p>مسؤول: slx23m | كلمة المرور: 1442</p>
                 </div>
-
-                <button class="login-btn" id="loginBtn">
-                    <span class="material-symbols-outlined">login</span> دخول
-                </button>
-                
-                <div class="error" id="loginError">⚠️ الاسم يجب أن يكون حرفين على الأقل</div>
-                <div class="error" id="connectionError" style="display:none;"></div>
-                <div class="info-msg" id="infoMsg"></div>
             </div>
         </div>
+    </div>
 
-        <!-- ===== واجهة الدردشة ===== -->
-        <div class="chat-container" id="chatContainer" style="display:none;">
-            
-            <!-- الهيدر - تصميم واتساب -->
-            <div class="chat-header">
-                <div class="status-bar">
-                    <span id="statusTime">12:00</span>
-                    <span class="version">v5.0.0</span>
-                    <span class="online-count" id="onlineCount">🟢 0</span>
+    <!-- شاشة إعداد الملف الشخصي -->
+    <div id="profile-setup" style="display:none;">
+        <div class="profile-setup-container">
+            <div class="profile-box">
+                <h2>🎨 إعداد الملف الشخصي</h2>
+                <div class="avatar-upload">
+                    <img id="profile-preview" src="assets/images/default-avatar.png" alt="الصورة الشخصية">
+                    <label for="avatar-input" class="upload-btn">
+                        <span class="material-symbols-outlined">photo_camera</span>
+                    </label>
+                    <input type="file" id="avatar-input" accept="image/*" style="display:none;">
                 </div>
-                <div class="header-left">
-                    <div class="header-avatar" id="headerAvatar" title="الملف الشخصي">
-                        <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
-                    </div>
-                    <div class="brand">
-                        <span class="brand-text" id="headerUsername">المستخدم</span>
-                        <span class="admin-badge" id="adminBadge">👑 مسؤول</span>
-                    </div>
+                <div class="form-group">
+                    <label for="display-name">👤 الاسم المعروض</label>
+                    <input type="text" id="display-name" placeholder="أدخل اسمك">
                 </div>
-                <div class="header-actions">
-                    <button class="search-btn" id="searchBtn" title="بحث">
-                        <span class="material-symbols-outlined">search</span>
-                    </button>
-                    <button class="theme-toggle" id="themeToggle" title="تبديل الثيم">
-                        <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
-                    </button>
-                    <button class="rules-btn" id="rulesBtn" title="القوانين">
-                        <span class="material-symbols-outlined">gavel</span>
-                    </button>
-                    <button class="admin-btn hidden" id="adminBtn" title="لوحة المسؤول">
-                        <span class="material-symbols-outlined">shield_person</span>
-                    </button>
-                    <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج">
-                        <span class="material-symbols-outlined">logout</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- شريط البحث -->
-            <div class="search-bar" id="searchBar" style="display:none;">
-                <div class="search-input-wrapper">
-                    <span class="material-symbols-outlined">search</span>
-                    <input type="text" id="searchInput" placeholder="ابحث في الرسائل..." autofocus>
-                    <button class="search-close" id="searchClose">✖</button>
-                </div>
-                <div class="search-results" id="searchResults"></div>
-            </div>
-
-            <!-- منطقة الرسائل -->
-            <div class="chat-messages" id="messages">
-                <div class="empty-state" id="emptyState">
-                    <div class="empty-icon"><span class="material-symbols-outlined">chat</span></div>
-                    <div class="empty-title">لا توجد رسائل</div>
-                    <div class="empty-sub">كن أول من يكتب ✨</div>
-                </div>
-            </div>
-
-            <!-- زر التمرير للأسفل -->
-            <button class="scroll-bottom-btn" id="scrollBottomBtn" title="الانتقال للأسفل">
-                <span class="material-symbols-outlined">arrow_downward</span>
-                <span class="new-msg-badge" id="newMsgBadge">0</span>
-            </button>
-
-            <!-- مؤشر الكتابة -->
-            <div class="typing-indicator" id="typingIndicator">
-                <span></span><span></span><span></span>
-                <span class="typing-text" id="typingText">يكتب...</span>
-            </div>
-
-            <!-- تنبيه المنع -->
-            <div class="muted-notice" id="mutedNotice">⛔ أنت ممنوع من الكتابة مؤقتاً</div>
-
-            <!-- لوحة الإيموجي -->
-            <div class="emoji-rail" id="emojiRail">
-                <button class="emoji-item">😊</button><button class="emoji-item">😂</button>
-                <button class="emoji-item">❤️</button><button class="emoji-item">🔥</button>
-                <button class="emoji-item">👍</button><button class="emoji-item">👏</button>
-                <button class="emoji-item">😍</button><button class="emoji-item">🤩</button>
-                <button class="emoji-item">💯</button><button class="emoji-item">🎉</button>
-                <button class="emoji-item">✨</button><button class="emoji-item">💪</button>
-                <button class="emoji-item">🤔</button><button class="emoji-item">😎</button>
-                <button class="emoji-item">🥰</button><button class="emoji-item">😭</button>
-                <button class="emoji-item">🤣</button><button class="emoji-item">😱</button>
-                <button class="emoji-item">🙏</button><button class="emoji-item">💀</button>
-                <button class="emoji-item">🫡</button><button class="emoji-item">👀</button>
-                <button class="emoji-item">🤝</button><button class="emoji-item">🫶</button>
-            </div>
-
-            <!-- لوحة التفاعلات -->
-            <div class="reaction-picker" id="reactionPicker">
-                <button class="reaction-option" data-reaction="❤️">❤️</button>
-                <button class="reaction-option" data-reaction="😂">😂</button>
-                <button class="reaction-option" data-reaction="😍">😍</button>
-                <button class="reaction-option" data-reaction="🔥">🔥</button>
-                <button class="reaction-option" data-reaction="👍">👍</button>
-                <button class="reaction-option" data-reaction="👏">👏</button>
-                <button class="reaction-option" data-reaction="😱">😱</button>
-                <button class="reaction-option" data-reaction="💀">💀</button>
-                <button class="reaction-option" data-reaction="🤣">🤣</button>
-                <button class="reaction-option" data-reaction="🥰">🥰</button>
-                <button class="reaction-option" data-reaction="😊">😊</button>
-                <button class="reaction-option" data-reaction="😎">😎</button>
-            </div>
-
-            <!-- ============================================================
-            شريط الرجعة - مثل واتساب
-            ============================================================ -->
-            <div class="reply-bar" id="replyBar" style="display:none;">
-                <div class="reply-bar-content">
-                    <div class="reply-bar-line"></div>
-                    <div class="reply-bar-info">
-                        <span class="reply-bar-sender" id="replyBarSender">@user</span>
-                        <span class="reply-bar-text" id="replyBarText">رسالة...</span>
+                <div class="color-picker">
+                    <label>🎨 اختر لونك المفضل</label>
+                    <div class="color-options">
+                        <div class="color-option" style="background:#25D366;" data-color="#25D366"></div>
+                        <div class="color-option" style="background:#FF6B6B;" data-color="#FF6B6B"></div>
+                        <div class="color-option" style="background:#4ECDC4;" data-color="#4ECDC4"></div>
+                        <div class="color-option" style="background:#FFE66D;" data-color="#FFE66D"></div>
+                        <div class="color-option" style="background:#A8E6CF;" data-color="#A8E6CF"></div>
+                        <div class="color-option" style="background:#FF8A5C;" data-color="#FF8A5C"></div>
+                        <div class="color-option" style="background:#6C5B7B;" data-color="#6C5B7B"></div>
+                        <div class="color-option" style="background:#F8B500;" data-color="#F8B500"></div>
                     </div>
                 </div>
-                <button class="reply-bar-close" id="replyBarClose" title="إلغاء الرد">
+                <button id="save-profile" class="save-btn">💾 حفظ وإتمام</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- واجهة الدردشة الرئيسية -->
+    <div id="chat-app" style="display:none;">
+        <!-- رأس التطبيق -->
+        <header class="chat-header">
+            <div class="header-left">
+                <img id="user-avatar" src="assets/images/default-avatar.png" alt="الصورة الشخصية">
+                <div class="user-info">
+                    <span id="user-name">المستخدم</span>
+                    <span class="online-status">🟢 متصل</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="user-count">👥 <span id="online-count">0</span></span>
+                <button id="theme-toggle" class="icon-btn">
+                    <span class="material-symbols-outlined">dark_mode</span>
+                </button>
+                <button id="admin-panel-btn" class="icon-btn" style="display:none;">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                </button>
+                <button id="logout-btn" class="icon-btn">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- منطقة الدردشة -->
+        <main class="chat-main">
+            <div class="chat-messages" id="messages-container">
+                <!-- الرسائل تظهر هنا ديناميكياً -->
+            </div>
+        </main>
+
+        <!-- شريط الرد -->
+        <div id="reply-bar" style="display:none;">
+            <div class="reply-content">
+                <div class="reply-info">
+                    <span class="reply-to">الرد على: <span id="reply-username"></span></span>
+                    <span class="reply-text" id="reply-text"></span>
+                </div>
+                <button id="cancel-reply" class="cancel-btn">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
+        </div>
 
-            <!-- منطقة الإدخال -->
-            <div class="chat-input">
-                <div class="input-row">
-                    <div class="input-wrapper">
-                        <button class="emoji-toggle" id="emojiToggle">
-                            <span class="material-symbols-outlined">mood</span>
-                        </button>
-                        <input type="text" id="msgInput" placeholder="اكتب رسالة..." disabled>
-                    </div>
-                    
-                    <button class="send-btn" id="sendBtn" disabled>
+        <!-- منطقة الإدخال -->
+        <footer class="chat-footer">
+            <button id="emoji-btn" class="icon-btn">
+                <span class="material-symbols-outlined">emoji_emotions</span>
+            </button>
+            <div class="input-wrapper">
+                <textarea id="message-input" rows="1" placeholder="اكتب رسالة..."></textarea>
+                <div class="input-actions">
+                    <button id="send-btn" class="send-btn">
                         <span class="material-symbols-outlined">send</span>
                     </button>
                 </div>
             </div>
+        </footer>
 
-            <div class="app-footer show" id="appFooter">
-                نيزك v5.0.0 • جميع الحقوق محفوظة
+        <!-- لوحة الإيموجي -->
+        <div id="emoji-panel" style="display:none;">
+            <div class="emoji-grid">
+                <span class="emoji">😊</span>
+                <span class="emoji">😂</span>
+                <span class="emoji">❤️</span>
+                <span class="emoji">🔥</span>
+                <span class="emoji">👍</span>
+                <span class="emoji">👏</span>
+                <span class="emoji">😍</span>
+                <span class="emoji">🥰</span>
+                <span class="emoji">😎</span>
+                <span class="emoji">🤣</span>
+                <span class="emoji">💀</span>
+                <span class="emoji">😱</span>
+                <span class="emoji">🎉</span>
+                <span class="emoji">✨</span>
+                <span class="emoji">🌟</span>
+                <span class="emoji">💪</span>
+                <span class="emoji">🤔</span>
+                <span class="emoji">😅</span>
+                <span class="emoji">🥺</span>
+                <span class="emoji">🤗</span>
+                <span class="emoji">😤</span>
+                <span class="emoji">😴</span>
+                <span class="emoji">🤩</span>
+                <span class="emoji">🥳</span>
             </div>
         </div>
 
-        <!-- ===== نافذة الملف الشخصي ===== -->
-        <div class="modal-overlay profile-modal" id="profileModal">
-            <div class="modal-box">
-                <div class="modal-title">
-                    <span class="material-symbols-outlined" style="color:var(--accent);">account_circle</span>
-                    الملف الشخصي
-                </div>
-                <p class="modal-desc">تعديل اسمك وصورتك الشخصية</p>
-
-                <div class="profile-avatar-section">
-                    <div class="profile-avatar-preview" id="profileAvatarPreview">
-                        <span class="avatar-placeholder" id="profileAvatarPlaceholder">👤</span>
-                    </div>
-                    <button class="profile-avatar-btn" id="profileAvatarBtn">
-                        <span class="material-symbols-outlined" style="font-size:16px;">photo_camera</span>
-                        تغيير الصورة
-                    </button>
-                    <input type="file" id="profileAvatarInput" class="file-input-hidden" accept="image/*">
-                    <div class="upload-status" id="profileUploadStatus"></div>
-                </div>
-
-                <input type="text" class="profile-name-input" id="profileNameInput" placeholder="اسم المستخدم..." maxlength="20">
-
-                <button class="profile-save-btn" id="profileSaveBtn">
-                    <span class="material-symbols-outlined">save</span> حفظ التغييرات
+        <!-- قائمة خيارات الرسالة -->
+        <div id="message-options" style="display:none;">
+            <div class="options-overlay"></div>
+            <div class="options-menu">
+                <button class="option-btn" data-action="reply">
+                    <span class="material-symbols-outlined">reply</span> رد
                 </button>
-
-                <button class="close-modal" id="closeProfileModal">
-                    <span class="material-symbols-outlined">close</span> إغلاق
+                <button class="option-btn" data-action="react">
+                    <span class="material-symbols-outlined">emoji_emotions</span> تفاعل
+                </button>
+                <button class="option-btn" data-action="copy">
+                    <span class="material-symbols-outlined">content_copy</span> نسخ
+                </button>
+                <button class="option-btn" data-action="edit">
+                    <span class="material-symbols-outlined">edit</span> تعديل
+                </button>
+                <button class="option-btn" data-action="report">
+                    <span class="material-symbols-outlined">flag</span> إبلاغ
+                </button>
+                <button class="option-btn admin-only" data-action="delete">
+                    <span class="material-symbols-outlined">delete</span> حذف
+                </button>
+                <button class="option-btn admin-only" data-action="ban">
+                    <span class="material-symbols-outlined">block</span> حظر
                 </button>
             </div>
         </div>
 
-        <!-- ===== نافذة القوانين ===== -->
-        <div class="modal-overlay" id="rulesModal">
-            <div class="modal-box">
-                <div class="modal-title">
-                    <span class="material-symbols-outlined">gavel</span> قوانين الغروب
-                </div>
-                <p class="modal-desc">اقرأ القوانين جيداً قبل المشاركة</p>
-                <div class="modal-rules">
-                    <div class="rule-item"><span class="num">1</span> احترام جميع الأعضاء</div>
-                    <div class="rule-item"><span class="num">2</span> لا للسب أو الشتم</div>
-                    <div class="rule-item"><span class="num">3</span> لا للمضايقات أو التحرش</div>
-                    <div class="rule-item"><span class="num">4</span> لا للمحتوى غير اللائق</div>
-                    <div class="rule-item"><span class="num">5</span> الالتزام بالموضوعية</div>
-                    <div class="rule-item"><span class="num">6</span> لا للإعلانات دون إذن</div>
-                    <div class="rule-item"><span class="num">7</span> احترام قرارات المسؤول</div>
-                </div>
-                <button class="close-modal" id="closeRulesModal">
-                    <span class="material-symbols-outlined">check</span> تم القراءة
-                </button>
-            </div>
-        </div>
-
-        <!-- ===== نافذة المسؤول ===== -->
-        <div class="modal-overlay" id="adminModal">
-            <div class="modal-box">
-                <div class="modal-title">
-                    <span class="material-symbols-outlined">shield_person</span> لوحة المسؤول
-                </div>
-                <p class="modal-desc">أدخل كلمة المرور للوصول إلى لوحة التحكم</p>
-
-                <div class="admin-password-box" id="adminPasswordBox">
-                    <input type="password" id="adminPasswordInput" placeholder="كلمة المرور..." maxlength="20">
-                    <div class="error-msg" id="adminPasswordError">❌ كلمة المرور غير صحيحة</div>
-                    <button class="login-btn" id="adminPasswordBtn" style="margin-bottom:10px;">
-                        <span class="material-symbols-outlined">lock_open</span> تأكيد
+        <!-- لوحة المسؤول -->
+        <div id="admin-panel" style="display:none;">
+            <div class="admin-panel-overlay"></div>
+            <div class="admin-panel-content">
+                <div class="admin-header">
+                    <h2>🛡️ لوحة تحكم المسؤول</h2>
+                    <button id="close-admin" class="close-btn">
+                        <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
-
-                <div class="admin-panel" id="adminPanel" style="display:none;">
-                    <div class="admin-title">
-                        <span class="title-left">
-                            <span class="material-symbols-outlined" style="font-size:16px;">people</span> المستخدمون
-                        </span>
-                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                            <button class="clear-chat-btn" id="clearChatBtn" title="حذف جميع الرسائل">
-                                <span class="material-symbols-outlined">delete_sweep</span> حذف
-                            </button>
-                            <button class="force-logout-btn" id="forceLogoutBtn" title="تسجيل خروج جميع المستخدمين">
-                                <span class="material-symbols-outlined">logout</span> خروج
-                            </button>
-                        </div>
+                <div class="admin-tabs">
+                    <button class="tab-btn active" data-tab="users">👥 المستخدمين</button>
+                    <button class="tab-btn" data-tab="banned">🚫 المحظورين</button>
+                    <button class="tab-btn" data-tab="words">📝 الكلمات المحظورة</button>
+                    <button class="tab-btn" data-tab="settings">⚙️ الإعدادات</button>
+                </div>
+                <div class="admin-content">
+                    <div id="users-tab" class="tab-content active">
+                        <div id="users-list"></div>
                     </div>
-                    <div class="admin-users" id="adminUsersList">
-                        <div style="color:var(--text-muted);font-size:12px;">جاري التحميل...</div>
+                    <div id="banned-tab" class="tab-content">
+                        <div id="banned-list"></div>
                     </div>
-
-                    <div class="theme-settings">
-                        <div class="theme-title">
-                            <span class="material-symbols-outlined" style="font-size:16px;">palette</span> تخصيص الثيم
+                    <div id="words-tab" class="tab-content">
+                        <div class="add-word">
+                            <input type="text" id="new-word" placeholder="أضف كلمة محظورة">
+                            <button id="add-word-btn">➕ إضافة</button>
                         </div>
-                        <div class="theme-options" id="themeOptions">
-                            <button class="theme-btn active" data-theme="dark">🌙 داكن</button>
-                            <button class="theme-btn" data-theme="light">☀️ نهاري</button>
-                            <button class="theme-btn" data-theme="admin-dark">💜 بنفسجي</button>
-                            <button class="theme-btn" data-theme="admin-forest">🌿 غابة</button>
-                            <button class="theme-btn" data-theme="admin-rose">🌸 وردي</button>
-                            <button class="theme-btn" data-theme="admin-ocean">🌊 محيط</button>
-                        </div>
+                        <div id="words-list"></div>
                     </div>
-
-                    <div class="badwords-section">
-                        <div class="badwords-title">
-                            <span class="material-symbols-outlined" style="font-size:16px;">block</span> الكلمات المحظورة
-                        </div>
-                        <div class="badwords-input-row">
-                            <input type="text" id="badwordInput" placeholder="أدخل كلمة ممنوعة..." maxlength="30">
-                            <button id="addBadwordBtn">➕ إضافة</button>
-                        </div>
-                        <div class="badwords-list" id="badwordsList">
-                            <span style="color:var(--text-muted);font-size:11px;">لا توجد كلمات محظورة</span>
-                        </div>
+                    <div id="settings-tab" class="tab-content">
+                        <button id="clear-all-messages" class="danger-btn">🗑️ حذف جميع الرسائل</button>
+                        <button id="logout-all-users" class="danger-btn">🚪 تسجيل خروج الجميع</button>
                     </div>
                 </div>
-
-                <button class="close-modal" id="closeAdminModal">
-                    <span class="material-symbols-outlined">close</span> إغلاق
-                </button>
             </div>
         </div>
-
-        <!-- ===== نافذة عرض الملفات ===== -->
-        <div class="modal-overlay file-viewer" id="fileViewer">
-            <div class="modal-box file-viewer-box">
-                <div class="file-viewer-content">
-                    <div class="file-viewer-header">
-                        <span class="file-viewer-title" id="fileViewerTitle">ملف</span>
-                        <button class="file-viewer-close" id="fileViewerClose">✖</button>
-                    </div>
-                    <div class="file-viewer-body" id="fileViewerBody">
-                        <img src="" alt="صورة" id="fileViewerImage" style="display:none;max-width:100%;border-radius:12px;">
-                        <div class="file-viewer-file" id="fileViewerFile" style="display:none;">
-                            <span class="material-symbols-outlined" style="font-size:64px;color:var(--accent);">description</span>
-                            <span id="fileViewerFileName">ملف</span>
-                            <a href="#" id="fileViewerDownload" class="file-download-btn">📥 تحميل</a>
-                        </div>
-                        <div class="file-viewer-audio" id="fileViewerAudio" style="display:none;">
-                            <audio controls id="fileViewerAudioPlayer" style="width:100%;"></audio>
-                        </div>
-                    </div>
-                </div>
-                <button class="close-modal" id="closeFileViewer">✖ إغلاق</button>
-            </div>
-        </div>
-
     </div>
 
-    <script src="app.js"></script>
+    <!-- عارض الصور -->
+    <div id="image-viewer" style="display:none;">
+        <div class="viewer-overlay"></div>
+        <div class="viewer-content">
+            <button id="close-viewer" class="close-btn">✕</button>
+            <img id="viewer-image" src="" alt="الصورة">
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
 </body>
-    </html>
+</html>
