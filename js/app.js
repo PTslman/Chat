@@ -37,29 +37,36 @@ updateClock();
 setInterval(updateClock, 30000);
 
 // ============================================================
-// 📶 مراقبة حالة الاتصال
+// 📶 مراقبة حالة الاتصال - باستخدام window.monitorConnection
 // ============================================================
-function monitorConnection() {
-    if (!window.db) return;
-    
-    window.db.collection('_').doc('_').onSnapshot(function() {
-        console.log('✅ الاتصال بقاعدة البيانات نشط');
-        var connectionError = document.getElementById('connectionError');
-        if (connectionError) {
-            connectionError.style.display = 'none';
+function startMonitorConnection() {
+    if (typeof window.monitorConnection === 'function') {
+        window.monitorConnection();
+        console.log('✅ تم بدء مراقبة الاتصال');
+    } else {
+        console.warn('⚠️ window.monitorConnection غير معرفة');
+        // مراقبة بسيطة باستخدام users
+        if (window.db) {
+            window.db.collection('users').limit(1).onSnapshot(function() {
+                console.log('✅ الاتصال بقاعدة البيانات نشط');
+                var connectionError = document.getElementById('connectionError');
+                if (connectionError) {
+                    connectionError.style.display = 'none';
+                }
+            }, function(error) {
+                console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error);
+                var connectionError = document.getElementById('connectionError');
+                if (connectionError) {
+                    connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
+                    connectionError.style.display = 'block';
+                }
+            });
         }
-    }, function(error) {
-        console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error);
-        var connectionError = document.getElementById('connectionError');
-        if (connectionError) {
-            connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
-            connectionError.style.display = 'block';
-        }
-    });
+    }
 }
 
 // بدء مراقبة الاتصال بعد 2 ثانية
-setTimeout(monitorConnection, 2000);
+setTimeout(startMonitorConnection, 2000);
 
 // ============================================================
 // 🎨 COLOR PICKER
