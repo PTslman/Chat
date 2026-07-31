@@ -8,15 +8,15 @@ window.tempAvatarBase64 = '';
 // ============================================================
 // DOM REFS
 // ============================================================
-var profileModal = document.getElementById('profileModal');
-var closeProfileModal = document.getElementById('closeProfileModal');
-var profileAvatarPreview = document.getElementById('profileAvatarPreview');
-var profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
-var profileAvatarBtn = document.getElementById('profileAvatarBtn');
-var profileAvatarInput = document.getElementById('profileAvatarInput');
-var profileNameInput = document.getElementById('profileNameInput');
-var profileSaveBtn = document.getElementById('profileSaveBtn');
-var profileUploadStatus = document.getElementById('profileUploadStatus');
+const profileModal = document.getElementById('profileModal');
+const closeProfileModal = document.getElementById('closeProfileModal');
+const profileAvatarPreview = document.getElementById('profileAvatarPreview');
+const profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+const profileAvatarBtn = document.getElementById('profileAvatarBtn');
+const profileAvatarInput = document.getElementById('profileAvatarInput');
+const profileNameInput = document.getElementById('profileNameInput');
+const profileSaveBtn = document.getElementById('profileSaveBtn');
+const profileUploadStatus = document.getElementById('profileUploadStatus');
 
 // ============================================================
 // OPEN PROFILE
@@ -36,7 +36,7 @@ window.openProfileModal = function() {
 // SAVE PROFILE
 // ============================================================
 window.saveProfile = async function() {
-    var newName = profileNameInput.value.trim();
+    const newName = profileNameInput.value.trim();
     if (!newName || newName.length < 2) {
         alert('⚠️ الاسم يجب أن يكون حرفين على الأقل');
         return;
@@ -45,31 +45,35 @@ window.saveProfile = async function() {
     window.showLoading(true);
 
     try {
-        var newAvatarBase64 = window.userAvatarBase64;
+        let newAvatarBase64 = window.userAvatarBase64;
 
         if (window.tempAvatarBase64) {
             newAvatarBase64 = window.tempAvatarBase64;
             window.tempAvatarBase64 = '';
         }
 
-        var oldName = window.currentUser;
+        const oldName = window.currentUser;
 
-        await window.db.collection('users').doc(oldName).update({
+        // تحديث بيانات المستخدم
+        await window.db.collection('users').doc(oldName).set({
             username: newName,
             avatar: newAvatarBase64,
-            color: window.userColor || '#2b6ef0'
-        });
+            color: window.userColor || '#2b6ef0',
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
         window.currentUser = newName;
         window.userAvatarBase64 = newAvatarBase64;
         window.updateAllAvatars(newAvatarBase64, newName);
 
+        // تحديث اسم المرسل في جميع الرسائل
         if (oldName !== newName) {
-            var messagesSnap = await window.db.collection('messages')
+            const messagesSnap = await window.db.collection('messages')
                 .where('sender', '==', oldName)
                 .get();
-            var batch = window.db.batch();
-            messagesSnap.forEach(function(doc) {
+            
+            const batch = window.db.batch();
+            messagesSnap.forEach((doc) => {
                 batch.update(doc.ref, { sender: newName, avatar: newAvatarBase64 });
             });
             await batch.commit();
@@ -82,7 +86,7 @@ window.saveProfile = async function() {
 
     } catch (error) {
         console.error('❌ خطأ في حفظ الملف الشخصي:', error);
-        alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي');
+        alert('⚠️ حدث خطأ أثناء حفظ الملف الشخصي: ' + error.message);
     }
 
     window.showLoading(false);
@@ -92,13 +96,13 @@ window.saveProfile = async function() {
 // PROFILE EVENTS
 // ============================================================
 if (profileAvatarBtn) {
-    profileAvatarBtn.addEventListener('click', function() {
+    profileAvatarBtn.addEventListener('click', () => {
         if (profileAvatarInput) profileAvatarInput.click();
     });
 }
 
 if (profileAvatarPreview) {
-    profileAvatarPreview.addEventListener('click', function() {
+    profileAvatarPreview.addEventListener('click', () => {
         if (profileAvatarInput) profileAvatarInput.click();
     });
 }
@@ -106,7 +110,7 @@ if (profileAvatarPreview) {
 if (profileAvatarInput) {
     profileAvatarInput.addEventListener('change', function(e) {
         if (this.files && this.files[0]) {
-            var file = this.files[0];
+            const file = this.files[0];
             if (file.size > 5 * 1024 * 1024) {
                 alert('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5MB)');
                 this.value = '';
@@ -114,7 +118,7 @@ if (profileAvatarInput) {
             }
 
             window.compressImageToBase64(file, 300, 300, 0.6, profileUploadStatus)
-                .then(function(base64) {
+                .then((base64) => {
                     if (profileAvatarPreview) {
                         profileAvatarPreview.innerHTML = '<img src="' + base64 + '" alt="صورة شخصية">';
                     }
@@ -125,7 +129,7 @@ if (profileAvatarInput) {
                         profileUploadStatus.className = 'upload-status show success';
                     }
                 })
-                .catch(function(err) {
+                .catch((err) => {
                     console.error('❌ فشل ضغط الصورة:', err);
                     alert('⚠️ فشل معالجة الصورة: ' + err.message);
                 });
@@ -134,7 +138,7 @@ if (profileAvatarInput) {
 }
 
 if (closeProfileModal) {
-    closeProfileModal.addEventListener('click', function() {
+    closeProfileModal.addEventListener('click', () => {
         if (profileModal) profileModal.classList.remove('active');
         window.tempAvatarBase64 = '';
         if (profileUploadStatus) {
@@ -145,7 +149,7 @@ if (closeProfileModal) {
 }
 
 if (profileModal) {
-    profileModal.addEventListener('click', function(e) {
+    profileModal.addEventListener('click', (e) => {
         if (e.target === profileModal) {
             profileModal.classList.remove('active');
             window.tempAvatarBase64 = '';
@@ -162,7 +166,7 @@ if (profileSaveBtn) {
 }
 
 if (profileNameInput) {
-    profileNameInput.addEventListener('keypress', function(e) {
+    profileNameInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') window.saveProfile();
     });
 }
