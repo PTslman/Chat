@@ -1,21 +1,15 @@
 // ============================================================
-// 🚀 FIREBASE INIT - نيزك v3.5.0
+// 🚀 FIREBASE INIT - نيزك v3.5.0 (الحل النهائي)
 // ============================================================
 
 console.log('🚀 بدء تهيئة Firebase...');
 
-// استخدام window.db و window.auth
 try {
-    // تهيئة Firebase
     firebase.initializeApp(window.firebaseConfig);
-    
-    // تعيين المتغيرات على window
     window.db = firebase.firestore();
     window.auth = firebase.auth();
     
     console.log('✅ تم تهيئة Firebase بنجاح');
-    console.log('✅ db:', window.db ? 'موجود' : 'غير موجود');
-    console.log('✅ auth:', window.auth ? 'موجود' : 'غير موجود');
 } catch (e) {
     console.error('❌ فشل تهيئة Firebase:', e);
     const connectionError = document.getElementById('connectionError');
@@ -25,69 +19,74 @@ try {
     }
 }
 
-// تفعيل وضع عدم الاتصال مع إعدادات أفضل
+// ============================================================
+// 🔥 تمكين التخزين المؤقت (Persistence) بشكل قوي
+// ============================================================
 if (window.db) {
-    window.db.enablePersistence({ 
-        synchronizeTabs: true,
-        experimentalForceOwningTab: true
-    })
-    .then(function() {
-        console.log('✅ تم تفعيل التخزين المؤقت');
-    })
-    .catch(function(err) {
-        console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
-        console.log('📌 نستمر بدون تخزين مؤقت');
-    });
+    window.db.enablePersistence({ synchronizeTabs: true })
+        .then(() => {
+            console.log('✅ التخزين المؤقت مفعل بنجاح');
+        })
+        .catch((err) => {
+            console.warn('⚠️ فشل تفعيل التخزين المؤقت:', err);
+            // نستمر بدون persistence
+        });
+
+    // إعدادات إضافية لتحسين الأداء
+    window.db.settings({ merge: true });
 }
 
 // ============================================================
-// ✅ دالة التحقق من الاتصال - باستخدام مسار صحيح
+// 📶 دالة التحقق من الاتصال - باستخدام onSnapshot
 // ============================================================
 window.checkConnection = function() {
-    console.log('🔍 التحقق من الاتصال...');
-    return new Promise(function(resolve) {
-        if (!window.db) {
-            console.log('❌ db غير موجود');
-            resolve(false);
-            return;
-        }
+    return new Promise((resolve) => {
+        if (!window.db) return resolve(false);
         
-        // استخدام مسار موجود مثل users أو messages
-        // نستخدم users لأنها موجودة دائماً
-        window.db.collection('users').limit(1).get()
-            .then(function() {
-                console.log('✅ الاتصال نشط');
+        // استخدام onSnapshot بدلاً من get() للاستماع الفوري
+        const unsub = window.db.collection('users').limit(1).onSnapshot(
+            () => {
+                unsub();
                 resolve(true);
-            })
-            .catch(function(err) {
-                console.warn('⚠️ فشل الاتصال:', err.message);
+            },
+            (error) => {
+                unsub();
+                console.warn('⚠️ فشل الاتصال:', error.message);
                 resolve(false);
-            });
+            }
+        );
+        
+        // مهلة 5 ثوانٍ
+        setTimeout(() => {
+            unsub();
+            resolve(false);
+        }, 5000);
     });
 };
 
 // ============================================================
-// 📶 مراقبة حالة الاتصال - باستخدام مسار صحيح
+// 📡 مراقبة الاتصال المستمر
 // ============================================================
-window.monitorConnection = function() {
+window.startConnectionMonitor = function(callback) {
     if (!window.db) return;
     
-    // استخدام مسار موجود
-    window.db.collection('users').limit(1).onSnapshot(function() {
-        console.log('✅ الاتصال بقاعدة البيانات نشط');
-        var connectionError = document.getElementById('connectionError');
-        if (connectionError) {
-            connectionError.style.display = 'none';
+    let isOnline = true;
+    window.db.collection('users').limit(1).onSnapshot(
+        () => {
+            if (!isOnline) {
+                isOnline = true;
+                console.log('✅ الاتصال عاد');
+                if (callback) callback(true);
+            }
+        },
+        (error) => {
+            if (isOnline) {
+                isOnline = false;
+                console.warn('⚠️ فقدان الاتصال:', error.message);
+                if (callback) callback(false);
+            }
         }
-    }, function(error) {
-        console.warn('⚠️ فقدان الاتصال بقاعدة البيانات:', error);
-        var connectionError = document.getElementById('connectionError');
-        if (connectionError) {
-            connectionError.textContent = '⚠️ غير متصل بالإنترنت - جاري العمل بدون اتصال';
-            connectionError.style.display = 'block';
-        }
-    });
+    );
 };
 
-console.log('✅ تم تحميل firebase-init.js');
-console.log('✅ window.checkConnection:', typeof window.checkConnection);
+console.log('✅ تم تحميل firebase-init.js (الحل النهائي)');
