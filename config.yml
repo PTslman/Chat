@@ -1,0 +1,9 @@
+# _config.yml
+include:
+  - .nojekyll
+  - sw.js
+  - manifest.json
+exclude:
+  - README.md
+  - LICENSE
+  - .gitignore
