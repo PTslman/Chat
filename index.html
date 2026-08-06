@@ -1,0 +1,3348 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>نيزك - دردشة جماعية</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#111b21" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        :root {
+            --bg-primary: #111b21;
+            --bg-secondary: #1f2c33;
+            --bg-chat: #0b141a;
+            --bg-header: #1f2c33;
+            --bg-input: #2a3942;
+            --bg-bubble-sent: #056162;
+            --bg-bubble-received: #1f2c33;
+            --text-primary: #e9edef;
+            --text-secondary: #8696a0;
+            --text-bubble-sent: #e9edef;
+            --text-bubble-received: #e9edef;
+            --color-accent: #25D366;
+            --color-accent-hover: #1da851;
+            --border-color: #2a3942;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --radius-lg: 28px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition-speed: 0.3s;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --font-size-base: 16px;
+        }
+        
+        body.light {
+            --bg-primary: #e5ddd5;
+            --bg-secondary: #f0f0f0;
+            --bg-chat: #efeae2;
+            --bg-header: #f0f0f0;
+            --bg-input: #ffffff;
+            --bg-bubble-sent: #d9fdd3;
+            --bg-bubble-received: #ffffff;
+            --text-primary: #111b21;
+            --text-secondary: #667781;
+            --text-bubble-sent: #111b21;
+            --text-bubble-received: #111b21;
+            --border-color: #d1d7db;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            font-size: var(--font-size-base);
+        }
+        
+        /* ============================================================
+           التطبيق الرئيسي
+           ============================================================ */
+        #app {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            max-width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-primary);
+            transition: background 0.3s;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* ============================================================
+           شاشة الدخول
+           ============================================================ */
+        #loginScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px 30px;
+            text-align: center;
+            background: var(--bg-primary);
+            transition: background 0.3s;
+        }
+        
+        #loginScreen .logo-wrap {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-accent), #128C7E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.8rem;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 40px rgba(37, 211, 102, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        
+        #loginScreen h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--color-accent);
+            margin-bottom: 4px;
+            letter-spacing: -1px;
+        }
+        
+        #loginScreen .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+        
+        #loginScreen .input-group {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            margin-bottom: 12px;
+        }
+        
+        #loginScreen .input-group input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border-radius: 30px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        
+        #loginScreen .input-group input:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+        }
+        
+        #loginScreen .input-group .icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+        
+        #loginScreen .btn-primary {
+            width: 100%;
+            max-width: 400px;
+            padding: 16px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(135deg, var(--color-accent), #128C7E);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 8px 30px rgba(37, 211, 102, 0.15);
+            margin-top: 6px;
+        }
+        
+        #loginScreen .btn-primary:hover { transform: scale(1.02); }
+        #loginScreen .btn-primary:active { transform: scale(0.97); }
+        
+        #loginScreen .btn-secondary {
+            width: 100%;
+            max-width: 400px;
+            padding: 14px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: 0.3s;
+        }
+        
+        #loginScreen .btn-secondary:hover { opacity: 0.8; }
+        
+        #adminPassWrap {
+            width: 100%;
+            max-width: 400px;
+            display: none;
+            margin-top: 4px;
+        }
+        
+        #adminPassWrap input {
+            border-color: #f5a623 !important;
+        }
+        
+        #loginError {
+            color: #ff4444;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            min-height: 22px;
+        }
+        
+        /* ============================================================
+           شاشة الدردشة
+           ============================================================ */
+        #chatScreen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            flex: 1;
+            background: var(--bg-chat);
+            transition: background 0.3s;
+        }
+        
+        /* ============================================================
+           الهيدر
+           ============================================================ */
+        .chat-header {
+            padding: 10px 16px;
+            padding-top: calc(10px + var(--safe-top));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            min-height: 60px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        
+        .chat-header .avatar-group {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-accent), #128C7E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+            border: 2px solid var(--border-color);
+        }
+        
+        .chat-header .avatar-group:hover { transform: scale(1.05); }
+        .chat-header .avatar-group:active { transform: scale(0.95); }
+        .chat-header .avatar-group img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .chat-header .avatar-group .online-dot {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--color-accent);
+            border: 2px solid var(--bg-header);
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .chat-header .info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .chat-header .info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+            transition: color 0.3s;
+        }
+        
+        .chat-header .info .status {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+        }
+        
+        .chat-header .actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .chat-header .actions button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 40px;
+            transition: 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-header .actions button:hover { background: rgba(255, 255, 255, 0.05); }
+        .chat-header .actions button:active { transform: scale(0.9); }
+        
+        /* ============================================================
+           حاوية الرسائل
+           ============================================================ */
+        #messagesContainer {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 14px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            background: var(--bg-chat);
+            transition: background 0.3s;
+        }
+        
+        #messagesContainer::-webkit-scrollbar { width: 4px; }
+        #messagesContainer::-webkit-scrollbar-track { background: transparent; }
+        #messagesContainer::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+        }
+        
+        /* ============================================================
+           فقاعات الرسائل
+           ============================================================ */
+        .msg-wrapper {
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.15s ease;
+            cursor: default;
+            position: relative;
+            transition: 0.2s;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(6px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .msg-wrapper .reply-preview {
+            font-size: 0.7rem;
+            opacity: 0.5;
+            padding: 2px 12px 2px 8px;
+            border-right: 3px solid var(--color-accent);
+            margin-bottom: 2px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .msg {
+            max-width: 82%;
+            padding: 10px 16px 10px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-wrap: break-word;
+            position: relative;
+            margin-bottom: 2px;
+            transition: 0.2s;
+            font-weight: 400;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .msg .avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            background: linear-gradient(135deg, var(--color-accent), #128C7E);
+        }
+        
+        .msg .avatar-small:hover { transform: scale(1.1); }
+        .msg .avatar-small img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .msg .content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .msg .content .sender-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-bottom: 3px;
+            display: block;
+            cursor: pointer;
+            color: var(--color-accent);
+        }
+        
+        .msg .content .sender-name:hover { opacity: 1; }
+        
+        .msg .content .text {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+        
+        .msg .content .time {
+            font-size: 0.6rem;
+            opacity: 0.4;
+            margin-top: 4px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: flex-end;
+            color: var(--text-secondary);
+        }
+        
+        .msg .content .time .check { font-size: 0.65rem; }
+        
+        .msg.sent {
+            align-self: flex-end;
+            background: var(--bg-bubble-sent);
+            border-bottom-right-radius: 4px;
+            margin-left: 6px;
+        }
+        
+        .msg.sent .content .text {
+            color: var(--text-bubble-sent);
+        }
+        
+        .msg.received {
+            align-self: flex-start;
+            background: var(--bg-bubble-received);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+            margin-right: 6px;
+        }
+        
+        .msg.received .content .text {
+            color: var(--text-bubble-received);
+        }
+        
+        .msg .actions-bar {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            opacity: 0;
+            font-size: 0.75rem;
+            flex-wrap: wrap;
+            transition: 0.15s;
+        }
+        
+        .msg-wrapper:hover .msg .actions-bar,
+        .msg-wrapper:active .msg .actions-bar {
+            opacity: 0.7;
+        }
+        
+        .msg .actions-bar button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            transition: 0.2s;
+            opacity: 0.7;
+        }
+        
+        .msg .actions-bar button:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .msg .reactions {
+            display: flex;
+            gap: 4px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .msg .reactions .reaction {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            color: var(--text-secondary);
+        }
+        
+        .msg .reactions .reaction:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .msg .delete-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: rgba(255, 68, 68, 0.7);
+            border: none;
+            color: #fff;
+            border-radius: 40px;
+            width: 20px;
+            height: 20px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        
+        .msg-wrapper:hover .msg .delete-btn { display: flex; }
+        .msg .delete-btn:hover { transform: scale(1.2); }
+        
+        .date-divider {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            padding: 8px 0;
+            opacity: 0.5;
+        }
+        
+        .welcome-msg {
+            text-align: center;
+            padding: 40px 0;
+            opacity: 0.4;
+        }
+        
+        .welcome-msg .icon { font-size: 3.5rem; }
+        .welcome-msg .title { font-size: 1.1rem; margin-top: 10px; color: var(--text-primary); }
+        .welcome-msg .sub { font-size: 0.85rem; margin-top: 6px; color: var(--text-secondary); }
+        
+        /* ============================================================
+           مؤشر الكتابة
+           ============================================================ */
+        #typingIndicator {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            padding: 3px 18px 8px;
+            min-height: 26px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #typingIndicator .dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        #typingIndicator .dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            animation: dotBounce 1.4s infinite;
+        }
+        
+        #typingIndicator .dots span:nth-child(2) { animation-delay: 0.2s; }
+        #typingIndicator .dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes dotBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+        
+        /* ============================================================
+           إدخال الرسالة
+           ============================================================ */
+        .chat-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px 12px;
+            padding-bottom: calc(12px + var(--safe-bottom));
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        
+        .chat-input .input-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border-radius: 28px;
+            padding: 4px 8px;
+            border: 2px solid var(--border-color);
+            transition: 0.3s;
+        }
+        
+        .chat-input .input-wrap:focus-within {
+            border-color: var(--color-accent);
+        }
+        
+        .chat-input .input-wrap .emoji-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            padding: 4px 10px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .chat-input .input-wrap .emoji-btn:hover { opacity: 1; }
+        .chat-input .input-wrap .emoji-btn:active { transform: scale(0.9); }
+        
+        .chat-input .input-wrap input {
+            flex: 1;
+            padding: 10px 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            min-width: 0;
+        }
+        
+        .chat-input .input-wrap input::placeholder {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .chat-input .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--color-accent), #128C7E);
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(37, 211, 102, 0.12);
+        }
+        
+        .chat-input .send-btn:hover { transform: scale(1.05); }
+        .chat-input .send-btn:active { transform: scale(0.9); }
+        
+        /* ============================================================
+           لوحة الإيموجي
+           ============================================================ */
+        #emojiPanel {
+            display: none;
+            flex-wrap: wrap;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            gap: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        
+        #emojiPanel .emoji-item {
+            font-size: 1.6rem;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.15s;
+            user-select: none;
+        }
+        
+        #emojiPanel .emoji-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.2);
+        }
+        
+        #emojiPanel .emoji-item:active { transform: scale(0.9); }
+        #emojiPanel::-webkit-scrollbar { width: 2px; }
+        #emojiPanel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        /* ============================================================
+           شريط الرد
+           ============================================================ */
+        .reply-bar {
+            display: none;
+            padding: 4px 16px 4px 12px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .reply-bar .reply-text {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .reply-bar .reply-cancel {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        /* ============================================================
+           قائمة الضغط المطول
+           ============================================================ */
+        .context-menu {
+            display: none;
+            position: fixed;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 8px 0;
+            min-width: 190px;
+            z-index: 300;
+            box-shadow: 0 10px 40px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.12s ease;
+        }
+        
+        .context-menu .menu-item {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+        
+        .context-menu .menu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .context-menu .menu-item.danger { color: #ff4444; }
+        .context-menu .menu-item .icon { font-size: 1.2rem; }
+        
+        /* ============================================================
+           مودال تعديل الصورة
+           ============================================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-overlay .modal-content {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.2s ease;
+        }
+        
+        .modal-overlay .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        
+        .modal-overlay .modal-header h3 {
+            font-size: 1.2rem;
+            color: var(--color-accent);
+        }
+        
+        .modal-overlay .modal-header .close-modal {
+            background: none;
+            border: none;
+            color: #ff4444;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .modal-overlay .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, var(--color-accent), #128C7E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+            border: 3px solid var(--border-color);
+        }
+        
+        .modal-overlay .avatar-preview:hover { transform: scale(1.05); }
+        .modal-overlay .avatar-preview:active { transform: scale(0.95); }
+        .modal-overlay .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .modal-overlay .avatar-preview .upload-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 4px;
+            text-align: center;
+        }
+        
+        .modal-overlay .modal-field {
+            margin-bottom: 14px;
+        }
+        
+        .modal-overlay .modal-field label {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+        
+        .modal-overlay .modal-field input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        
+        .modal-overlay .modal-field input:focus {
+            border-color: var(--color-accent);
+        }
+        
+        .modal-overlay .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        
+        .modal-overlay .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        
+        .modal-overlay .modal-actions .btn-save {
+            background: linear-gradient(135deg, var(--color-accent), #128C7E);
+            color: #fff;
+        }
+        .modal-overlay .modal-actions .btn-save:hover { transform: scale(1.02); }
+        .modal-overlay .modal-actions .btn-save:active { transform: scale(0.97); }
+        
+        .modal-overlay .modal-actions .btn-cancel {
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .modal-overlay .modal-actions .btn-cancel:hover { opacity: 0.8; }
+        
+        .modal-overlay .modal-field textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.3s;
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .modal-overlay .modal-field textarea:focus {
+            border-color: var(--color-accent);
+        }
+        
+        /* ============================================================
+           لوحة المسؤول المتطورة
+           ============================================================ */
+        #adminPanel {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 16px;
+            padding-top: calc(16px + var(--safe-top));
+            background: var(--bg-primary);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            overflow-y: auto;
+            animation: slideUp 0.2s ease;
+        }
+        
+        #adminPanel .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        #adminPanel .admin-header h2 {
+            color: var(--color-accent);
+            font-size: 1.3rem;
+        }
+        
+        #adminPanel .admin-header .close-admin {
+            background: none;
+            border: none;
+            color: #ff4444;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px 12px;
+        }
+        
+        #adminPanel .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        
+        #adminPanel .admin-stats .stat {
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        #adminPanel .admin-stats .stat .num {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--color-accent);
+        }
+        #adminPanel .admin-stats .stat .label { font-size: 0.6rem; opacity: 0.5; color: var(--text-secondary); }
+        
+        #adminPanel .admin-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        
+        #adminPanel .admin-tabs button {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        #adminPanel .admin-tabs button.active {
+            border-color: var(--color-accent);
+            background: var(--color-accent);
+            color: #fff;
+        }
+        
+        #adminPanel .admin-tabs button:hover { opacity: 0.8; }
+        
+        #adminPanel .admin-section {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        #adminPanel .admin-section.active {
+            display: flex;
+        }
+        
+        /* ===== قسم الكلمات المحظورة ===== */
+        .bad-words-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 6px 0;
+        }
+        
+        .bad-words-list .word-tag {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 68, 68, 0.2);
+        }
+        
+        .bad-words-list .word-tag .remove-word {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .bad-words-input {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .bad-words-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+        }
+        
+        .bad-words-input input:focus {
+            border-color: var(--color-accent);
+        }
+        
+        .bad-words-input button {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: var(--color-accent);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .bad-words-input button:hover { transform: scale(1.02); }
+        
+        /* ===== قسم الإحصائيات المتقدمة ===== */
+        .advanced-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .advanced-stats .stat-item {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .advanced-stats .stat-item .num {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--color-accent);
+        }
+        
+        .advanced-stats .stat-item .label {
+            font-size: 0.6rem;
+            opacity: 0.5;
+            color: var(--text-secondary);
+        }
+        
+        /* ===== قسم الإعدادات السريعة ===== */
+        .quick-settings {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .quick-settings .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .quick-settings .setting-item .label {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+        
+        .quick-settings .setting-item .switch {
+            width: 44px;
+            height: 24px;
+            background: var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+        }
+        
+        .quick-settings .setting-item .switch.active {
+            background: var(--color-accent);
+        }
+        
+        .quick-settings .setting-item .switch .thumb {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+        
+        .quick-settings .setting-item .switch.active .thumb {
+            left: 22px;
+        }
+        
+        /* ===== قائمة المستخدمين ===== */
+        #adminUserList {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        #adminUserList .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            gap: 6px;
+            flex-wrap: wrap;
+            border: 1px solid var(--border-color);
+        }
+        
+        #adminUserList .user-item .name {
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            color: var(--text-primary);
+        }
+        
+        #adminUserList .user-item .name .badge {
+            font-size: 0.5rem;
+            padding: 1px 8px;
+            border-radius: 16px;
+            background: var(--color-accent);
+            color: #fff;
+        }
+        #adminUserList .user-item .name .badge.admin { background: #f5a623; }
+        #adminUserList .user-item .name .badge.blocked { background: #ff4444; }
+        #adminUserList .user-item .name .badge.online { background: var(--color-accent); }
+        #adminUserList .user-item .name .badge.offline { background: #666; }
+        #adminUserList .user-item .name .badge.banned { background: #ff6b6b; }
+        
+        #adminUserList .user-item .actions-group {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        
+        #adminUserList .user-item .actions-group button {
+            background: none;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 14px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        #adminUserList .user-item .btn-block { color: #ff6b6b; }
+        #adminUserList .user-item .btn-block:hover { background: rgba(255, 107, 107, 0.1); }
+        #adminUserList .user-item .btn-delete { color: #ff4444; }
+        #adminUserList .user-item .btn-delete:hover { background: rgba(255, 68, 68, 0.1); }
+        #adminUserList .user-item .btn-admin { color: #4facfe; }
+        #adminUserList .user-item .btn-admin:hover { background: rgba(79, 172, 254, 0.1); }
+        #adminUserList .user-item .btn-unblock { color: var(--color-accent); }
+        #adminUserList .user-item .btn-unblock:hover { background: rgba(37, 211, 102, 0.1); }
+        #adminUserList .user-item .btn-warn { color: #f5a623; }
+        #adminUserList .user-item .btn-warn:hover { background: rgba(245, 166, 35, 0.1); }
+        
+        /* ============================================================
+           إشعارات
+           ============================================================ */
+        .temp-notification {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 10px 26px;
+            border-radius: 28px;
+            font-size: 0.85rem;
+            z-index: 999;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            animation: notificationIn 0.25s ease forwards;
+            opacity: 0;
+            box-shadow: 0 4px 20px var(--shadow-color);
+        }
+        
+        @keyframes notificationIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        /* ============================================================
+           حالة الإعداد
+           ============================================================ */
+        #setupStatus {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-secondary);
+            padding: 28px 40px;
+            border-radius: var(--radius-lg);
+            z-index: 999;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            max-width: 85%;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+        
+        #setupStatus .spinner {
+            font-size: 2.5rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        #setupStatus .success { color: var(--color-accent); }
+        #setupStatus .error { color: #ff4444; }
+        
+        #fileInput { display: none; }
+        
+        /* ============================================================
+           Responsive
+           ============================================================ */
+        @media (max-width: 480px) {
+            #app { max-width: 100%; border-radius: 0; }
+            #loginScreen { padding: 30px 20px; }
+            #loginScreen .logo-wrap { width: 80px; height: 80px; font-size: 3rem; }
+            #loginScreen h1 { font-size: 2.2rem; }
+            .chat-header { padding: 8px 12px; min-height: 54px; }
+            .chat-header .avatar-group { width: 36px; height: 36px; font-size: 1.2rem; }
+            .msg { max-width: 88%; font-size: 0.9rem; padding: 8px 12px; }
+            .msg .content .text { font-size: 0.9rem; }
+            .msg .avatar-small { width: 28px; height: 28px; font-size: 0.85rem; }
+            .chat-input { padding: 4px 10px 8px; }
+            .chat-input .send-btn { width: 42px; height: 42px; font-size: 1.1rem; }
+            #adminPanel .admin-stats { grid-template-columns: repeat(2, 1fr); }
+            .advanced-stats { grid-template-columns: 1fr; }
+        }
+        
+        @media (min-width: 481px) and (max-width: 1024px) {
+            #app { max-width: 90%; height: 90vh; height: 90dvh; border-radius: 20px; margin: 5vh auto; }
+            #loginScreen .logo-wrap { width: 120px; height: 120px; font-size: 4.2rem; }
+            #loginScreen h1 { font-size: 3rem; }
+            .msg { max-width: 70%; font-size: 1rem; }
+            .msg .content .text { font-size: 1rem; }
+        }
+        
+        @media (min-width: 1025px) {
+            #app { max-width: 600px; height: 90vh; height: 90dvh; border-radius: 24px; margin: 5vh auto; }
+            #loginScreen .logo-wrap { width: 140px; height: 140px; font-size: 4.8rem; }
+            #loginScreen h1 { font-size: 3.4rem; }
+            .msg { max-width: 65%; font-size: 1.05rem; }
+            .msg .content .text { font-size: 1.05rem; }
+        }
+        
+        @media (orientation: landscape) and (max-height: 500px) {
+            #loginScreen { flex-direction: row; flex-wrap: wrap; padding: 20px 40px; gap: 20px; }
+            #loginScreen .logo-wrap { width: 60px; height: 60px; font-size: 2rem; }
+            #loginScreen h1 { font-size: 1.8rem; }
+            .chat-header { padding: 4px 10px; min-height: 44px; }
+            .msg { font-size: 0.8rem; padding: 6px 10px; }
+            .msg .content .text { font-size: 0.8rem; }
+            .chat-input { padding: 2px 8px 4px; }
+            .chat-input .send-btn { width: 36px; height: 36px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="setupStatus">
+        <div class="spinner">⚙️</div>
+        <h3 id="setupMessage">جاري الإعداد...</h3>
+        <p id="setupDetail" style="font-size:0.75rem;opacity:0.6;margin-top:6px;"></p>
+    </div>
+    
+    <div id="app">
+        <!-- ==========================================================
+        شاشة الدخول
+        ========================================================== -->
+        <div id="loginScreen">
+            <div class="logo-wrap">💬</div>
+            <h1>نيزك</h1>
+            <div class="subtitle">✦ دردشة جماعية ✦</div>
+            
+            <div class="input-group">
+                <span class="icon">👤</span>
+                <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="20" autocomplete="username" />
+            </div>
+            
+            <div id="adminPassWrap">
+                <div class="input-group">
+                    <span class="icon">🔑</span>
+                    <input type="password" id="adminPasswordInput" placeholder="كلمة المرور" autocomplete="current-password" />
+                </div>
+            </div>
+            
+            <button class="btn-primary" id="loginBtn">🚀 دخول</button>
+            <button class="btn-secondary" id="themeToggleLogin">🌓 الثيم</button>
+            <div id="loginError"></div>
+        </div>
+        
+        <!-- ==========================================================
+        شاشة الدردشة
+        ========================================================== -->
+        <div id="chatScreen">
+            <div class="chat-header">
+                <div class="avatar-group" id="userAvatar" onclick="openAvatarModal()">
+                    👤
+                    <span class="online-dot"></span>
+                </div>
+                <div class="info">
+                    <h3 id="currentUserDisplay">المجموعة</h3>
+                    <span class="status" id="onlineInfo">🟢 0 متصل · 0 رسالة</span>
+                </div>
+                <div class="actions">
+                    <button id="themeToggleChat" title="الثيم">🌓</button>
+                    <button id="adminShieldBtn" title="لوحة المسؤول">🛡️</button>
+                    <button id="logoutBtn" title="خروج">🚪</button>
+                </div>
+            </div>
+            
+            <div id="messagesContainer"></div>
+            
+            <div id="typingIndicator">
+                <span class="dots"><span></span><span></span><span></span></span>
+                <span id="typingText"></span>
+            </div>
+            
+            <div class="reply-bar" id="replyBar">
+                <span class="reply-text" id="replyText">الرد على: ...</span>
+                <button class="reply-cancel" id="replyCancel">✕</button>
+            </div>
+            
+            <div id="emojiPanel"></div>
+            
+            <div class="chat-input">
+                <div class="input-wrap">
+                    <button class="emoji-btn" id="emojiBtn">😊</button>
+                    <input type="text" id="messageInput" placeholder="اكتب رسالة..." maxlength="500" autocomplete="off" />
+                </div>
+                <button class="send-btn" id="sendBtn">➤</button>
+            </div>
+        </div>
+        
+        <!-- ==========================================================
+        قائمة الضغط المطول
+        ========================================================== -->
+        <div class="context-menu" id="contextMenu">
+            <div class="menu-item" data-action="reply"><span class="icon">↩️</span> رد</div>
+            <div class="menu-item" data-action="react"><span class="icon">❤️</span> تفاعل</div>
+            <div class="menu-item" data-action="edit"><span class="icon">✏️</span> تعديل</div>
+            <div class="menu-item danger" data-action="delete"><span class="icon">🗑️</span> حذف</div>
+        </div>
+        
+        <!-- ==========================================================
+        لوحة المسؤول المتطورة
+        ========================================================== -->
+        <div id="adminPanel">
+            <div class="admin-header">
+                <h2>🛡️ لوحة التحكم</h2>
+                <button class="close-admin" id="closeAdminBtn">✕</button>
+            </div>
+            
+            <div class="admin-stats">
+                <div class="stat"><div class="num" id="statUsers">0</div><div class="label">المستخدمين</div></div>
+                <div class="stat"><div class="num" id="statOnline">0</div><div class="label">متصل</div></div>
+                <div class="stat"><div class="num" id="statMessages">0</div><div class="label">الرسائل</div></div>
+                <div class="stat"><div class="num" id="statBlocked">0</div><div class="label">محظورين</div></div>
+            </div>
+            
+            <div class="admin-tabs">
+                <button class="active" data-tab="users">👥 المستخدمين</button>
+                <button data-tab="badwords">🚫 كلمات ممنوعة</button>
+                <button data-tab="settings">⚙️ إعدادات</button>
+                <button data-tab="stats">📊 إحصائيات</button>
+                <button data-tab="security">🔒 حماية</button>
+            </div>
+            
+            <!-- تبويب المستخدمين -->
+            <div class="admin-section active" id="tab-users">
+                <div id="adminUserList"></div>
+            </div>
+            
+            <!-- تبويب الكلمات الممنوعة -->
+            <div class="admin-section" id="tab-badwords">
+                <div class="bad-words-input">
+                    <input type="text" id="badWordInput" placeholder="أدخل كلمة ممنوعة..." maxlength="30" />
+                    <button id="addBadWordBtn">➕ إضافة</button>
+                </div>
+                <div class="bad-words-list" id="badWordsList"></div>
+                <p style="font-size:0.7rem;opacity:0.4;margin-top:6px;">💡 الكلمات الممنوعة تؤدي إلى حظر تلقائي للمستخدم</p>
+            </div>
+            
+            <!-- تبويب الإعدادات -->
+            <div class="admin-section" id="tab-settings">
+                <div class="quick-settings">
+                    <div class="setting-item">
+                        <span class="label">🔇 كتم جميع المستخدمين</span>
+                        <div class="switch" id="muteAllSwitch" onclick="toggleSwitch('muteAll')">
+                            <span class="thumb"></span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="label">📢 الإشعارات الصوتية</span>
+                        <div class="switch active" id="soundSwitch" onclick="toggleSwitch('sound')">
+                            <span class="thumb"></span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="label">🌙 الوضع الليلي التلقائي</span>
+                        <div class="switch" id="autoDarkSwitch" onclick="toggleSwitch('autoDark')">
+                            <span class="thumb"></span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="label">🔒 تأكيد الحذف</span>
+                        <div class="switch active" id="confirmDeleteSwitch" onclick="toggleSwitch('confirmDelete')">
+                            <span class="thumb"></span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="label">🛡️ حماية IP (تشويش)</span>
+                        <div class="switch active" id="ipProtectionSwitch" onclick="toggleSwitch('ipProtection')">
+                            <span class="thumb"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-actions" style="margin-top:12px;">
+                    <button class="btn-clear" onclick="clearAllMessages()">🗑️ مسح الكل</button>
+                    <button class="btn-export" onclick="exportChat()">📤 تصدير</button>
+                    <button class="btn-ban-all" onclick="banAllUsers()">⛔ حظر الكل</button>
+                </div>
+            </div>
+            
+            <!-- تبويب الإحصائيات -->
+            <div class="admin-section" id="tab-stats">
+                <div class="advanced-stats">
+                    <div class="stat-item"><div class="num" id="statTotalUsers">0</div><div class="label">إجمالي المستخدمين</div></div>
+                    <div class="stat-item"><div class="num" id="statActiveUsers">0</div><div class="label">نشطاء اليوم</div></div>
+                    <div class="stat-item"><div class="num" id="statBannedUsers">0</div><div class="label">محظورين</div></div>
+                    <div class="stat-item"><div class="num" id="statTotalMessages">0</div><div class="label">إجمالي الرسائل</div></div>
+                    <div class="stat-item"><div class="num" id="statBadWordsBlocked">0</div><div class="label">كلمات ممنوعة تم حظرها</div></div>
+                    <div class="stat-item"><div class="num" id="statAvgMessages">0</div><div class="label">متوسط الرسائل/يوم</div></div>
+                </div>
+            </div>
+            
+            <!-- تبويب الحماية -->
+            <div class="admin-section" id="tab-security">
+                <div class="advanced-stats" style="grid-template-columns: 1fr;">
+                    <div class="stat-item">
+                        <div class="num" id="statIpProtected">🛡️</div>
+                        <div class="label">حماية IP مفعلة (تشويش)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="num" id="statBanCount">0</div>
+                        <div class="label">إجمالي مرات الحظر</div>
+                    </div>
+                </div>
+                <div style="background:var(--bg-secondary);padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+                    <h4 style="color:var(--color-accent);margin-bottom:8px;">🔒 طبقات الحماية:</h4>
+                    <ul style="list-style:none;font-size:0.8rem;color:var(--text-secondary);line-height:2;">
+                        <li>✅ تشويش IP لحماية المستخدمين</li>
+                        <li>✅ حظر تلقائي للكلمات الممنوعة</li>
+                        <li>✅ نظام عقوبات تدريجي (دقيقة، دقيقتان، 4 دقائق...)</li>
+                        <li>✅ حماية من الهجمات المتكررة</li>
+                        <li>✅ تسجيل جميع المخالفات</li>
+                        <li>✅ إمكانية حظر يدوي من المسؤول</li>
+                    </ul>
+                </div>
+                <div class="admin-actions">
+                    <button onclick="exportSecurityLog()" class="btn-export">📤 تصدير سجل الأمان</button>
+                    <button onclick="resetAllBans()" class="btn-clear" style="background:#f5a623;">🔄 إعادة تعيين الحظر</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ==========================================================
+        مودال تعديل الصورة
+        ========================================================== -->
+        <div class="modal-overlay" id="avatarModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>👤 تعديل الصورة الشخصية</h3>
+                    <button class="close-modal" id="closeAvatarModal">✕</button>
+                </div>
+                <div class="avatar-preview" id="avatarPreview" onclick="document.getElementById('fileInput').click()">
+                    👤
+                    <div class="upload-overlay">📷 تغيير</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" />
+                <div class="modal-field">
+                    <label>👤 اسم المستخدم</label>
+                    <input type="text" id="editNameInput" maxlength="20" />
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-save" id="saveAvatarBtn">💾 حفظ</button>
+                    <button class="btn-cancel" id="cancelAvatarBtn">إلغاء</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ==========================================================
+        مودال تعديل الرسالة
+        ========================================================== -->
+        <div class="modal-overlay" id="editMessageModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>✏️ تعديل الرسالة</h3>
+                    <button class="close-modal" id="closeEditMessageModal">✕</button>
+                </div>
+                <div class="modal-field">
+                    <textarea id="editMessageInput" maxlength="500"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-save" id="saveEditMessageBtn">💾 حفظ</button>
+                    <button class="btn-cancel" id="cancelEditMessageBtn">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================================
+        // 1. إعداد Firebase
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVNXAFHyynNL7rD6LaYc4iYgvYPDdDH0c",
+            authDomain: "semo-chat-f5fdf.firebaseapp.com",
+            projectId: "semo-chat-f5fdf",
+            storageBucket: "semo-chat-f5fdf.firebasestorage.app",
+            messagingSenderId: "390244231579",
+            appId: "1:390244231579:web:d6664b936abae9a730993e",
+            measurementId: "G-0C6RXTC6LX"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // ============================================================
+        // 2. إنشاء المجموعات
+        // ============================================================
+        const setupStatus = document.getElementById('setupStatus');
+        const setupMessage = document.getElementById('setupMessage');
+        const setupDetail = document.getElementById('setupDetail');
+        
+        async function setupFirestore() {
+            setupStatus.style.display = 'block';
+            setupMessage.textContent = '⚙️ جاري التهيئة...';
+            setupDetail.textContent = 'الرجاء الانتظار';
+            
+            try {
+                const collections = ['users', 'messages', 'blocked', 'reactions', 'badwords', 'bans', 'security_logs'];
+                for (let col of collections) {
+                    try {
+                        await db.collection(col).doc('_temp').set({ temp: true });
+                        await db.collection(col).doc('_temp').delete();
+                    } catch (e) {}
+                }
+                try {
+                    await db.collection('typing').doc('status').set({ temp: true });
+                    await db.collection('typing').doc('status').delete();
+                } catch (e) {}
+                
+                // كلمات ممنوعة افتراضية
+                const defaultBadWords = ['سب', 'شتم', 'قذر', 'وسخ', 'حقير', 'خنزير', 'كلب', 'حمار', 'بعبع', 'نجس', 'لعنة', 'زفت', 'خرا', 'قحبة', 'عاهرة'];
+                for (const word of defaultBadWords) {
+                    try {
+                        await db.collection('badwords').doc(word).set({ word: word, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    } catch (e) {}
+                }
+                
+                setupMessage.innerHTML = '✅ <span style="color:#25D366;">جاهز!</span>';
+                setupDetail.textContent = 'يمكنك البدء الآن';
+                setTimeout(() => { setupStatus.style.display = 'none'; }, 800);
+            } catch (error) {
+                setupMessage.innerHTML = '⚠️ <span style="color:#f5a623;">تنبيه</span>';
+                setupDetail.textContent = 'جاري التهيئة...';
+                setTimeout(() => { setupStatus.style.display = 'none'; }, 1000);
+            }
+        }
+        setupFirestore();
+        
+        // ============================================================
+        // 3. المتغيرات العامة
+        // ============================================================
+        let currentUser = '';
+        let isAdmin = false;
+        let myAvatar = '👤';
+        let messageCount = 0;
+        let onlineUsers = 0;
+        let blockedCount = 0;
+        let typingTimeout = null;
+        let allUsers = {};
+        let messagesListener = null;
+        let editingMessageId = null;
+        let replyingTo = null;
+        let replyingToText = '';
+        let touchTimer = null;
+        let touchTarget = null;
+        let swipeStartX = 0;
+        let swipeTarget = null;
+        let emojiPanelOpen = false;
+        let badWords = [];
+        let settings = {
+            muteAll: false,
+            sound: true,
+            autoDark: false,
+            confirmDelete: true,
+            ipProtection: true
+        };
+        let userBanCounts = {};
+        let totalBadWordsBlocked = 0;
+        let userIps = {};
+        let securityLogs = [];
+        
+        // ============================================================
+        // 4. العناصر
+        // ============================================================
+        const loginScreen = document.getElementById('loginScreen');
+        const chatScreen = document.getElementById('chatScreen');
+        const usernameInput = document.getElementById('usernameInput');
+        const adminPassWrap = document.getElementById('adminPassWrap');
+        const adminPasswordInput = document.getElementById('adminPasswordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const currentUserDisplay = document.getElementById('currentUserDisplay');
+        const onlineInfo = document.getElementById('onlineInfo');
+        const userAvatar = document.getElementById('userAvatar');
+        const adminShieldBtn = document.getElementById('adminShieldBtn');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminUserList = document.getElementById('adminUserList');
+        const closeAdminBtn = document.getElementById('closeAdminBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const typingText = document.getElementById('typingText');
+        const themeToggleLogin = document.getElementById('themeToggleLogin');
+        const themeToggleChat = document.getElementById('themeToggleChat');
+        const emojiBtn = document.getElementById('emojiBtn');
+        const emojiPanel = document.getElementById('emojiPanel');
+        const statUsers = document.getElementById('statUsers');
+        const statOnline = document.getElementById('statOnline');
+        const statMessages = document.getElementById('statMessages');
+        const statBlocked = document.getElementById('statBlocked');
+        const fileInput = document.getElementById('fileInput');
+        const replyBar = document.getElementById('replyBar');
+        const replyText = document.getElementById('replyText');
+        const replyCancel = document.getElementById('replyCancel');
+        const contextMenu = document.getElementById('contextMenu');
+        
+        // إحصائيات
+        const statTotalUsers = document.getElementById('statTotalUsers');
+        const statActiveUsers = document.getElementById('statActiveUsers');
+        const statBannedUsers = document.getElementById('statBannedUsers');
+        const statTotalMessages = document.getElementById('statTotalMessages');
+        const statBadWordsBlocked = document.getElementById('statBadWordsBlocked');
+        const statAvgMessages = document.getElementById('statAvgMessages');
+        const statIpProtected = document.getElementById('statIpProtected');
+        const statBanCount = document.getElementById('statBanCount');
+        
+        // الكلمات الممنوعة
+        const badWordInput = document.getElementById('badWordInput');
+        const addBadWordBtn = document.getElementById('addBadWordBtn');
+        const badWordsList = document.getElementById('badWordsList');
+        
+        // مودالات
+        const avatarModal = document.getElementById('avatarModal');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const editNameInput = document.getElementById('editNameInput');
+        const saveAvatarBtn = document.getElementById('saveAvatarBtn');
+        const cancelAvatarBtn = document.getElementById('cancelAvatarBtn');
+        const closeAvatarModal = document.getElementById('closeAvatarModal');
+        
+        const editMessageModal = document.getElementById('editMessageModal');
+        const editMessageInput = document.getElementById('editMessageInput');
+        const saveEditMessageBtn = document.getElementById('saveEditMessageBtn');
+        const cancelEditMessageBtn = document.getElementById('cancelEditMessageBtn');
+        const closeEditMessageModal = document.getElementById('closeEditMessageModal');
+        
+        // التبويبات
+        const tabs = document.querySelectorAll('.admin-tabs button');
+        const sections = {
+            users: document.getElementById('tab-users'),
+            badwords: document.getElementById('tab-badwords'),
+            settings: document.getElementById('tab-settings'),
+            stats: document.getElementById('tab-stats'),
+            security: document.getElementById('tab-security')
+        };
+        
+        // ============================================================
+        // 5. الثيم
+        // ============================================================
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            const theme = document.body.classList.contains('light') ? 'light' : 'dark';
+            localStorage.setItem('theme', theme);
+            if (currentUser) {
+                db.collection('users').doc(currentUser).update({ theme: theme }).catch(() => {});
+            }
+        }
+        
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light');
+        }
+        themeToggleLogin.onclick = toggleTheme;
+        themeToggleChat.onclick = toggleTheme;
+        
+        // ============================================================
+        // 6. دوال الصورة
+        // ============================================================
+        function generateAvatarUrl(username) {
+            return `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+        }
+        
+        function isValidImageUrl(url) {
+            return url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('https://api.dicebear.com'));
+        }
+        
+        // ============================================================
+        // 7. تشويش IP - حماية المستخدمين
+        // ============================================================
+        function obfuscateIP(ip) {
+            if (!ip) return '🛡️ محمي';
+            // تشويش الـ IP لإخفاء الهوية
+            const parts = ip.split('.');
+            if (parts.length === 4) {
+                return `${parts[0]}.${parts[1]}.***.***`;
+            }
+            return '🛡️ محمي';
+        }
+        
+        async function getAndStoreIP(username) {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                const ip = data.ip;
+                // تخزين الـ IP مشوش
+                const obfuscated = obfuscateIP(ip);
+                userIps[username] = { original: ip, obfuscated: obfuscated };
+                
+                // تحديث في Firestore
+                await db.collection('users').doc(username).set({
+                    ipHash: await hashIP(ip),
+                    ipObfuscated: obfuscated
+                }, { merge: true });
+                
+                return obfuscated;
+            } catch (error) {
+                console.warn('⚠️ فشل الحصول على IP:', error);
+                return '🛡️ محمي';
+            }
+        }
+        
+        async function hashIP(ip) {
+            // دالة بسيطة لتشفير الـ IP
+            let hash = 0;
+            for (let i = 0; i < ip.length; i++) {
+                const char = ip.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return `ip_${Math.abs(hash).toString(36)}`;
+        }
+        
+        // ============================================================
+        // 8. مودال تعديل الصورة
+        // ============================================================
+        function openAvatarModal() {
+            if (!currentUser) return;
+            avatarModal.style.display = 'flex';
+            editNameInput.value = currentUser;
+            if (isValidImageUrl(myAvatar)) {
+                avatarPreview.innerHTML = `<img src="${myAvatar}" alt="avatar" /><div class="upload-overlay">📷 تغيير</div>`;
+            } else {
+                avatarPreview.textContent = myAvatar;
+                avatarPreview.innerHTML = `${myAvatar}<div class="upload-overlay">📷 تغيير</div>`;
+            }
+        }
+        
+        closeAvatarModal.onclick = () => { avatarModal.style.display = 'none'; };
+        cancelAvatarBtn.onclick = () => { avatarModal.style.display = 'none'; };
+        avatarModal.onclick = (e) => { if (e.target === avatarModal) avatarModal.style.display = 'none'; };
+        
+        fileInput.onchange = async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showNotification('❌ يرجى اختيار صورة');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('❌ حجم الصورة كبير جداً (أقصى 5MB)');
+                return;
+            }
+            
+            try {
+                showNotification('⏳ جاري معالجة الصورة...');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    avatarPreview.innerHTML = `<img src="${imageUrl}" alt="avatar" /><div class="upload-overlay">📷 تغيير</div>`;
+                    showNotification('✅ تم تحميل الصورة');
+                };
+                reader.readAsDataURL(file);
+            } catch (error) {
+                console.error(error);
+                showNotification('❌ فشل معالجة الصورة');
+            }
+            fileInput.value = '';
+        };
+        
+        saveAvatarBtn.onclick = async function() {
+            const newName = editNameInput.value.trim();
+            if (!newName) {
+                showNotification('❌ الاسم مطلوب');
+                return;
+            }
+            
+            const img = avatarPreview.querySelector('img');
+            let newAvatar = myAvatar;
+            if (img) {
+                newAvatar = img.src;
+            }
+            
+            if (newName !== currentUser) {
+                try {
+                    const oldDoc = await db.collection('users').doc(currentUser).get();
+                    if (oldDoc.exists) {
+                        const data = oldDoc.data();
+                        await db.collection('users').doc(newName).set({
+                            ...data,
+                            username: newName,
+                            avatar: newAvatar,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        await db.collection('users').doc(currentUser).delete();
+                    }
+                    currentUser = newName;
+                    currentUserDisplay.textContent = newName;
+                    if (isAdmin) currentUserDisplay.textContent += ' ⭐';
+                    localStorage.setItem('lastUser', newName);
+                } catch (e) {
+                    showNotification('❌ فشل تغيير الاسم');
+                    return;
+                }
+            }
+            
+            if (newAvatar !== myAvatar) {
+                try {
+                    await db.collection('users').doc(currentUser).update({ avatar: newAvatar });
+                    myAvatar = newAvatar;
+                    updateAvatarUI();
+                } catch (e) {
+                    showNotification('❌ فشل تحديث الصورة');
+                }
+            }
+            
+            avatarModal.style.display = 'none';
+            showNotification('✅ تم التحديث بنجاح');
+        };
+        
+        function updateAvatarUI() {
+            if (isValidImageUrl(myAvatar)) {
+                userAvatar.innerHTML = `<img src="${myAvatar}" alt="avatar" /><span class="online-dot"></span>`;
+            } else {
+                userAvatar.innerHTML = `${myAvatar}<span class="online-dot"></span>`;
+            }
+        }
+        
+        // ============================================================
+        // 9. الكلمات الممنوعة
+        // ============================================================
+        async function loadBadWords() {
+            try {
+                const snapshot = await db.collection('badwords').get();
+                badWords = [];
+                snapshot.forEach(doc => {
+                    badWords.push(doc.data().word);
+                });
+                renderBadWords();
+            } catch (error) {
+                console.error('خطأ في تحميل الكلمات الممنوعة:', error);
+            }
+        }
+        
+        function renderBadWords() {
+            badWordsList.innerHTML = '';
+            badWords.forEach(word => {
+                const tag = document.createElement('span');
+                tag.className = 'word-tag';
+                tag.innerHTML = `${word} <button class="remove-word" onclick="removeBadWord('${word}')">✕</button>`;
+                badWordsList.appendChild(tag);
+            });
+        }
+        
+        async function addBadWord() {
+            const word = badWordInput.value.trim().toLowerCase();
+            if (!word) {
+                showNotification('❌ أدخل كلمة');
+                return;
+            }
+            if (badWords.includes(word)) {
+                showNotification('⚠️ الكلمة موجودة بالفعل');
+                return;
+            }
+            
+            try {
+                await db.collection('badwords').doc(word).set({ word: word, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                badWords.push(word);
+                renderBadWords();
+                badWordInput.value = '';
+                showNotification('✅ تم إضافة الكلمة');
+            } catch (error) {
+                showNotification('❌ فشل الإضافة');
+            }
+        }
+        
+        async function removeBadWord(word) {
+            try {
+                await db.collection('badwords').doc(word).delete();
+                badWords = badWords.filter(w => w !== word);
+                renderBadWords();
+                showNotification('✅ تم حذف الكلمة');
+            } catch (error) {
+                showNotification('❌ فشل الحذف');
+            }
+        }
+        
+        addBadWordBtn.onclick = addBadWord;
+        badWordInput.onkeydown = (e) => { if (e.key === 'Enter') addBadWord(); };
+        
+        // ============================================================
+        // 10. نظام الحظر التلقائي
+        // ============================================================
+        async function checkBadWords(text, username) {
+            const lowerText = text.toLowerCase();
+            let foundWords = [];
+            
+            for (const word of badWords) {
+                if (lowerText.includes(word)) {
+                    foundWords.push(word);
+                }
+            }
+            
+            if (foundWords.length > 0) {
+                // تسجيل المخالفة
+                const banRef = db.collection('bans').doc(username);
+                const banDoc = await banRef.get();
+                let count = 1;
+                
+                if (banDoc.exists) {
+                    count = (banDoc.data().count || 0) + 1;
+                }
+                
+                await banRef.set({
+                    username: username,
+                    count: count,
+                    lastWord: foundWords.join(', '),
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                
+                userBanCounts[username] = count;
+                totalBadWordsBlocked += foundWords.length;
+                
+                // تحديث الإحصائيات
+                if (statBadWordsBlocked) statBadWordsBlocked.textContent = totalBadWordsBlocked;
+                
+                // حساب مدة الحظر (تتضاعف مع كل مخالفة)
+                const banDuration = Math.min(count * 60, 600); // دقيقة * عدد المخالفات (حد أقصى 10 دقائق)
+                
+                await db.collection('users').doc(username).update({
+                    banned: true,
+                    banReason: `استخدام كلمات ممنوعة (${foundWords.join(', ')})`,
+                    banExpires: firebase.firestore.FieldValue.serverTimestamp() + banDuration * 1000,
+                    banCount: count
+                });
+                
+                // تسجيل في سجل الأمان
+                await logSecurityEvent(username, 'bad_word', {
+                    words: foundWords,
+                    count: count,
+                    duration: banDuration
+                });
+                
+                showNotification(`⛔ تم حظر ${username} لمدة ${banDuration} ثانية بسبب كلمات ممنوعة`);
+                
+                // إلغاء الحظر بعد المدة
+                setTimeout(async () => {
+                    await db.collection('users').doc(username).update({
+                        banned: false,
+                        banReason: null,
+                        banExpires: null
+                    });
+                    showNotification(`🔓 تم إلغاء حظر ${username}`);
+                }, banDuration * 1000);
+                
+                return true;
+            }
+            return false;
+        }
+        
+        // ============================================================
+        // 11. سجل الأمان
+        // ============================================================
+        async function logSecurityEvent(username, type, data) {
+            try {
+                await db.collection('security_logs').add({
+                    username: username,
+                    type: type,
+                    data: data,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (error) {
+                console.warn('⚠️ فشل تسجيل حدث أمان:', error);
+            }
+        }
+        
+        // ============================================================
+        // 12. تسجيل الدخول
+        // ============================================================
+        loginBtn.onclick = async function() {
+            const username = usernameInput.value.trim();
+            if (!username) {
+                loginError.textContent = '✖ أدخل اسم المستخدم';
+                return;
+            }
+            if (username.length < 2) {
+                loginError.textContent = '✖ الاسم قصير جداً';
+                return;
+            }
+            if (username.length > 20) {
+                loginError.textContent = '✖ الاسم طويل جداً';
+                return;
+            }
+            
+            if (username === 'slx23m') {
+                adminPassWrap.style.display = 'block';
+                const pass = adminPasswordInput.value.trim();
+                if (pass !== '1442') {
+                    loginError.textContent = '✖ كلمة مرور المسؤول غير صحيحة';
+                    return;
+                }
+                isAdmin = true;
+            } else {
+                adminPassWrap.style.display = 'none';
+                isAdmin = false;
+            }
+            
+            try {
+                const userDoc = await db.collection('users').doc(username).get();
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    
+                    if (data.banned) {
+                        loginError.textContent = `⛔ أنت محظور: ${data.banReason || 'استخدام كلمات ممنوعة'}`;
+                        return;
+                    }
+                    
+                    currentUser = username;
+                    isAdmin = data.isAdmin || false;
+                    if (data.avatar && data.avatar !== '👤') myAvatar = data.avatar;
+                    await db.collection('users').doc(username).update({ 
+                        online: true, 
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
+                    localStorage.setItem('lastUser', username);
+                    
+                    // تشويش IP
+                    await getAndStoreIP(username);
+                    
+                    enterChat(username);
+                    return;
+                }
+            } catch (e) {
+                console.warn('خطأ في التحقق:', e);
+            }
+            
+            try {
+                const avatarUrl = generateAvatarUrl(username);
+                await db.collection('users').doc(username).set({
+                    username: username,
+                    avatar: avatarUrl,
+                    isAdmin: isAdmin,
+                    online: true,
+                    blocked: false,
+                    banned: false,
+                    banReason: null,
+                    banExpires: null,
+                    banCount: 0,
+                    theme: localStorage.getItem('theme') || 'dark',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                currentUser = username;
+                myAvatar = avatarUrl;
+                localStorage.setItem('lastUser', username);
+                
+                // تشويش IP
+                await getAndStoreIP(username);
+                
+                enterChat(username);
+            } catch (error) {
+                loginError.textContent = '✖ خطأ: ' + error.message;
+                console.error(error);
+            }
+        };
+        
+        usernameInput.oninput = function() {
+            if (this.value.trim() === 'slx23m') {
+                adminPassWrap.style.display = 'block';
+            } else {
+                adminPassWrap.style.display = 'none';
+                adminPasswordInput.value = '';
+            }
+        };
+        
+        usernameInput.onkeydown = (e) => { if (e.key === 'Enter') loginBtn.click(); };
+        adminPasswordInput.onkeydown = (e) => { if (e.key === 'Enter') loginBtn.click(); };
+        
+        // ============================================================
+        // 13. الدخول إلى الدردشة
+        // ============================================================
+        function enterChat(username) {
+            loginScreen.style.display = 'none';
+            chatScreen.style.display = 'flex';
+            
+            currentUserDisplay.textContent = username;
+            if (isAdmin) currentUserDisplay.textContent += ' ⭐';
+            
+            loadAvatar(username);
+            listenMessages();
+            listenUsers();
+            listenTyping();
+            initEmojiPanel();
+            loadBadWords();
+            loadBanCounts();
+            loadSecurityStats();
+            
+            const updateInterval = setInterval(() => {
+                if (currentUser) {
+                    db.collection('users').doc(currentUser).update({
+                        online: true,
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(() => {});
+                }
+            }, 10000);
+            
+            window.addEventListener('beforeunload', () => {
+                clearInterval(updateInterval);
+                if (currentUser) {
+                    db.collection('users').doc(currentUser).update({ online: false }).catch(() => {});
+                }
+            });
+        }
+        
+        // ============================================================
+        // 14. الصورة الشخصية
+        // ============================================================
+        function loadAvatar(username) {
+            db.collection('users').doc(username).onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.avatar && data.avatar !== myAvatar) {
+                        myAvatar = data.avatar;
+                        updateAvatarUI();
+                    }
+                    if (data.theme) {
+                        const isLight = data.theme === 'light';
+                        if (isLight) {
+                            document.body.classList.add('light');
+                        } else {
+                            document.body.classList.remove('light');
+                        }
+                        localStorage.setItem('theme', data.theme);
+                    }
+                }
+            });
+        }
+        
+        // ============================================================
+        // 15. لوحة الإيموجي
+        // ============================================================
+        const emojisList = [
+            '😊', '😂', '❤️', '🔥', '👍', '👏', '🎉', '✨', '💪', '🤔',
+            '😍', '🥰', '😎', '🤩', '👀', '💀', '🙏', '😅', '🤗', '😇',
+            '🥳', '🤯', '😱', '🥺', '😤', '👻', '🎃', '💫', '⭐', '🌈',
+            '🌙', '☀️', '⚡', '🔥', '💧', '❄️', '🌊', '🍕', '🍔', '🌮',
+            '🍣', '🍩', '🍪', '🎂', '🧁', '☕', '🍵', '🍺', '🥂', '🌸'
+        ];
+        
+        function initEmojiPanel() {
+            emojiPanel.innerHTML = '';
+            emojisList.forEach(emoji => {
+                const span = document.createElement('span');
+                span.className = 'emoji-item';
+                span.textContent = emoji;
+                span.onclick = () => {
+                    const cursorPos = messageInput.selectionStart || 0;
+                    const text = messageInput.value;
+                    messageInput.value = text.slice(0, cursorPos) + emoji + text.slice(cursorPos);
+                    messageInput.focus();
+                    const newPos = cursorPos + emoji.length;
+                    messageInput.setSelectionRange(newPos, newPos);
+                    emojiPanel.style.display = 'none';
+                    emojiPanelOpen = false;
+                };
+                emojiPanel.appendChild(span);
+            });
+        }
+        
+        emojiBtn.onclick = function() {
+            emojiPanelOpen = !emojiPanelOpen;
+            emojiPanel.style.display = emojiPanelOpen ? 'flex' : 'none';
+            if (emojiPanelOpen) {
+                emojiPanel.scrollTop = 0;
+            }
+        };
+        
+        // ============================================================
+        // 16. السحب للرد
+        // ============================================================
+        function setupSwipeToReply() {
+            messagesContainer.addEventListener('touchstart', handleSwipeStart, { passive: true });
+            messagesContainer.addEventListener('touchmove', handleSwipeMove, { passive: true });
+            messagesContainer.addEventListener('touchend', handleSwipeEnd, { passive: true });
+        }
+        
+        function handleSwipeStart(e) {
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            const wrapper = target?.closest('.msg-wrapper');
+            if (wrapper) {
+                swipeTarget = wrapper;
+                swipeStartX = touch.clientX;
+            } else {
+                swipeTarget = null;
+            }
+        }
+        
+        function handleSwipeMove(e) {
+            if (!swipeTarget) return;
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - swipeStartX;
+            if (deltaX > 30) {
+                const msg = swipeTarget.querySelector('.msg');
+                if (msg) {
+                    msg.style.transform = `translateX(${Math.min(deltaX, 80)}px)`;
+                    msg.style.opacity = 0.7;
+                }
+            }
+        }
+        
+        function handleSwipeEnd(e) {
+            if (!swipeTarget) return;
+            const msg = swipeTarget.querySelector('.msg');
+            if (msg) {
+                const transform = msg.style.transform || '';
+                const match = transform.match(/translateX\((\d+)px\)/);
+                const deltaX = match ? parseInt(match[1]) : 0;
+                
+                if (deltaX > 50) {
+                    const messageId = swipeTarget.dataset.id;
+                    const messageText = swipeTarget.dataset.text || '';
+                    if (messageId) {
+                        startReply(messageId, messageText);
+                    }
+                }
+                msg.style.transform = '';
+                msg.style.opacity = '';
+            }
+            swipeTarget = null;
+        }
+        
+        // ============================================================
+        // 17. الضغط المطول
+        // ============================================================
+        function showContextMenu(e, messageId, messageText, isSent) {
+            e.preventDefault();
+            const x = e.clientX || e.touches?.[0]?.clientX || 0;
+            const y = e.clientY || e.touches?.[0]?.clientY || 0;
+            
+            contextMenu.style.left = Math.min(x, window.innerWidth - 190) + 'px';
+            contextMenu.style.top = Math.min(y, window.innerHeight - 190) + 'px';
+            contextMenu.style.display = 'block';
+            
+            const editItem = contextMenu.querySelector('[data-action="edit"]');
+            const deleteItem = contextMenu.querySelector('[data-action="delete"]');
+            if (isSent || isAdmin) {
+                editItem.style.display = 'flex';
+                deleteItem.style.display = 'flex';
+            } else {
+                editItem.style.display = 'none';
+                deleteItem.style.display = 'none';
+            }
+            
+            contextMenu.dataset.messageId = messageId;
+            contextMenu.dataset.messageText = messageText;
+            contextMenu.dataset.isSent = isSent;
+        }
+        
+        contextMenu.querySelectorAll('.menu-item').forEach(item => {
+            item.onclick = function() {
+                const action = this.dataset.action;
+                const messageId = contextMenu.dataset.messageId;
+                const messageText = contextMenu.dataset.messageText;
+                const isSent = contextMenu.dataset.isSent === 'true';
+                
+                switch(action) {
+                    case 'reply':
+                        startReply(messageId, messageText);
+                        break;
+                    case 'react':
+                        toggleReaction(messageId, '❤️');
+                        break;
+                    case 'edit':
+                        if (isSent || isAdmin) editMessage(messageId);
+                        break;
+                    case 'delete':
+                        if (isSent || isAdmin) deleteMessage(messageId);
+                        break;
+                }
+                contextMenu.style.display = 'none';
+            };
+        });
+        
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+        
+        // ============================================================
+        // 18. الرد على الرسالة
+        // ============================================================
+        function startReply(messageId, messageText) {
+            replyingTo = messageId;
+            replyingToText = messageText;
+            replyBar.style.display = 'flex';
+            replyText.textContent = `الرد على: ${messageText.substring(0, 45)}${messageText.length > 45 ? '...' : ''}`;
+            messageInput.focus();
+        }
+        
+        replyCancel.onclick = function() {
+            replyingTo = null;
+            replyingToText = '';
+            replyBar.style.display = 'none';
+        };
+        
+        // ============================================================
+        // 19. إرسال الرسائل
+        // ============================================================
+        sendBtn.onclick = sendMessage;
+        messageInput.onkeydown = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        };
+        
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            
+            if (settings.muteAll && !isAdmin) {
+                showNotification('🔇 الدردشة مكتومة حالياً');
+                return;
+            }
+            
+            // التحقق من الكلمات الممنوعة
+            if (await checkBadWords(text, currentUser)) {
+                messageInput.value = '';
+                showNotification('⛔ تم حظرك مؤقتاً بسبب كلمات ممنوعة');
+                return;
+            }
+            
+            if (text === '/clear' && isAdmin) {
+                if (confirm('⚠️ هل تريد حذف جميع الرسائل؟')) {
+                    await clearAllMessages();
+                }
+                messageInput.value = '';
+                return;
+            }
+            
+            try {
+                const msgData = {
+                    username: currentUser,
+                    text: text,
+                    avatar: myAvatar,
+                    isAdmin: isAdmin,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    deleted: false,
+                    reactions: {},
+                    edited: false,
+                    editedAt: null
+                };
+                
+                if (replyingTo) {
+                    msgData.replyTo = replyingTo;
+                    msgData.replyText = replyingToText;
+                }
+                
+                await db.collection('messages').add(msgData);
+                messageInput.value = '';
+                replyingTo = null;
+                replyingToText = '';
+                replyBar.style.display = 'none';
+                emojiPanel.style.display = 'none';
+                emojiPanelOpen = false;
+                
+            } catch (error) {
+                console.error('فشل الإرسال:', error);
+                showNotification('❌ فشل الإرسال');
+            }
+            
+            try {
+                await db.collection('typing').doc('status').set({
+                    [currentUser]: false
+                }, { merge: true });
+            } catch (e) {}
+        }
+        
+        // ============================================================
+        // 20. استماع الرسائل
+        // ============================================================
+        function listenMessages() {
+            if (messagesListener) {
+                messagesListener();
+                messagesListener = null;
+            }
+            
+            messagesListener = db.collection('messages')
+                .orderBy('timestamp', 'asc')
+                .onSnapshot((snapshot) => {
+                    let html = '';
+                    let count = 0;
+                    let lastDate = '';
+                    const messages = [];
+                    
+                    if (snapshot.empty) {
+                        messagesContainer.innerHTML = `
+                            <div class="welcome-msg">
+                                <div class="icon">💬</div>
+                                <div class="title">مرحباً في نيزك</div>
+                                <div class="sub">ابدأ المحادثة الآن</div>
+                            </div>
+                        `;
+                        messageCount = 0;
+                        updateStats();
+                        return;
+                    }
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.deleted === true) return;
+                        messages.push({ id: doc.id, ...data });
+                    });
+                    
+                    messages.sort((a, b) => {
+                        if (!a.timestamp) return 1;
+                        if (!b.timestamp) return -1;
+                        return a.timestamp.toMillis() - b.timestamp.toMillis();
+                    });
+                    
+                    messages.forEach((data) => {
+                        count++;
+                        const isSent = data.username === currentUser;
+                        const sender = data.username || 'مجهول';
+                        const avatar = data.avatar || '👤';
+                        const time = data.timestamp ? 
+                            new Date(data.timestamp.toDate()).toLocaleTimeString('ar', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : '';
+                        const adminBadge = data.isAdmin ? ' ⭐' : '';
+                        const canDelete = isAdmin || isSent;
+                        const canEdit = isSent;
+                        const reactions = data.reactions || {};
+                        const reactionKeys = Object.keys(reactions);
+                        
+                        const date = data.timestamp ? 
+                            new Date(data.timestamp.toDate()).toLocaleDateString('ar', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            }) : '';
+                        if (date && date !== lastDate) {
+                            html += `<div class="date-divider">${date}</div>`;
+                            lastDate = date;
+                        }
+                        
+                        let reactionsHtml = '';
+                        if (reactionKeys.length > 0) {
+                            reactionsHtml = `<div class="reactions">`;
+                            reactionKeys.forEach(emoji => {
+                                const users = reactions[emoji] || [];
+                                reactionsHtml += `
+                                    <span class="reaction" onclick="toggleReaction('${data.id}', '${emoji}')">
+                                        ${emoji} ${users.length}
+                                    </span>
+                                `;
+                            });
+                            reactionsHtml += `</div>`;
+                        }
+                        
+                        const editedMark = data.edited ? ' (معدلة)' : '';
+                        
+                        let replyHtml = '';
+                        if (data.replyTo && data.replyText) {
+                            replyHtml = `<div class="reply-preview">↩️ ${data.replyText.substring(0, 35)}${data.replyText.length > 35 ? '...' : ''}</div>`;
+                        }
+                        
+                        const avatarDisplay = isValidImageUrl(avatar) ? 
+                            `<img src="${avatar}" alt="avatar" />` : avatar;
+                        
+                        html += `
+                            <div class="msg-wrapper" 
+                                 data-id="${data.id}" 
+                                 data-text="${data.text.replace(/"/g, '&quot;').replace(/'/g, '&#39;')}"
+                                 data-sent="${isSent}"
+                                 oncontextmenu="showContextMenu(event, '${data.id}', '${data.text.replace(/'/g, "\\'")}', ${isSent})"
+                                 ontouchstart="handleTouchStart(event, '${data.id}', '${data.text.replace(/'/g, "\\'")}', ${isSent})"
+                                 ontouchend="handleTouchEnd(event)">
+                                ${replyHtml}
+                                <div class="msg ${isSent ? 'sent' : 'received'}">
+                                    <div class="avatar-small" onclick="showProfile('${sender}')" title="عرض الملف الشخصي">
+                                        ${avatarDisplay}
+                                    </div>
+                                    <div class="content">
+                                        <span class="sender-name" onclick="showProfile('${sender}')">${sender}${adminBadge}</span>
+                                        <div class="text">${data.text}${editedMark}</div>
+                                        <div class="time">
+                                            ${time}
+                                            ${isSent ? '<span class="check">✓✓</span>' : ''}
+                                        </div>
+                                        ${reactionsHtml}
+                                        <div class="actions-bar">
+                                            ${canEdit ? `<button onclick="editMessage('${data.id}')">✏️</button>` : ''}
+                                            <button onclick="startReply('${data.id}', '${data.text.replace(/'/g, "\\'")}')">↩️</button>
+                                            <button onclick="toggleReaction('${data.id}', '❤️')">❤️</button>
+                                            <button onclick="toggleReaction('${data.id}', '😂')">😂</button>
+                                            <button onclick="toggleReaction('${data.id}', '🔥')">🔥</button>
+                                            ${canDelete ? `<button onclick="deleteMessage('${data.id}')" style="color:#ff4444;">🗑️</button>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    messageCount = count;
+                    messagesContainer.innerHTML = html;
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    updateStats();
+                    setTimeout(setupSwipeToReply, 100);
+                }, (error) => {
+                    console.error('❌ خطأ في استماع الرسائل:', error);
+                    messagesContainer.innerHTML = `
+                        <div style="text-align:center;padding:20px 0;color:#ff4444;font-size:0.8rem;">
+                            <div style="font-size:2rem;">⚠️</div>
+                            <div>خطأ في تحميل الرسائل</div>
+                            <div style="font-size:0.65rem;opacity:0.5;">${error.message}</div>
+                            <button onclick="location.reload()" style="margin-top:6px;padding:5px 16px;border-radius:18px;border:none;background:#25D366;color:#fff;cursor:pointer;font-size:0.75rem;">إعادة المحاولة</button>
+                        </div>
+                    `;
+                });
+        }
+        
+        // ============================================================
+        // 21. عرض البروفايل
+        // ============================================================
+        function showProfile(username) {
+            db.collection('users').doc(username).get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const avatar = data.avatar || '👤';
+                    const status = data.online ? '🟢 متصل' : '⚫ غير متصل';
+                    const isBanned = data.banned || false;
+                    const banReason = data.banReason || '';
+                    const ip = data.ipObfuscated || '🛡️ محمي';
+                    
+                    let msg = `👤 ${username}${data.isAdmin ? ' ⭐' : ''}\n`;
+                    msg += `${status}\n`;
+                    msg += `🛡️ IP: ${ip}\n`;
+                    if (isBanned) msg += `⛔ محظور: ${banReason}\n`;
+                    msg += `📅 انضم: ${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'غير معروف'}`;
+                    
+                    showNotification(msg);
+                }
+            }).catch(() => {
+                showNotification('❌ فشل تحميل الملف الشخصي');
+            });
+        }
+        
+        // ============================================================
+        // 22. معالجة اللمس
+        // ============================================================
+        function handleTouchStart(event, messageId, messageText, isSent) {
+            touchTarget = { id: messageId, text: messageText, sent: isSent };
+            touchTimer = setTimeout(() => {
+                showContextMenu(event, messageId, messageText, isSent);
+                touchTarget = null;
+            }, 600);
+        }
+        
+        function handleTouchEnd(event) {
+            clearTimeout(touchTimer);
+            touchTarget = null;
+        }
+        
+        // ============================================================
+        // 23. التفاعلات
+        // ============================================================
+        window.toggleReaction = async function(messageId, emoji) {
+            if (!currentUser) return;
+            try {
+                const docRef = db.collection('messages').doc(messageId);
+                const doc = await docRef.get();
+                if (!doc.exists) return;
+                
+                const data = doc.data();
+                const reactions = data.reactions || {};
+                const users = reactions[emoji] || [];
+                
+                const index = users.indexOf(currentUser);
+                if (index > -1) {
+                    users.splice(index, 1);
+                } else {
+                    users.push(currentUser);
+                }
+                
+                if (users.length === 0) {
+                    delete reactions[emoji];
+                } else {
+                    reactions[emoji] = users;
+                }
+                
+                await docRef.update({ reactions: reactions });
+            } catch (error) {
+                console.error('خطأ في التفاعل:', error);
+            }
+        };
+        
+        // ============================================================
+        // 24. تعديل الرسالة
+        // ============================================================
+        window.editMessage = function(messageId) {
+            if (!currentUser) return;
+            editingMessageId = messageId;
+            
+            db.collection('messages').doc(messageId).get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.username === currentUser || isAdmin) {
+                        editMessageInput.value = data.text;
+                        editMessageModal.style.display = 'flex';
+                    } else {
+                        showNotification('❌ لا يمكنك تعديل رسالة أخرى');
+                    }
+                }
+            }).catch(error => {
+                console.error('خطأ:', error);
+                showNotification('❌ فشل تحميل الرسالة');
+            });
+        };
+        
+        saveEditMessageBtn.onclick = async function() {
+            const newText = editMessageInput.value.trim();
+            if (!newText) {
+                showNotification('❌ لا يمكن أن تكون فارغة');
+                return;
+            }
+            if (!editingMessageId) return;
+            
+            try {
+                await db.collection('messages').doc(editingMessageId).update({
+                    text: newText,
+                    edited: true,
+                    editedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showNotification('✅ تم التعديل');
+                editMessageModal.style.display = 'none';
+                editingMessageId = null;
+            } catch (error) {
+                showNotification('❌ فشل التعديل');
+                console.error(error);
+            }
+        };
+        
+        cancelEditMessageBtn.onclick = () => {
+            editMessageModal.style.display = 'none';
+            editingMessageId = null;
+        };
+        closeEditMessageModal.onclick = () => {
+            editMessageModal.style.display = 'none';
+            editingMessageId = null;
+        };
+        editMessageModal.onclick = (e) => {
+            if (e.target === editMessageModal) {
+                editMessageModal.style.display = 'none';
+                editingMessageId = null;
+            }
+        };
+        
+        // ============================================================
+        // 25. حذف الرسالة
+        // ============================================================
+        window.deleteMessage = async function(id) {
+            if (settings.confirmDelete && !isAdmin && !confirm('حذف الرسالة؟')) return;
+            try {
+                await db.collection('messages').doc(id).update({ deleted: true });
+                showNotification('✅ تم الحذف');
+            } catch (error) {
+                console.error(error);
+                showNotification('❌ فشل الحذف');
+            }
+        };
+        
+        // ============================================================
+        // 26. استماع المستخدمين
+        // ============================================================
+        function listenUsers() {
+            db.collection('users').onSnapshot((snapshot) => {
+                let online = 0;
+                let blocked = 0;
+                let adminListHtml = '';
+                allUsers = {};
+                let activeToday = 0;
+                let totalBanned = 0;
+                
+                const today = new Date().toDateString();
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    allUsers[doc.id] = data;
+                    if (data.online) online++;
+                    if (data.blocked) blocked++;
+                    if (data.banned) totalBanned++;
+                    
+                    if (data.lastSeen) {
+                        const lastSeen = data.lastSeen.toDate ? data.lastSeen.toDate() : new Date(data.lastSeen);
+                        if (lastSeen.toDateString() === today) activeToday++;
+                    }
+                    
+                    if (isAdmin && doc.id !== currentUser) {
+                        const status = data.online ? '🟢' : '⚫';
+                        const statusBadge = data.online ? 'online' : 'offline';
+                        const adminBadge = data.isAdmin ? '<span class="badge admin">مسؤول</span>' : '';
+                        const blockedBadge = data.blocked ? '<span class="badge blocked">محظور</span>' : '';
+                        const bannedBadge = data.banned ? '<span class="badge banned">⛔ محظور</span>' : '';
+                        const ipDisplay = data.ipObfuscated || '🛡️';
+                        
+                        adminListHtml += `
+                            <div class="user-item">
+                                <span class="name">
+                                    ${data.avatar || '👤'} ${doc.id} 
+                                    ${adminBadge}
+                                    ${blockedBadge}
+                                    ${bannedBadge}
+                                    <span class="badge ${statusBadge}">${status}</span>
+                                    <span style="font-size:0.5rem;opacity:0.4;">🛡️ ${ipDisplay}</span>
+                                </span>
+                                <div class="actions-group">
+                                    ${data.blocked ? 
+                                        `<button class="btn-unblock" onclick="unblockUser('${doc.id}')">🔓</button>` :
+                                        `<button class="btn-block" onclick="blockUser('${doc.id}')">⛔</button>`
+                                    }
+                                    ${data.banned ? 
+                                        `<button class="btn-unblock" onclick="unbanUser('${doc.id}')">🔓 إلغاء</button>` : ''
+                                    }
+                                    <button class="btn-delete" onclick="deleteUser('${doc.id}')">🗑️</button>
+                                    ${!data.isAdmin && doc.id !== 'slx23m' ? 
+                                        `<button class="btn-admin" onclick="makeAdmin('${doc.id}')">⭐</button>` : ''}
+                                    <button class="btn-warn" onclick="warnUser('${doc.id}')">⚠️</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                onlineUsers = online;
+                blockedCount = blocked;
+                updateStats();
+                
+                if (statTotalUsers) statTotalUsers.textContent = Object.keys(allUsers).length;
+                if (statActiveUsers) statActiveUsers.textContent = activeToday;
+                if (statBannedUsers) statBannedUsers.textContent = totalBanned;
+                if (statTotalMessages) statTotalMessages.textContent = messageCount;
+                if (statBadWordsBlocked) statBadWordsBlocked.textContent = totalBadWordsBlocked;
+                if (statAvgMessages) statAvgMessages.textContent = Math.round(messageCount / (Object.keys(allUsers).length || 1));
+                if (statIpProtected) statIpProtected.textContent = '🛡️ مفعل';
+                if (statBanCount) {
+                    // حساب عدد الحظر الكلي
+                    let totalBans = 0;
+                    Object.values(userBanCounts).forEach(c => totalBans += c);
+                    statBanCount.textContent = totalBans;
+                }
+                
+                if (isAdmin) {
+                    const currentData = allUsers[currentUser];
+                    if (currentData) {
+                        adminListHtml = `
+                            <div class="user-item" style="background:rgba(37,211,102,0.05);border-color:#25D366;">
+                                <span class="name">${currentData.avatar || '👤'} ${currentUser} <span class="badge admin">أنت</span> 🟢</span>
+                                <span style="font-size:0.5rem;opacity:0.4;">نشط</span>
+                            </div>
+                        ` + adminListHtml;
+                    }
+                    adminUserList.innerHTML = adminListHtml || '<div style="text-align:center;opacity:0.4;padding:12px 0;font-size:0.75rem;">لا يوجد مستخدمين</div>';
+                }
+            }, (error) => {
+                console.error('خطأ في استماع المستخدمين:', error);
+            });
+        }
+        
+        function updateStats() {
+            onlineInfo.textContent = `🟢 ${onlineUsers} متصل · ${messageCount} رسالة`;
+            if (statUsers) statUsers.textContent = Object.keys(allUsers).length;
+            if (statOnline) statOnline.textContent = onlineUsers;
+            if (statMessages) statMessages.textContent = messageCount;
+            if (statBlocked) statBlocked.textContent = blockedCount;
+        }
+        
+        // ============================================================
+        // 27. استماع الكتابة
+        // ============================================================
+        function listenTyping() {
+            db.collection('typing').doc('status').onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const typingUsers = [];
+                    
+                    for (let key in data) {
+                        if (key !== currentUser && data[key] === true) {
+                            typingUsers.push(key);
+                        }
+                    }
+                    
+                    if (typingUsers.length > 0) {
+                        typingText.textContent = `${typingUsers.join('، ')} يكتب${typingUsers.length > 1 ? 'ون' : ''}...`;
+                        typingIndicator.style.display = 'flex';
+                    } else {
+                        typingText.textContent = '';
+                        typingIndicator.style.display = 'none';
+                    }
+                } else {
+                    typingIndicator.style.display = 'none';
+                }
+            }, (error) => {
+                console.error('خطأ في استماع الكتابة:', error);
+                typingIndicator.style.display = 'none';
+            });
+        }
+        
+        messageInput.oninput = function() {
+            const hasText = this.value.trim().length > 0;
+            
+            db.collection('typing').doc('status').set({
+                [currentUser]: hasText
+            }, { merge: true }).catch(() => {});
+            
+            clearTimeout(typingTimeout);
+            if (hasText) {
+                typingTimeout = setTimeout(() => {
+                    db.collection('typing').doc('status').set({
+                        [currentUser]: false
+                    }, { merge: true }).catch(() => {});
+                }, 1500);
+            }
+        };
+        
+        // ============================================================
+        // 28. تحميل عدد مرات الحظر
+        // ============================================================
+        async function loadBanCounts() {
+            try {
+                const snapshot = await db.collection('bans').get();
+                snapshot.forEach(doc => {
+                    userBanCounts[doc.id] = doc.data().count || 0;
+                });
+            } catch (error) {
+                console.error('خطأ في تحميل عدد الحظر:', error);
+            }
+        }
+        
+        async function loadSecurityStats() {
+            try {
+                const snapshot = await db.collection('security_logs').get();
+                securityLogs = [];
+                snapshot.forEach(doc => {
+                    securityLogs.push({ id: doc.id, ...doc.data() });
+                });
+            } catch (error) {
+                console.error('خطأ في تحميل سجل الأمان:', error);
+            }
+        }
+        
+        // ============================================================
+        // 29. لوحة المسؤول
+        // ============================================================
+        adminShieldBtn.onclick = function() {
+            if (isAdmin) {
+                adminPanel.style.display = 'flex';
+                updateStats();
+                loadBadWords();
+                loadSecurityStats();
+            } else {
+                showNotification('❌ فقط المسؤول يمكنه الدخول');
+            }
+        };
+        
+        closeAdminBtn.onclick = () => { adminPanel.style.display = 'none'; };
+        
+        tabs.forEach(tab => {
+            tab.onclick = function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tabId = this.dataset.tab;
+                Object.keys(sections).forEach(key => {
+                    sections[key].classList.toggle('active', key === tabId);
+                });
+            };
+        });
+        
+        // ===== وظائف المسؤول =====
+        window.blockUser = async function(username) {
+            if (!isAdmin || username === 'slx23m') {
+                showNotification('❌ لا يمكن حظر المسؤول');
+                return;
+            }
+            if (!confirm(`⛔ حظر ${username}؟`)) return;
+            try {
+                await db.collection('users').doc(username).update({ blocked: true });
+                await db.collection('blocked').doc(username).set({
+                    blockedBy: currentUser,
+                    blockedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await logSecurityEvent(username, 'manual_block', { by: currentUser });
+                showNotification(`✅ تم حظر ${username}`);
+            } catch (error) {
+                showNotification('❌ فشل الحظر');
+            }
+        };
+        
+        window.unblockUser = async function(username) {
+            if (!isAdmin) return;
+            try {
+                await db.collection('users').doc(username).update({ blocked: false });
+                await db.collection('blocked').doc(username).delete();
+                await logSecurityEvent(username, 'manual_unblock', { by: currentUser });
+                showNotification(`✅ تم إلغاء حظر ${username}`);
+            } catch (error) {
+                showNotification('❌ فشل إلغاء الحظر');
+            }
+        };
+        
+        window.unbanUser = async function(username) {
+            if (!isAdmin) return;
+            try {
+                await db.collection('users').doc(username).update({ 
+                    banned: false, 
+                    banReason: null, 
+                    banExpires: null 
+                });
+                await db.collection('bans').doc(username).delete();
+                await logSecurityEvent(username, 'manual_unban', { by: currentUser });
+                showNotification(`✅ تم إلغاء حظر ${username}`);
+            } catch (error) {
+                showNotification('❌ فشل إلغاء الحظر');
+            }
+        };
+        
+        window.deleteUser = async function(username) {
+            if (!isAdmin || username === 'slx23m') {
+                showNotification('❌ لا يمكن حذف المسؤول');
+                return;
+            }
+            if (!confirm(`🗑️ حذف ${username} نهائياً؟`)) return;
+            try {
+                await db.collection('users').doc(username).delete();
+                const msgs = await db.collection('messages').where('username', '==', username).get();
+                const batch = db.batch();
+                msgs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                await logSecurityEvent(username, 'delete_user', { by: currentUser });
+                showNotification(`✅ تم حذف ${username}`);
+            } catch (error) {
+                showNotification('❌ فشل الحذف');
+            }
+        };
+        
+        window.makeAdmin = async function(username) {
+            if (!isAdmin || username === 'slx23m') return;
+            if (!confirm(`⭐ ترقية ${username}؟`)) return;
+            try {
+                await db.collection('users').doc(username).update({ isAdmin: true });
+                await logSecurityEvent(username, 'make_admin', { by: currentUser });
+                showNotification(`✅ تم ترقية ${username}`);
+            } catch (error) {
+                showNotification('❌ فشل الترقية');
+            }
+        };
+        
+        window.warnUser = async function(username) {
+            if (!isAdmin) return;
+            await logSecurityEvent(username, 'warning', { by: currentUser });
+            showNotification(`⚠️ تم إرسال تحذير إلى ${username}`);
+        };
+        
+        window.clearAllMessages = async function() {
+            if (!isAdmin) return;
+            if (!confirm('⚠️ هل تريد حذف جميع الرسائل نهائياً؟')) return;
+            try {
+                const snapshot = await db.collection('messages').get();
+                const batch = db.batch();
+                snapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                await logSecurityEvent('system', 'clear_messages', { by: currentUser });
+                showNotification('✅ تم مسح جميع الرسائل');
+            } catch (error) {
+                showNotification('❌ فشل المسح');
+                console.error(error);
+            }
+        };
+        
+        window.exportChat = async function() {
+            if (!isAdmin) return;
+            try {
+                const snapshot = await db.collection('messages')
+                    .where('deleted', '==', false)
+                    .orderBy('timestamp', 'asc')
+                    .get();
+                
+                let text = '📋 تصدير محادثة نيزك\n';
+                text += `📅 التاريخ: ${new Date().toLocaleString('ar')}\n`;
+                text += `👤 عدد الرسائل: ${snapshot.size}\n`;
+                text += '='.repeat(40) + '\n\n';
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const time = data.timestamp ? 
+                        new Date(data.timestamp.toDate()).toLocaleString('ar') : 'وقت غير معروف';
+                    text += `[${time}] ${data.username}: ${data.text}\n`;
+                });
+                
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `نيزك_تصدير_${new Date().toISOString().slice(0,10)}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('✅ تم تصدير المحادثة');
+            } catch (error) {
+                showNotification('❌ فشل التصدير');
+                console.error(error);
+            }
+        };
+        
+        window.banAllUsers = async function() {
+            if (!isAdmin) return;
+            if (!confirm('⚠️ هل تريد حظر جميع المستخدمين؟')) return;
+            try {
+                const snapshot = await db.collection('users').get();
+                const batch = db.batch();
+                snapshot.forEach(doc => {
+                    if (doc.id !== 'slx23m' && doc.id !== currentUser) {
+                        batch.update(doc.ref, { blocked: true });
+                    }
+                });
+                await batch.commit();
+                await logSecurityEvent('system', 'ban_all', { by: currentUser });
+                showNotification('✅ تم حظر جميع المستخدمين');
+            } catch (error) {
+                showNotification('❌ فشل حظر الكل');
+                console.error(error);
+            }
+        };
+        
+        window.exportSecurityLog = async function() {
+            if (!isAdmin) return;
+            try {
+                const snapshot = await db.collection('security_logs')
+                    .orderBy('timestamp', 'desc')
+                    .limit(100)
+                    .get();
+                
+                let text = '📋 سجل الأمان - نيزك\n';
+                text += `📅 التاريخ: ${new Date().toLocaleString('ar')}\n`;
+                text += '='.repeat(40) + '\n\n';
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const time = data.timestamp ? 
+                        new Date(data.timestamp.toDate()).toLocaleString('ar') : 'وقت غير معروف';
+                    text += `[${time}] ${data.username}: ${data.type} - ${JSON.stringify(data.data)}\n`;
+                });
+                
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `نيزك_سجل_الأمان_${new Date().toISOString().slice(0,10)}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showNotification('✅ تم تصدير سجل الأمان');
+            } catch (error) {
+                showNotification('❌ فشل التصدير');
+                console.error(error);
+            }
+        };
+        
+        window.resetAllBans = async function() {
+            if (!isAdmin) return;
+            if (!confirm('⚠️ هل تريد إعادة تعيين جميع حالات الحظر؟')) return;
+            try {
+                const bans = await db.collection('bans').get();
+                const batch = db.batch();
+                bans.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                
+                const users = await db.collection('users').get();
+                users.forEach(doc => {
+                    batch.update(doc.ref, { 
+                        banned: false, 
+                        banReason: null, 
+                        banExpires: null,
+                        banCount: 0
+                    });
+                });
+                await batch.commit();
+                
+                await logSecurityEvent('system', 'reset_bans', { by: currentUser });
+                showNotification('✅ تم إعادة تعيين جميع حالات الحظر');
+            } catch (error) {
+                showNotification('❌ فشل إعادة التعيين');
+                console.error(error);
+            }
+        };
+        
+        // ============================================================
+        // 30. تبديل الإعدادات
+        // ============================================================
+        function toggleSwitch(id) {
+            const el = document.getElementById(id + 'Switch');
+            if (!el) return;
+            el.classList.toggle('active');
+            settings[id] = el.classList.contains('active');
+            showNotification(`✅ تم ${settings[id] ? 'تفعيل' : 'إيقاف'} ${id}`);
+        }
+        
+        // ============================================================
+        // 31. إشعارات
+        // ============================================================
+        function showNotification(message) {
+            const existing = document.querySelector('.temp-notification');
+            if (existing) existing.remove();
+            
+            const div = document.createElement('div');
+            div.className = 'temp-notification';
+            div.textContent = message;
+            document.body.appendChild(div);
+            
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transition = 'opacity 0.4s';
+                setTimeout(() => div.remove(), 500);
+            }, 3000);
+        }
+        
+        // ============================================================
+        // 32. خروج
+        // ============================================================
+        logoutBtn.onclick = function() {
+            if (confirm('تسجيل الخروج؟')) {
+                if (currentUser) {
+                    db.collection('users').doc(currentUser).update({ 
+                        online: false,
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(() => {});
+                }
+                if (messagesListener) {
+                    messagesListener();
+                    messagesListener = null;
+                }
+                localStorage.setItem('lastUser', currentUser);
+                setTimeout(() => {
+                    location.reload();
+                }, 300);
+            }
+        };
+        
+        // ============================================================
+        // 33. بداية التطبيق
+        // ============================================================
+        console.log('☄️ نيزك - النسخة النهائية المتكاملة');
+        console.log('👤 المسؤول: slx23m | كلمة: 1442');
+        console.log('📌 اسحب الرسالة لليمين للرد');
+        console.log('📌 اضغط مطولاً للتفاعل');
+        console.log('📌 اضغط على الصورة لتعديلها');
+        console.log('📌 لوحة المسؤول متطورة مع حماية IP');
+        console.log('🛡️ حماية IP مفعلة مع تشويش');
+        
+        const savedUser = localStorage.getItem('lastUser');
+        if (savedUser) {
+            usernameInput.value = savedUser;
+            setTimeout(() => {
+                loginBtn.click();
+            }, 500);
+        }
+        
+        console.log('✅ التطبيق جاهز للاستخدام!');
+        
+        // ============================================================
+        // 34. PWA - Service Worker
+        // ============================================================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('✅ Service Worker registered'))
+                .catch(err => console.warn('⚠️ Service Worker registration failed:', err));
+        }
+    </script>
+</body>
+  </html>
