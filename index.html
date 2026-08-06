@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>نيزك - دردشة جماعية</title>
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#111b21" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -83,9 +83,6 @@
             font-size: var(--font-size-base);
         }
         
-        /* ============================================================
-           التطبيق الرئيسي
-           ============================================================ */
         #app {
             width: 100%;
             height: 100vh;
@@ -248,9 +245,6 @@
             transition: background 0.3s;
         }
         
-        /* ============================================================
-           الهيدر
-           ============================================================ */
         .chat-header {
             padding: 10px 16px;
             padding-top: calc(10px + var(--safe-top));
@@ -348,9 +342,6 @@
         .chat-header .actions button:hover { background: rgba(255, 255, 255, 0.05); }
         .chat-header .actions button:active { transform: scale(0.9); }
         
-        /* ============================================================
-           حاوية الرسائل
-           ============================================================ */
         #messagesContainer {
             flex: 1;
             overflow-y: auto;
@@ -371,9 +362,6 @@
             border-radius: 10px;
         }
         
-        /* ============================================================
-           فقاعات الرسائل
-           ============================================================ */
         .msg-wrapper {
             display: flex;
             flex-direction: column;
@@ -591,9 +579,6 @@
         .welcome-msg .title { font-size: 1.1rem; margin-top: 10px; color: var(--text-primary); }
         .welcome-msg .sub { font-size: 0.85rem; margin-top: 6px; color: var(--text-secondary); }
         
-        /* ============================================================
-           مؤشر الكتابة
-           ============================================================ */
         #typingIndicator {
             font-size: 0.75rem;
             color: var(--text-secondary);
@@ -625,9 +610,6 @@
             30% { transform: translateY(-6px); }
         }
         
-        /* ============================================================
-           إدخال الرسالة
-           ============================================================ */
         .chat-input {
             display: flex;
             align-items: center;
@@ -705,9 +687,6 @@
         .chat-input .send-btn:hover { transform: scale(1.05); }
         .chat-input .send-btn:active { transform: scale(0.9); }
         
-        /* ============================================================
-           لوحة الإيموجي
-           ============================================================ */
         #emojiPanel {
             display: none;
             flex-wrap: wrap;
@@ -742,9 +721,6 @@
             border-radius: 10px;
         }
         
-        /* ============================================================
-           شريط الرد
-           ============================================================ */
         .reply-bar {
             display: none;
             padding: 4px 16px 4px 12px;
@@ -771,9 +747,6 @@
             font-size: 1.2rem;
         }
         
-        /* ============================================================
-           قائمة الضغط المطول
-           ============================================================ */
         .context-menu {
             display: none;
             position: fixed;
@@ -805,9 +778,6 @@
         .context-menu .menu-item.danger { color: #ff4444; }
         .context-menu .menu-item .icon { font-size: 1.2rem; }
         
-        /* ============================================================
-           مودال تعديل الصورة
-           ============================================================ */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -970,9 +940,6 @@
             border-color: var(--color-accent);
         }
         
-        /* ============================================================
-           لوحة المسؤول المتطورة
-           ============================================================ */
         #adminPanel {
             display: none;
             flex-direction: column;
@@ -1071,7 +1038,6 @@
             display: flex;
         }
         
-        /* ===== قسم الكلمات المحظورة ===== */
         .bad-words-list {
             display: flex;
             flex-wrap: wrap;
@@ -1132,7 +1098,6 @@
         
         .bad-words-input button:hover { transform: scale(1.02); }
         
-        /* ===== قسم الإحصائيات المتقدمة ===== */
         .advanced-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1159,7 +1124,6 @@
             color: var(--text-secondary);
         }
         
-        /* ===== قسم الإعدادات السريعة ===== */
         .quick-settings {
             display: flex;
             flex-direction: column;
@@ -1210,7 +1174,6 @@
             left: 22px;
         }
         
-        /* ===== قائمة المستخدمين ===== */
         #adminUserList {
             display: flex;
             flex-direction: column;
@@ -1280,9 +1243,6 @@
         #adminUserList .user-item .btn-warn { color: #f5a623; }
         #adminUserList .user-item .btn-warn:hover { background: rgba(245, 166, 35, 0.1); }
         
-        /* ============================================================
-           إشعارات
-           ============================================================ */
         .temp-notification {
             position: fixed;
             bottom: 80px;
@@ -1307,9 +1267,6 @@
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
         
-        /* ============================================================
-           حالة الإعداد
-           ============================================================ */
         #setupStatus {
             position: fixed;
             top: 50%;
@@ -1339,9 +1296,6 @@
         
         #fileInput { display: none; }
         
-        /* ============================================================
-           Responsive
-           ============================================================ */
         @media (max-width: 480px) {
             #app { max-width: 100%; border-radius: 0; }
             #loginScreen { padding: 30px 20px; }
@@ -1473,7 +1427,7 @@
         </div>
         
         <!-- ==========================================================
-        لوحة المسؤول المتطورة
+        لوحة المسؤول
         ========================================================== -->
         <div id="adminPanel">
             <div class="admin-header">
@@ -1493,15 +1447,12 @@
                 <button data-tab="badwords">🚫 كلمات ممنوعة</button>
                 <button data-tab="settings">⚙️ إعدادات</button>
                 <button data-tab="stats">📊 إحصائيات</button>
-                <button data-tab="security">🔒 حماية</button>
             </div>
             
-            <!-- تبويب المستخدمين -->
             <div class="admin-section active" id="tab-users">
                 <div id="adminUserList"></div>
             </div>
             
-            <!-- تبويب الكلمات الممنوعة -->
             <div class="admin-section" id="tab-badwords">
                 <div class="bad-words-input">
                     <input type="text" id="badWordInput" placeholder="أدخل كلمة ممنوعة..." maxlength="30" />
@@ -1511,18 +1462,11 @@
                 <p style="font-size:0.7rem;opacity:0.4;margin-top:6px;">💡 الكلمات الممنوعة تؤدي إلى حظر تلقائي للمستخدم</p>
             </div>
             
-            <!-- تبويب الإعدادات -->
             <div class="admin-section" id="tab-settings">
                 <div class="quick-settings">
                     <div class="setting-item">
                         <span class="label">🔇 كتم جميع المستخدمين</span>
                         <div class="switch" id="muteAllSwitch" onclick="toggleSwitch('muteAll')">
-                            <span class="thumb"></span>
-                        </div>
-                    </div>
-                    <div class="setting-item">
-                        <span class="label">📢 الإشعارات الصوتية</span>
-                        <div class="switch active" id="soundSwitch" onclick="toggleSwitch('sound')">
                             <span class="thumb"></span>
                         </div>
                     </div>
@@ -1538,12 +1482,6 @@
                             <span class="thumb"></span>
                         </div>
                     </div>
-                    <div class="setting-item">
-                        <span class="label">🛡️ حماية IP (تشويش)</span>
-                        <div class="switch active" id="ipProtectionSwitch" onclick="toggleSwitch('ipProtection')">
-                            <span class="thumb"></span>
-                        </div>
-                    </div>
                 </div>
                 <div class="admin-actions" style="margin-top:12px;">
                     <button class="btn-clear" onclick="clearAllMessages()">🗑️ مسح الكل</button>
@@ -1552,7 +1490,6 @@
                 </div>
             </div>
             
-            <!-- تبويب الإحصائيات -->
             <div class="admin-section" id="tab-stats">
                 <div class="advanced-stats">
                     <div class="stat-item"><div class="num" id="statTotalUsers">0</div><div class="label">إجمالي المستخدمين</div></div>
@@ -1561,35 +1498,6 @@
                     <div class="stat-item"><div class="num" id="statTotalMessages">0</div><div class="label">إجمالي الرسائل</div></div>
                     <div class="stat-item"><div class="num" id="statBadWordsBlocked">0</div><div class="label">كلمات ممنوعة تم حظرها</div></div>
                     <div class="stat-item"><div class="num" id="statAvgMessages">0</div><div class="label">متوسط الرسائل/يوم</div></div>
-                </div>
-            </div>
-            
-            <!-- تبويب الحماية -->
-            <div class="admin-section" id="tab-security">
-                <div class="advanced-stats" style="grid-template-columns: 1fr;">
-                    <div class="stat-item">
-                        <div class="num" id="statIpProtected">🛡️</div>
-                        <div class="label">حماية IP مفعلة (تشويش)</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="num" id="statBanCount">0</div>
-                        <div class="label">إجمالي مرات الحظر</div>
-                    </div>
-                </div>
-                <div style="background:var(--bg-secondary);padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border-color);">
-                    <h4 style="color:var(--color-accent);margin-bottom:8px;">🔒 طبقات الحماية:</h4>
-                    <ul style="list-style:none;font-size:0.8rem;color:var(--text-secondary);line-height:2;">
-                        <li>✅ تشويش IP لحماية المستخدمين</li>
-                        <li>✅ حظر تلقائي للكلمات الممنوعة</li>
-                        <li>✅ نظام عقوبات تدريجي (دقيقة، دقيقتان، 4 دقائق...)</li>
-                        <li>✅ حماية من الهجمات المتكررة</li>
-                        <li>✅ تسجيل جميع المخالفات</li>
-                        <li>✅ إمكانية حظر يدوي من المسؤول</li>
-                    </ul>
-                </div>
-                <div class="admin-actions">
-                    <button onclick="exportSecurityLog()" class="btn-export">📤 تصدير سجل الأمان</button>
-                    <button onclick="resetAllBans()" class="btn-clear" style="background:#f5a623;">🔄 إعادة تعيين الحظر</button>
                 </div>
             </div>
         </div>
@@ -1669,7 +1577,7 @@
             setupDetail.textContent = 'الرجاء الانتظار';
             
             try {
-                const collections = ['users', 'messages', 'blocked', 'reactions', 'badwords', 'bans', 'security_logs'];
+                const collections = ['users', 'messages', 'blocked', 'reactions', 'badwords', 'bans'];
                 for (let col of collections) {
                     try {
                         await db.collection(col).doc('_temp').set({ temp: true });
@@ -1681,8 +1589,7 @@
                     await db.collection('typing').doc('status').delete();
                 } catch (e) {}
                 
-                // كلمات ممنوعة افتراضية
-                const defaultBadWords = ['سب', 'شتم', 'قذر', 'وسخ', 'حقير', 'خنزير', 'كلب', 'حمار', 'بعبع', 'نجس', 'لعنة', 'زفت', 'خرا', 'قحبة', 'عاهرة'];
+                const defaultBadWords = ['سب', 'شتم', 'قذر', 'وسخ', 'حقير', 'خنزير', 'كلب', 'حمار'];
                 for (const word of defaultBadWords) {
                     try {
                         await db.collection('badwords').doc(word).set({ word: word, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
@@ -1723,15 +1630,11 @@
         let badWords = [];
         let settings = {
             muteAll: false,
-            sound: true,
             autoDark: false,
-            confirmDelete: true,
-            ipProtection: true
+            confirmDelete: true
         };
         let userBanCounts = {};
         let totalBadWordsBlocked = 0;
-        let userIps = {};
-        let securityLogs = [];
         
         // ============================================================
         // 4. العناصر
@@ -1770,22 +1673,17 @@
         const replyCancel = document.getElementById('replyCancel');
         const contextMenu = document.getElementById('contextMenu');
         
-        // إحصائيات
         const statTotalUsers = document.getElementById('statTotalUsers');
         const statActiveUsers = document.getElementById('statActiveUsers');
         const statBannedUsers = document.getElementById('statBannedUsers');
         const statTotalMessages = document.getElementById('statTotalMessages');
         const statBadWordsBlocked = document.getElementById('statBadWordsBlocked');
         const statAvgMessages = document.getElementById('statAvgMessages');
-        const statIpProtected = document.getElementById('statIpProtected');
-        const statBanCount = document.getElementById('statBanCount');
         
-        // الكلمات الممنوعة
         const badWordInput = document.getElementById('badWordInput');
         const addBadWordBtn = document.getElementById('addBadWordBtn');
         const badWordsList = document.getElementById('badWordsList');
         
-        // مودالات
         const avatarModal = document.getElementById('avatarModal');
         const avatarPreview = document.getElementById('avatarPreview');
         const editNameInput = document.getElementById('editNameInput');
@@ -1799,14 +1697,12 @@
         const cancelEditMessageBtn = document.getElementById('cancelEditMessageBtn');
         const closeEditMessageModal = document.getElementById('closeEditMessageModal');
         
-        // التبويبات
         const tabs = document.querySelectorAll('.admin-tabs button');
         const sections = {
             users: document.getElementById('tab-users'),
             badwords: document.getElementById('tab-badwords'),
             settings: document.getElementById('tab-settings'),
-            stats: document.getElementById('tab-stats'),
-            security: document.getElementById('tab-security')
+            stats: document.getElementById('tab-stats')
         };
         
         // ============================================================
@@ -1839,53 +1735,7 @@
         }
         
         // ============================================================
-        // 7. تشويش IP - حماية المستخدمين
-        // ============================================================
-        function obfuscateIP(ip) {
-            if (!ip) return '🛡️ محمي';
-            // تشويش الـ IP لإخفاء الهوية
-            const parts = ip.split('.');
-            if (parts.length === 4) {
-                return `${parts[0]}.${parts[1]}.***.***`;
-            }
-            return '🛡️ محمي';
-        }
-        
-        async function getAndStoreIP(username) {
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                const ip = data.ip;
-                // تخزين الـ IP مشوش
-                const obfuscated = obfuscateIP(ip);
-                userIps[username] = { original: ip, obfuscated: obfuscated };
-                
-                // تحديث في Firestore
-                await db.collection('users').doc(username).set({
-                    ipHash: await hashIP(ip),
-                    ipObfuscated: obfuscated
-                }, { merge: true });
-                
-                return obfuscated;
-            } catch (error) {
-                console.warn('⚠️ فشل الحصول على IP:', error);
-                return '🛡️ محمي';
-            }
-        }
-        
-        async function hashIP(ip) {
-            // دالة بسيطة لتشفير الـ IP
-            let hash = 0;
-            for (let i = 0; i < ip.length; i++) {
-                const char = ip.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return `ip_${Math.abs(hash).toString(36)}`;
-        }
-        
-        // ============================================================
-        // 8. مودال تعديل الصورة
+        // 7. مودال تعديل الصورة
         // ============================================================
         function openAvatarModal() {
             if (!currentUser) return;
@@ -1992,7 +1842,7 @@
         }
         
         // ============================================================
-        // 9. الكلمات الممنوعة
+        // 8. الكلمات الممنوعة
         // ============================================================
         async function loadBadWords() {
             try {
@@ -2054,7 +1904,7 @@
         badWordInput.onkeydown = (e) => { if (e.key === 'Enter') addBadWord(); };
         
         // ============================================================
-        // 10. نظام الحظر التلقائي
+        // 9. نظام الحظر التلقائي
         // ============================================================
         async function checkBadWords(text, username) {
             const lowerText = text.toLowerCase();
@@ -2067,7 +1917,6 @@
             }
             
             if (foundWords.length > 0) {
-                // تسجيل المخالفة
                 const banRef = db.collection('bans').doc(username);
                 const banDoc = await banRef.get();
                 let count = 1;
@@ -2085,12 +1934,9 @@
                 
                 userBanCounts[username] = count;
                 totalBadWordsBlocked += foundWords.length;
-                
-                // تحديث الإحصائيات
                 if (statBadWordsBlocked) statBadWordsBlocked.textContent = totalBadWordsBlocked;
                 
-                // حساب مدة الحظر (تتضاعف مع كل مخالفة)
-                const banDuration = Math.min(count * 60, 600); // دقيقة * عدد المخالفات (حد أقصى 10 دقائق)
+                const banDuration = Math.min(count * 60, 600);
                 
                 await db.collection('users').doc(username).update({
                     banned: true,
@@ -2099,16 +1945,8 @@
                     banCount: count
                 });
                 
-                // تسجيل في سجل الأمان
-                await logSecurityEvent(username, 'bad_word', {
-                    words: foundWords,
-                    count: count,
-                    duration: banDuration
-                });
-                
                 showNotification(`⛔ تم حظر ${username} لمدة ${banDuration} ثانية بسبب كلمات ممنوعة`);
                 
-                // إلغاء الحظر بعد المدة
                 setTimeout(async () => {
                     await db.collection('users').doc(username).update({
                         banned: false,
@@ -2124,23 +1962,7 @@
         }
         
         // ============================================================
-        // 11. سجل الأمان
-        // ============================================================
-        async function logSecurityEvent(username, type, data) {
-            try {
-                await db.collection('security_logs').add({
-                    username: username,
-                    type: type,
-                    data: data,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } catch (error) {
-                console.warn('⚠️ فشل تسجيل حدث أمان:', error);
-            }
-        }
-        
-        // ============================================================
-        // 12. تسجيل الدخول
+        // 10. تسجيل الدخول
         // ============================================================
         loginBtn.onclick = async function() {
             const username = usernameInput.value.trim();
@@ -2188,10 +2010,6 @@
                         lastSeen: firebase.firestore.FieldValue.serverTimestamp() 
                     });
                     localStorage.setItem('lastUser', username);
-                    
-                    // تشويش IP
-                    await getAndStoreIP(username);
-                    
                     enterChat(username);
                     return;
                 }
@@ -2218,10 +2036,6 @@
                 currentUser = username;
                 myAvatar = avatarUrl;
                 localStorage.setItem('lastUser', username);
-                
-                // تشويش IP
-                await getAndStoreIP(username);
-                
                 enterChat(username);
             } catch (error) {
                 loginError.textContent = '✖ خطأ: ' + error.message;
@@ -2242,7 +2056,7 @@
         adminPasswordInput.onkeydown = (e) => { if (e.key === 'Enter') loginBtn.click(); };
         
         // ============================================================
-        // 13. الدخول إلى الدردشة
+        // 11. الدخول إلى الدردشة
         // ============================================================
         function enterChat(username) {
             loginScreen.style.display = 'none';
@@ -2258,7 +2072,6 @@
             initEmojiPanel();
             loadBadWords();
             loadBanCounts();
-            loadSecurityStats();
             
             const updateInterval = setInterval(() => {
                 if (currentUser) {
@@ -2278,7 +2091,7 @@
         }
         
         // ============================================================
-        // 14. الصورة الشخصية
+        // 12. الصورة الشخصية
         // ============================================================
         function loadAvatar(username) {
             db.collection('users').doc(username).onSnapshot((doc) => {
@@ -2302,7 +2115,7 @@
         }
         
         // ============================================================
-        // 15. لوحة الإيموجي
+        // 13. لوحة الإيموجي
         // ============================================================
         const emojisList = [
             '😊', '😂', '❤️', '🔥', '👍', '👏', '🎉', '✨', '💪', '🤔',
@@ -2341,7 +2154,7 @@
         };
         
         // ============================================================
-        // 16. السحب للرد
+        // 14. السحب للرد
         // ============================================================
         function setupSwipeToReply() {
             messagesContainer.addEventListener('touchstart', handleSwipeStart, { passive: true });
@@ -2396,7 +2209,7 @@
         }
         
         // ============================================================
-        // 17. الضغط المطول
+        // 15. الضغط المطول
         // ============================================================
         function showContextMenu(e, messageId, messageText, isSent) {
             e.preventDefault();
@@ -2452,7 +2265,7 @@
         });
         
         // ============================================================
-        // 18. الرد على الرسالة
+        // 16. الرد على الرسالة
         // ============================================================
         function startReply(messageId, messageText) {
             replyingTo = messageId;
@@ -2469,7 +2282,7 @@
         };
         
         // ============================================================
-        // 19. إرسال الرسائل
+        // 17. إرسال الرسائل
         // ============================================================
         sendBtn.onclick = sendMessage;
         messageInput.onkeydown = (e) => {
@@ -2488,7 +2301,6 @@
                 return;
             }
             
-            // التحقق من الكلمات الممنوعة
             if (await checkBadWords(text, currentUser)) {
                 messageInput.value = '';
                 showNotification('⛔ تم حظرك مؤقتاً بسبب كلمات ممنوعة');
@@ -2542,7 +2354,7 @@
         }
         
         // ============================================================
-        // 20. استماع الرسائل
+        // 18. استماع الرسائل
         // ============================================================
         function listenMessages() {
             if (messagesListener) {
@@ -2688,7 +2500,7 @@
         }
         
         // ============================================================
-        // 21. عرض البروفايل
+        // 19. عرض البروفايل
         // ============================================================
         function showProfile(username) {
             db.collection('users').doc(username).get().then(doc => {
@@ -2698,11 +2510,9 @@
                     const status = data.online ? '🟢 متصل' : '⚫ غير متصل';
                     const isBanned = data.banned || false;
                     const banReason = data.banReason || '';
-                    const ip = data.ipObfuscated || '🛡️ محمي';
                     
                     let msg = `👤 ${username}${data.isAdmin ? ' ⭐' : ''}\n`;
                     msg += `${status}\n`;
-                    msg += `🛡️ IP: ${ip}\n`;
                     if (isBanned) msg += `⛔ محظور: ${banReason}\n`;
                     msg += `📅 انضم: ${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'غير معروف'}`;
                     
@@ -2714,7 +2524,7 @@
         }
         
         // ============================================================
-        // 22. معالجة اللمس
+        // 20. معالجة اللمس
         // ============================================================
         function handleTouchStart(event, messageId, messageText, isSent) {
             touchTarget = { id: messageId, text: messageText, sent: isSent };
@@ -2730,7 +2540,7 @@
         }
         
         // ============================================================
-        // 23. التفاعلات
+        // 21. التفاعلات
         // ============================================================
         window.toggleReaction = async function(messageId, emoji) {
             if (!currentUser) return;
@@ -2763,7 +2573,7 @@
         };
         
         // ============================================================
-        // 24. تعديل الرسالة
+        // 22. تعديل الرسالة
         // ============================================================
         window.editMessage = function(messageId) {
             if (!currentUser) return;
@@ -2824,7 +2634,7 @@
         };
         
         // ============================================================
-        // 25. حذف الرسالة
+        // 23. حذف الرسالة
         // ============================================================
         window.deleteMessage = async function(id) {
             if (settings.confirmDelete && !isAdmin && !confirm('حذف الرسالة؟')) return;
@@ -2838,7 +2648,7 @@
         };
         
         // ============================================================
-        // 26. استماع المستخدمين
+        // 24. استماع المستخدمين
         // ============================================================
         function listenUsers() {
             db.collection('users').onSnapshot((snapshot) => {
@@ -2869,7 +2679,6 @@
                         const adminBadge = data.isAdmin ? '<span class="badge admin">مسؤول</span>' : '';
                         const blockedBadge = data.blocked ? '<span class="badge blocked">محظور</span>' : '';
                         const bannedBadge = data.banned ? '<span class="badge banned">⛔ محظور</span>' : '';
-                        const ipDisplay = data.ipObfuscated || '🛡️';
                         
                         adminListHtml += `
                             <div class="user-item">
@@ -2879,7 +2688,6 @@
                                     ${blockedBadge}
                                     ${bannedBadge}
                                     <span class="badge ${statusBadge}">${status}</span>
-                                    <span style="font-size:0.5rem;opacity:0.4;">🛡️ ${ipDisplay}</span>
                                 </span>
                                 <div class="actions-group">
                                     ${data.blocked ? 
@@ -2909,13 +2717,6 @@
                 if (statTotalMessages) statTotalMessages.textContent = messageCount;
                 if (statBadWordsBlocked) statBadWordsBlocked.textContent = totalBadWordsBlocked;
                 if (statAvgMessages) statAvgMessages.textContent = Math.round(messageCount / (Object.keys(allUsers).length || 1));
-                if (statIpProtected) statIpProtected.textContent = '🛡️ مفعل';
-                if (statBanCount) {
-                    // حساب عدد الحظر الكلي
-                    let totalBans = 0;
-                    Object.values(userBanCounts).forEach(c => totalBans += c);
-                    statBanCount.textContent = totalBans;
-                }
                 
                 if (isAdmin) {
                     const currentData = allUsers[currentUser];
@@ -2943,7 +2744,7 @@
         }
         
         // ============================================================
-        // 27. استماع الكتابة
+        // 25. استماع الكتابة
         // ============================================================
         function listenTyping() {
             db.collection('typing').doc('status').onSnapshot((doc) => {
@@ -2991,7 +2792,7 @@
         };
         
         // ============================================================
-        // 28. تحميل عدد مرات الحظر
+        // 26. تحميل عدد مرات الحظر
         // ============================================================
         async function loadBanCounts() {
             try {
@@ -3004,27 +2805,14 @@
             }
         }
         
-        async function loadSecurityStats() {
-            try {
-                const snapshot = await db.collection('security_logs').get();
-                securityLogs = [];
-                snapshot.forEach(doc => {
-                    securityLogs.push({ id: doc.id, ...doc.data() });
-                });
-            } catch (error) {
-                console.error('خطأ في تحميل سجل الأمان:', error);
-            }
-        }
-        
         // ============================================================
-        // 29. لوحة المسؤول
+        // 27. لوحة المسؤول
         // ============================================================
         adminShieldBtn.onclick = function() {
             if (isAdmin) {
                 adminPanel.style.display = 'flex';
                 updateStats();
                 loadBadWords();
-                loadSecurityStats();
             } else {
                 showNotification('❌ فقط المسؤول يمكنه الدخول');
             }
@@ -3057,7 +2845,6 @@
                     blockedBy: currentUser,
                     blockedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                await logSecurityEvent(username, 'manual_block', { by: currentUser });
                 showNotification(`✅ تم حظر ${username}`);
             } catch (error) {
                 showNotification('❌ فشل الحظر');
@@ -3069,7 +2856,6 @@
             try {
                 await db.collection('users').doc(username).update({ blocked: false });
                 await db.collection('blocked').doc(username).delete();
-                await logSecurityEvent(username, 'manual_unblock', { by: currentUser });
                 showNotification(`✅ تم إلغاء حظر ${username}`);
             } catch (error) {
                 showNotification('❌ فشل إلغاء الحظر');
@@ -3085,7 +2871,6 @@
                     banExpires: null 
                 });
                 await db.collection('bans').doc(username).delete();
-                await logSecurityEvent(username, 'manual_unban', { by: currentUser });
                 showNotification(`✅ تم إلغاء حظر ${username}`);
             } catch (error) {
                 showNotification('❌ فشل إلغاء الحظر');
@@ -3104,7 +2889,6 @@
                 const batch = db.batch();
                 msgs.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
-                await logSecurityEvent(username, 'delete_user', { by: currentUser });
                 showNotification(`✅ تم حذف ${username}`);
             } catch (error) {
                 showNotification('❌ فشل الحذف');
@@ -3116,7 +2900,6 @@
             if (!confirm(`⭐ ترقية ${username}؟`)) return;
             try {
                 await db.collection('users').doc(username).update({ isAdmin: true });
-                await logSecurityEvent(username, 'make_admin', { by: currentUser });
                 showNotification(`✅ تم ترقية ${username}`);
             } catch (error) {
                 showNotification('❌ فشل الترقية');
@@ -3125,7 +2908,6 @@
         
         window.warnUser = async function(username) {
             if (!isAdmin) return;
-            await logSecurityEvent(username, 'warning', { by: currentUser });
             showNotification(`⚠️ تم إرسال تحذير إلى ${username}`);
         };
         
@@ -3137,7 +2919,6 @@
                 const batch = db.batch();
                 snapshot.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
-                await logSecurityEvent('system', 'clear_messages', { by: currentUser });
                 showNotification('✅ تم مسح جميع الرسائل');
             } catch (error) {
                 showNotification('❌ فشل المسح');
@@ -3192,7 +2973,6 @@
                     }
                 });
                 await batch.commit();
-                await logSecurityEvent('system', 'ban_all', { by: currentUser });
                 showNotification('✅ تم حظر جميع المستخدمين');
             } catch (error) {
                 showNotification('❌ فشل حظر الكل');
@@ -3200,70 +2980,8 @@
             }
         };
         
-        window.exportSecurityLog = async function() {
-            if (!isAdmin) return;
-            try {
-                const snapshot = await db.collection('security_logs')
-                    .orderBy('timestamp', 'desc')
-                    .limit(100)
-                    .get();
-                
-                let text = '📋 سجل الأمان - نيزك\n';
-                text += `📅 التاريخ: ${new Date().toLocaleString('ar')}\n`;
-                text += '='.repeat(40) + '\n\n';
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const time = data.timestamp ? 
-                        new Date(data.timestamp.toDate()).toLocaleString('ar') : 'وقت غير معروف';
-                    text += `[${time}] ${data.username}: ${data.type} - ${JSON.stringify(data.data)}\n`;
-                });
-                
-                const blob = new Blob([text], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `نيزك_سجل_الأمان_${new Date().toISOString().slice(0,10)}.txt`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                showNotification('✅ تم تصدير سجل الأمان');
-            } catch (error) {
-                showNotification('❌ فشل التصدير');
-                console.error(error);
-            }
-        };
-        
-        window.resetAllBans = async function() {
-            if (!isAdmin) return;
-            if (!confirm('⚠️ هل تريد إعادة تعيين جميع حالات الحظر؟')) return;
-            try {
-                const bans = await db.collection('bans').get();
-                const batch = db.batch();
-                bans.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                
-                const users = await db.collection('users').get();
-                users.forEach(doc => {
-                    batch.update(doc.ref, { 
-                        banned: false, 
-                        banReason: null, 
-                        banExpires: null,
-                        banCount: 0
-                    });
-                });
-                await batch.commit();
-                
-                await logSecurityEvent('system', 'reset_bans', { by: currentUser });
-                showNotification('✅ تم إعادة تعيين جميع حالات الحظر');
-            } catch (error) {
-                showNotification('❌ فشل إعادة التعيين');
-                console.error(error);
-            }
-        };
-        
         // ============================================================
-        // 30. تبديل الإعدادات
+        // 28. تبديل الإعدادات
         // ============================================================
         function toggleSwitch(id) {
             const el = document.getElementById(id + 'Switch');
@@ -3274,7 +2992,7 @@
         }
         
         // ============================================================
-        // 31. إشعارات
+        // 29. إشعارات
         // ============================================================
         function showNotification(message) {
             const existing = document.querySelector('.temp-notification');
@@ -3293,7 +3011,7 @@
         }
         
         // ============================================================
-        // 32. خروج
+        // 30. خروج
         // ============================================================
         logoutBtn.onclick = function() {
             if (confirm('تسجيل الخروج؟')) {
@@ -3315,15 +3033,13 @@
         };
         
         // ============================================================
-        // 33. بداية التطبيق
+        // 31. بداية التطبيق
         // ============================================================
-        console.log('☄️ نيزك - النسخة النهائية المتكاملة');
+        console.log('☄️ نيزك - دردشة جماعية');
         console.log('👤 المسؤول: slx23m | كلمة: 1442');
         console.log('📌 اسحب الرسالة لليمين للرد');
         console.log('📌 اضغط مطولاً للتفاعل');
         console.log('📌 اضغط على الصورة لتعديلها');
-        console.log('📌 لوحة المسؤول متطورة مع حماية IP');
-        console.log('🛡️ حماية IP مفعلة مع تشويش');
         
         const savedUser = localStorage.getItem('lastUser');
         if (savedUser) {
@@ -3336,7 +3052,7 @@
         console.log('✅ التطبيق جاهز للاستخدام!');
         
         // ============================================================
-        // 34. PWA - Service Worker
+        // 32. PWA - Service Worker
         // ============================================================
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
